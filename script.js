@@ -413,14 +413,9 @@ SearchActionSheet — makes long-pressing search results open their action sheet
     // 7. Live Installs Counter
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
-        // Here you can use fetch() to hit your Cloudflare Worker URL
-        // fetch('https://your-worker-url.workers.dev/api/installs')
-        //   .then(res => res.json())
-        //   .then(data => { installCounter.innerText = data.count.toLocaleString(); })
-        
-        let currentCount = parseInt(installCounter.innerText.replace(/,/g, ''), 10) || 1245892;
+        // Fake live installs simulator
+        let currentCount = parseInt(installCounter.innerText.replace(/,/g, ''), 10) || 5240;
         setInterval(() => {
-            // Simulate live installs every 3-8 seconds
             if (Math.random() > 0.3) {
                 currentCount += Math.floor(Math.random() * 3) + 1;
                 installCounter.innerText = currentCount.toLocaleString();
