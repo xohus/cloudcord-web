@@ -410,22 +410,34 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         }, 4000); // Crossfade every 4 seconds
     }
     
-    // 7. Live Installs Counter
+    // 7. Live Installs Counter from GitHub
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
-        // Real live installs from Cloudflare worker
-        const updateInstalls = () => {
-            fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs')
-              .then(res => res.json())
-              .then(data => { 
-                  if (data && typeof data.count !== "undefined") {
-                      installCounter.innerText = data.count.toLocaleString(); 
-                  }
-              })
-              .catch(e => console.error("Failed to fetch live installs:", e));
-        };
+        async function fetchGitHubDownloads() {
+            try {
+                const response = await fetch('https://api.github.com/repos/xohus/cloudcord/releases');
+                const releases = await response.json();
+                
+                let totalDownloads = 0;
+                if (Array.isArray(releases)) {
+                    releases.forEach(release => {
+                        release.assets.forEach(asset => {
+                            totalDownloads += asset.download_count;
+                        });
+                    });
+                }
+                
+                if (totalDownloads > 0) {
+                    installCounter.innerText = totalDownloads.toLocaleString();
+                } else {
+                    installCounter.innerText = '55'; // Fallback
+                }
+            } catch (err) {
+                console.error('Failed to fetch download count', err);
+            }
+        }
         
-        updateInstalls();
-        setInterval(updateInstalls, 30000); // Check every 30 seconds
+        fetchGitHubDownloads();
+        setInterval(fetchGitHubDownloads, 60000); // Check every minute
     }
 });
