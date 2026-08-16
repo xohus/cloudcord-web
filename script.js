@@ -428,5 +428,4 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         updateInstalls();
         setInterval(updateInstalls, 30000); // Check every 30 seconds
     }
-
 });
