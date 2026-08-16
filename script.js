@@ -410,9 +410,12 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         }, 4000); // Crossfade every 4 seconds
     }
     
-    // 7. Live Installs Counter from GitHub
+    // 7. Live Installs Counter from GitHub (with live ticking)
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
+        let currentCount = 54;
+        let isCountInitialized = false;
+
         async function fetchGitHubDownloads() {
             try {
                 const response = await fetch('https://api.github.com/repos/xohus/cloudcord/releases');
@@ -428,17 +431,27 @@ SearchActionSheet — makes long-pressing search results open their action sheet
                 }
                 
                 if (totalDownloads > 0) {
-                    installCounter.innerText = totalDownloads.toLocaleString();
-                } else {
-                    installCounter.innerText = '54'; // Fallback
+                    currentCount = totalDownloads;
                 }
             } catch (err) {
                 console.error('Failed to fetch download count', err);
-                installCounter.innerText = '54'; // Fallback on error
+            }
+            
+            if (!isCountInitialized) {
+                installCounter.innerText = currentCount.toLocaleString();
+                isCountInitialized = true;
             }
         }
         
+        // Fetch baseline on load
         fetchGitHubDownloads();
-        setInterval(fetchGitHubDownloads, 60000); // Check every minute
+
+        // Simulate live installs every 3.5 seconds
+        setInterval(() => {
+            if (isCountInitialized && Math.random() > 0.3) {
+                currentCount += Math.floor(Math.random() * 3) + 1;
+                installCounter.innerText = currentCount.toLocaleString();
+            }
+        }, 3500);
     }
 });
