@@ -430,11 +430,11 @@ SearchActionSheet — makes long-pressing search results open their action sheet
                 if (totalDownloads > 0) {
                     installCounter.innerText = totalDownloads.toLocaleString();
                 } else {
-                    installCounter.innerText = '55'; // Fallback
+                    installCounter.innerText = '54'; // Fallback
                 }
             } catch (err) {
                 console.error('Failed to fetch download count', err);
-                installCounter.innerText = '55'; // Fallback on error
+                installCounter.innerText = '54'; // Fallback on error
             }
         }
         
