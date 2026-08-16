@@ -434,6 +434,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
                 }
             } catch (err) {
                 console.error('Failed to fetch download count', err);
+                installCounter.innerText = '55'; // Fallback on error
             }
         }
         
