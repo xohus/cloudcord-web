@@ -413,14 +413,20 @@ SearchActionSheet — makes long-pressing search results open their action sheet
     // 7. Live Installs Counter
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
-        // Fake live installs simulator
-        let currentCount = parseInt(installCounter.innerText.replace(/,/g, ''), 10) || 5240;
-        setInterval(() => {
-            if (Math.random() > 0.3) {
-                currentCount += Math.floor(Math.random() * 3) + 1;
-                installCounter.innerText = currentCount.toLocaleString();
-            }
-        }, 3500);
+        // Real live installs from Cloudflare worker
+        const updateInstalls = () => {
+            fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs')
+              .then(res => res.json())
+              .then(data => { 
+                  if (data && typeof data.count !== "undefined") {
+                      installCounter.innerText = data.count.toLocaleString(); 
+                  }
+              })
+              .catch(e => console.error("Failed to fetch live installs:", e));
+        };
+        
+        updateInstalls();
+        setInterval(updateInstalls, 30000); // Check every 30 seconds
     }
 
 });
