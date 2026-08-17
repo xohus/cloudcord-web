@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const session = require('express-session');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3000;
 const SOURCE_DIR = path.join(__dirname, 'sourcevault-data');
 
 // Security middlewares
+app.set('trust proxy', 1); // Trust Railway/Cloudflare proxy for accurate IP
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
@@ -32,7 +33,7 @@ app.use(limiter);
 
 const authLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10 // limit each IP to 10 agreement attempts per hour
+    max: 50 // limit each IP to 50 agreement attempts per hour
 });
 
 // Audit logger
