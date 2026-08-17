@@ -129,6 +129,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadFile(filePath) {
         breadcrumb.innerText = filePath;
         const codeBlock = document.getElementById('code-block');
+        
+        const ext = filePath.split('.').pop().toLowerCase();
+        const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico'];
+        
+        if (imageExts.includes(ext)) {
+            codeBlock.innerHTML = '';
+            codeBlock.className = '';
+            const img = document.createElement('img');
+            img.src = '/api/source/file/' + encodeURIComponent(filePath).replace(/%2F/g, '/');
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '600px';
+            img.style.borderRadius = '8px';
+            img.style.display = 'block';
+            img.style.margin = '20px auto';
+            codeBlock.appendChild(img);
+            return;
+        }
+
         codeBlock.textContent = 'Loading...';
         
         try {

@@ -165,9 +165,12 @@ app.get('/api/source/file/*', checkSourceAccess, async (req, res) => {
             return res.status(500).json({ error: 'Failed to fetch file from GitHub' });
         }
         
-        const content = await ghRes.text();
+        const buffer = await ghRes.arrayBuffer();
+        const contentType = ghRes.headers.get('content-type') || 'application/octet-stream';
+        res.set('Content-Type', contentType);
+        
         logAudit('FILE_ACCESSED', req, { file: filePathParam });
-        res.send(content);
+        res.send(Buffer.from(buffer));
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch file' });
     }
