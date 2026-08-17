@@ -274,6 +274,46 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
     }
 });
 
+app.get('/api/proxy/commits', checkClientAuth, async (req, res) => {
+    const token = process.env.GITHUB_PAT;
+    if (!token) return res.status(500).json({ error: 'Unconfigured' });
+    
+    try {
+        const ghRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?page=${req.query.page || 1}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'CloudCord-Client'
+            }
+        });
+        if (!ghRes.ok) return res.status(ghRes.status).send('GitHub Error');
+        const data = await ghRes.json();
+        res.json(data);
+    } catch (err) {
+        res.status(500).send('Proxy Error');
+    }
+});
+
+app.get('/api/proxy/compare/:compareString', checkClientAuth, async (req, res) => {
+    const token = process.env.GITHUB_PAT;
+    if (!token) return res.status(500).json({ error: 'Unconfigured' });
+    
+    try {
+        const ghRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/compare/${req.params.compareString}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'CloudCord-Client'
+            }
+        });
+        if (!ghRes.ok) return res.status(ghRes.status).send('GitHub Error');
+        const data = await ghRes.json();
+        res.json(data);
+    } catch (err) {
+        res.status(500).send('Proxy Error');
+    }
+});
+
 // Serve the source.html for /source route
 app.get('/source', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'source.html'));
