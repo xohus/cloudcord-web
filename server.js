@@ -67,70 +67,108 @@ app.get('/api/source/status', (req, res) => {
     });
 });
 
-// Helper to walk directory and build tree
-function getFilesTree(dir, basePath = '') {
-    let results = [];
-    if (!fs.existsSync(dir)) return results;
-    
-    const list = fs.readdirSync(dir);
-    list.forEach(file => {
-        const fullPath = path.join(dir, file);
-        const relPath = path.join(basePath, file);
-        const stat = fs.statSync(fullPath);
-        
-        if (stat && stat.isDirectory()) {
-            results.push({
-                name: file,
-                path: relPath.replace(/\\\\/g, '/'),
-                type: 'directory',
-                children: getFilesTree(fullPath, relPath)
-            });
-        } else {
-            results.push({
-                name: file,
-                path: relPath.replace(/\\\\/g, '/'),
-                type: 'file',
-                size: stat.size
-            });
-        }
-    });
-    return results;
-}
+const GITHUB_REPO = 'xohus/cloudcord';
 
-app.get('/api/source/files', checkSourceAccess, (req, res) => {
+app.get('/api/source/files', checkSourceAccess, async (req, res) => {
     logAudit('SOURCE_FILES_LISTED', req);
+    
+    const token = process.env.GITHUB_PAT;
+    if (!token) {
+        return res.status(500).json({ error: 'SourceVault is unconfigured. GITHUB_PAT missing.' });
+    }
+    
     try {
-        const tree = getFilesTree(SOURCE_DIR);
-        res.json({ tree });
+        const ghRes = await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/git/trees/main?recursive=1', {
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'CloudCord-SourceVault'
+            }
+        });
+        
+        if (!ghRes.ok) {
+            console.error('GitHub API error:', await ghRes.text());
+            return res.status(500).json({ error: 'Failed to fetch repository tree from GitHub' });
+        }
+        
+        const data = await ghRes.json();
+        
+        const excludePatterns = [/^\.git/, /^\.env/, /^node_modules/, /^dist/];
+        const root = { type: 'directory', children: [] };
+        
+        data.tree.forEach(item => {
+            if (excludePatterns.some(p => p.test(item.path))) return;
+            
+            const parts = item.path.split('/');
+            let current = root;
+            
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+                const isLast = (i === parts.length - 1);
+                
+                let child = current.children.find(c => c.name === part);
+                if (!child) {
+                    if (isLast && item.type === 'blob') {
+                        current.children.push({
+                            name: part,
+                            path: item.path,
+                            type: 'file',
+                            size: item.size
+                        });
+                    } else if (item.type === 'tree' || !isLast) {
+                        child = {
+                            name: part,
+                            path: parts.slice(0, i + 1).join('/'),
+                            type: 'directory',
+                            children: []
+                        };
+                        current.children.push(child);
+                    }
+                }
+                current = child;
+            }
+        });
+        
+        res.json({ tree: root.children });
     } catch (err) {
+        console.error('Tree fetch failed', err);
         res.status(500).json({ error: 'Failed to read source tree' });
     }
 });
 
-app.get('/api/source/file/*', checkSourceAccess, (req, res) => {
+app.get('/api/source/file/*', checkSourceAccess, async (req, res) => {
     const filePathParam = req.params[0];
     if (!filePathParam || filePathParam.includes('..')) {
-        logAudit('PATH_TRAVERSAL_ATTEMPT', req, { attemptedPath: filePathParam });
         return res.status(400).json({ error: 'Invalid path' });
     }
     
-    const safePath = path.join(SOURCE_DIR, filePathParam);
-    if (!safePath.startsWith(SOURCE_DIR)) {
-        logAudit('PATH_TRAVERSAL_ATTEMPT', req, { attemptedPath: filePathParam });
-        return res.status(403).json({ error: 'Access denied' });
+    const token = process.env.GITHUB_PAT;
+    if (!token) {
+        return res.status(500).json({ error: 'SourceVault is unconfigured. GITHUB_PAT missing.' });
     }
     
-    if (!fs.existsSync(safePath)) {
-        return res.status(404).json({ error: 'File not found' });
+    try {
+        const ghRes = await fetch('https://raw.githubusercontent.com/' + GITHUB_REPO + '/main/' + filePathParam, {
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'User-Agent': 'CloudCord-SourceVault'
+            }
+        });
+        
+        if (ghRes.status === 404) {
+            return res.status(404).json({ error: 'File not found' });
+        }
+        
+        if (!ghRes.ok) {
+            return res.status(500).json({ error: 'Failed to fetch file from GitHub' });
+        }
+        
+        const content = await ghRes.text();
+        logAudit('FILE_ACCESSED', req, { file: filePathParam });
+        res.send(content);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch file' });
     }
-    
-    const stat = fs.statSync(safePath);
-    if (stat.isDirectory()) {
-        return res.status(400).json({ error: 'Path is a directory' });
-    }
-    
-    logAudit('FILE_ACCESSED', req, { file: filePathParam });
-    res.sendFile(safePath);
 });
 
 // Serve the source.html for /source route
