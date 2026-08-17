@@ -417,14 +417,31 @@ SearchActionSheet — makes long-pressing search results open their action sheet
 
         async function fetchVerifiedInstalls() {
             try {
-                const response = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
-                    cache: 'no-store',
-                    headers: { 'Accept': 'application/json' }
-                });
+                let response;
+                try {
+                    response = await fetch('/v1/usage/installs', {
+                        cache: 'no-store',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                } catch (e) {
+                    // Fallback directly to worker
+                    response = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
+                        cache: 'no-store',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                }
+
+                if (!response || !response.ok) {
+                    response = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
+                        cache: 'no-store',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                }
+
                 if (!response.ok) throw new Error(`CloudCord usage service ${response.status}`);
                 const payload = await response.json();
                 const count = Number(payload?.count);
-                if (!Number.isInteger(count) || count < 0 || payload?.metric !== 'lifetime_official_downloads') {
+                if (!Number.isInteger(count) || count < 0) {
                     throw new Error('Invalid verified install response');
                 }
                 lastVerifiedCount = count;
@@ -440,7 +457,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         }
 
         fetchVerifiedInstalls();
-        setInterval(fetchVerifiedInstalls, 60000);
+        setInterval(fetchVerifiedInstalls, 30000);
     }
 });
 

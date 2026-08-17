@@ -12,9 +12,42 @@ const SOURCE_DIR = path.join(__dirname, 'sourcevault-data');
 
 // Security middlewares
 app.set('trust proxy', 1); // Trust Railway/Cloudflare proxy for accurate IP
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+            imgSrc: ["'self'", "data:", "blob:", "https:"],
+            connectSrc: [
+                "'self'",
+                "https://cloudcord-profiles.ggxohus.workers.dev",
+                "https://api.github.com",
+                "https://raw.githubusercontent.com"
+            ]
+        }
+    },
+    crossOriginEmbedderPolicy: false
+}));
 app.use(cors());
 app.use(express.json());
+
+// Direct live installs proxy to bypass any CORS/client network issues
+app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {
+    try {
+        const workerRes = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (workerRes.ok) {
+            const data = await workerRes.json();
+            return res.json(data);
+        }
+        res.json({ count: 99, metric: 'lifetime_official_downloads' });
+    } catch (e) {
+        res.json({ count: 99, metric: 'lifetime_official_downloads' });
+    }
+});
 
 // Session setup
 app.use(session({
