@@ -139,6 +139,6 @@ app.get('/source', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(\Server is running on port \\);
+    console.log(`Server is running on port ${PORT}`);
 });
 
