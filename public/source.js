@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const gateContainer = document.getElementById('gate-container');
     const appContainer = document.getElementById('app-container');
     const agreeBtn = document.getElementById('agree-btn');
@@ -26,18 +26,6 @@
         e.preventDefault();
         e.clipboardData.setData('text/plain', 'Access denied by CloudCord Proprietary Source License.');
     });
-    
-    // Visibility blur to prevent screenshots when app loses focus
-    const overlay = document.getElementById('obfuscation-overlay');
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') {
-            overlay.style.display = 'flex';
-        } else {
-            overlay.style.display = 'none';
-        }
-    });
-    window.addEventListener('blur', () => { overlay.style.display = 'flex'; });
-    window.addEventListener('focus', () => { overlay.style.display = 'none'; });
     
     // Check if already agreed
     try {

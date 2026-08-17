@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -64,22 +64,9 @@
         .code-container { flex: 1; overflow: auto; padding: 1.5rem; }
         
         pre[class*="language-"] { margin: 0; background: transparent; }
-        
-        /* Overlay for obfuscation when focus lost */
-        #obfuscation-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: var(--bg-primary); z-index: 9999; display: none;
-            align-items: center; justify-content: center; color: var(--accent-red);
-            font-size: 1.5rem; font-weight: bold; flex-direction: column;
-        }
     </style>
 </head>
 <body class="noselect">
-    <div id="obfuscation-overlay">
-        <div>Content Hidden</div>
-        <div style="font-size: 1rem; color: var(--text-secondary); margin-top: 10px;">Return to window to view source</div>
-    </div>
-
     <!-- Access Gate -->
     <div id="gate-container">
         <div class="license-box reveal stagger-up">
