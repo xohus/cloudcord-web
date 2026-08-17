@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "cloudcord-web",
   "version": "1.0.0",
   "description": "",
@@ -14,3 +14,4 @@
     "helmet": "^7.1.0"
   }
 }
+

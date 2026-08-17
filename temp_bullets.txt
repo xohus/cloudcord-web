@@ -1,0 +1,8 @@
+﻿                &bull; Fork, clone, or mirror CloudCord.<br>
+                &bull; Redistribute or publish the source code.<br>
+                &bull; Modify CloudCord into a derivative project.<br>
+                &bull; Rename, rebrand, or rehost CloudCord.<br>
+                &bull; Remove ownership or license notices.<br>
+                &bull; Create competing products using protected CloudCord code.<br>
+                &bull; Sell or sublicense CloudCord source.<br>
+                &bull; Represent derivative/copy projects as official CloudCord products.<br><br>
