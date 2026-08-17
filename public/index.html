@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudCord - The Ultimate Chat Experience</title>
+    <meta name="description" content="A modern, highly customizable chat client experience for all platforms.">
+    <link rel="icon" href="https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="canonical" href="https://cloudcord.xohus.lol/">
+    <meta name="application-name" content="CloudCord">
+    <meta name="author" content="Xohus">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "@id": "https://cloudcord.xohus.lol/#software",
+  "name": "CloudCord",
+  "alternateName": [
+    "CloudCord Mobile",
+    "CloudCord Discord Client Mod"
+  ],
+  "url": "https://cloudcord.xohus.lol/",
+  "description": "CloudCord is an actively maintained client-side Discord modification framework focused on iOS and Android, with Windows desktop support. It provides runtime/framework injection, plugins, fake profile badges, profile customization, UI overrides, and cross-device profile synchronization. CloudCord is not a Discord bot hosting service.",
+  "applicationCategory": "Utilities",
+  "applicationSubCategory": "Mobile client modification framework",
+  "operatingSystem": [
+    "iOS",
+    "iPadOS",
+    "Android",
+    "Windows"
+  ],
+  "runtimePlatform": [
+    "iOS",
+    "Android",
+    "React Native",
+    "Windows"
+  ],
+  "featureList": [
+    "Mobile Discord client modification framework",
+    "iOS framework injection",
+    "Android client modification",
+    "Fake profile badges",
+    "Profile customization",
+    "User interface overrides",
+    "Plugin loading",
+    "Theme and appearance customization",
+    "Cross-device CloudCord profile synchronization",
+    "Client-side runtime injection"
+  ],
+  "author": {
+    "@type": "Person",
+    "@id": "https://xohus.lol/#xohus",
+    "name": "Xohus",
+    "url": "https://xohus.lol/",
+    "sameAs": [
+      "https://github.com/xohus"
+    ]
+  },
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://cloudcord.xohus.lol/#organization",
+    "name": "CloudCord",
+    "url": "https://cloudcord.xohus.lol/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://raw.githubusercontent.com/xohus/cloudcord/main/cloudcord-favicon.png"
+    }
+  },
+  "codeRepository": "https://github.com/xohus/cloudcord",
+  "installUrl": "https://cloudcord.xohus.lol/",
+  "isAccessibleForFree": true,
+  "keywords": [
+    "CloudCord",
+    "Discord mobile client mod",
+    "Discord iOS modification",
+    "Discord Android modification",
+    "Discord client framework",
+    "mobile Discord plugins",
+    "React Native Discord mod"
+  ],
+  "sameAs": [
+    "https://github.com/xohus/cloudcord",
+    "https://xohus.lol/"
+  ]
+}
+</script>
+</head>
+<body>
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+            document.body.classList.add('light');
+        }
+    </script>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo-link">
+                <img src="https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png" alt="CloudCord Logo" class="nav-logo">
+            </a>
+            <div class="nav-links">
+                <a href="#download" id="nav-download" class="nav-link">Download</a>
+                <a href="features.html" class="nav-link">Features</a>
+                <a href="plugins.html" class="nav-link">Plugins</a>
+                <a href="team.html" class="nav-link">Team</a>
+                <a href="faq.html" class="nav-link">FAQ</a>
+                <a href="/source" class="nav-link" style="color: var(--accent-purple); font-weight: bold;">SourceVault</a>
+                <button id="theme-toggle" aria-label="Toggle Theme" class="theme-btn">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Download Modal -->
+    <div id="download-modal" class="modal">
+        <div class="modal-content reveal">
+            <span class="close-modal">&times;</span>
+            <h2>Select Your Platform</h2>
+            <p>Get the ultimate chat experience on your favorite device.</p>
+            <div class="platform-options">
+                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta/cloudcord0.ipa" target="_blank" class="platform-btn">iOS / iPadOS</a>
+                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_android/cloudcord.apk" target="_blank" class="platform-btn">Android</a>
+                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/cloudcord.exe" target="_blank" class="platform-btn">Windows</a>
+            </div>
+        </div>
+    </div>
+
+    <header class="hero">
+        <div class="hero-container">
+            <div class="hero-left reveal stagger-up">
+                <div class="hexcheats-badge">The Ultimate Chat Client</div>
+                <img src="https://raw.githubusercontent.com/xohus/cloudcord/main/assets/logo-full.png" alt="CloudCord" class="hero-main-logo">
+                <p class="hero-tagline" style="margin-bottom: 1.5rem;">Imagine a place where you can completely customize your chat, unlock insane features, and connect like never before.</p>
+                <div style="display: flex; gap: 0.75rem; margin-bottom: 2.5rem; flex-wrap: wrap;">
+                    <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; padding: 0.35rem 0.8rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">Available on Windows</span>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; padding: 0.35rem 0.8rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">iOS / iPadOS</span>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; padding: 0.35rem 0.8rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">Android</span>
+                </div>
+                <div class="hero-buttons">
+                    <button id="hero-download-btn" class="btn btn-primary cord-btn">Download for Free</button>
+                    <a href="features.html" class="btn btn-secondary cord-btn">Explore Features</a>
+                </div>
+                
+                <div class="live-installs reveal stagger-up" style="margin-top: 2rem; display: flex; align-items: center; gap: 0.75rem; transition-delay: 0.1s;">
+                    <div style="width: 12px; height: 12px; background-color: var(--accent-green); border-radius: 50%; box-shadow: 0 0 12px var(--accent-green); animation: pulse 2s infinite;"></div>
+                    <span style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary); letter-spacing: 0.5px;" id="install-counter">—</span>
+                    <span style="color: var(--text-secondary); font-size: 1rem; font-weight: 500;">Verified Installer Downloads</span>
+                </div>
+            </div>
+            
+            <div class="hero-right reveal stagger-up" style="transition-delay: 0.2s">
+                <div class="tilt-showcase" id="tilt-showcase">
+                    <img src="https://files.catbox.moe/88lcki.png" onerror="this.src='https://files.catbox.moe/alh2v9.jpg'" alt="CloudCord Preview" class="tilt-img active">
+                    <img src="https://files.catbox.moe/eyxpb9.png" onerror="this.src='https://files.catbox.moe/alh2v9.jpg'" alt="CloudCord Settings" class="tilt-img">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="features-section">
+            <h2 class="section-title reveal stagger-up">Customize Everything</h2>
+            <p class="section-subtitle reveal stagger-up">Everything you love, amplified. CloudCord gives you the tools to make your chat experience truly yours.</p>
+            
+            <div class="features-grid">
+                <div class="feature-card reveal stagger-up cord-card" style="transition-delay: 0.1s">
+                    <h3 class="feature-title">BotCord Built-In</h3>
+                    <p class="feature-desc">Login to multiple bot accounts natively. Chat as your bot effortlessly with a familiar, built-in interface.</p>
+                </div>
+                
+                <div class="feature-card reveal stagger-up cord-card" style="transition-delay: 0.2s">
+                    <h3 class="feature-title">Fake Profiles</h3>
+                    <p class="feature-desc">Create the perfect profile. Customize your avatar, inject custom gradient banners, and add exclusive badges just for you.</p>
+                </div>
+                
+                <div class="feature-card reveal stagger-up cord-card" style="transition-delay: 0.3s">
+                    <h3 class="feature-title">Absolute Privacy</h3>
+                    <p class="feature-desc">What happens on your device stays on your device. We prioritize local storage to ensure your info is never leaked.</p>
+                </div>
+                
+                <div class="feature-card reveal stagger-up cord-card" style="transition-delay: 0.4s">
+                    <h3 class="feature-title">Familiar, Yet Better</h3>
+                    <p class="feature-desc">No clunky wrappers. CloudCord integrates seamlessly into the app you already know and love, making navigation a breeze.</p>
+                </div>
+                
+                <div class="feature-card reveal stagger-up cord-card" style="transition-delay: 0.5s">
+                    <h3 class="feature-title">Blazing Fast</h3>
+                    <p class="feature-desc">Say goodbye to slow load times. Our optimized engine ensures snappy responses, quick start-ups, and smooth scrolling.</p>
+                </div>
+                
+                <div class="feature-card reveal stagger-up cord-card" style="transition-delay: 0.6s">
+                    <h3 class="feature-title">450+ Plugins</h3>
+                    <p class="feature-desc">Unlock a massive library of tweaks. From custom themes to message translation, there's a plugin for everything.</p>
+                    <a href="plugins.html" class="card-link">Browse Plugins &rarr;</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Plugins Marquee Section -->
+        <section class="plugins-section">
+            <div class="plugins-header reveal stagger-up">
+                <h2 class="section-title">Built-In Modifications</h2>
+                <p class="section-subtitle" style="margin-bottom: 0;">A massive library of plugins pre-packaged for performance.</p>
+            </div>
+            
+            <div class="marquee-container reveal stagger-up">
+                <div class="marquee-track" id="marquee-track">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content reveal stagger-up">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="https://raw.githubusercontent.com/xohus/cloudcord/main/assets/logo-full.png" alt="CloudCord Logo" class="footer-logo">
+                    <p>The ultimate chat experience, customized exactly for you.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <a href="features.html">Features</a>
+                    <a href="plugins.html">Plugins Library</a>
+                    <a href="https://github.com/xohus/cloudcord" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <a href="team.html">The Team</a>
+                    <a href="faq.html">FAQ</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <a href="tos.html">Terms of Service</a>
+                    <a href="privacy.html">Privacy Policy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p><a href="https://github.com/xohus/cloudcord" target="_blank" style="color: inherit; text-decoration: none; cursor: default;">Built with passion by xohus.</a></p>
+                <p>Not affiliated with or endorsed by Discord Inc.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="script.js?v=2"></script>
+</body>
+</html>

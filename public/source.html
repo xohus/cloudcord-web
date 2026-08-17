@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudCord SourceVault</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); }
+        
+        /* Anti-copy measures */
+        .noselect {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+        }
+        
+        #gate-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; text-align: center; padding: 2rem;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+        .license-box {
+            background: var(--bg-tertiary); padding: 2rem; border-radius: 12px;
+            max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color); text-align: left;
+        }
+        .license-box h1 { color: var(--accent-purple); margin-top: 0; }
+        .license-box h2 { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+        .license-text {
+            background: var(--bg-primary); padding: 1rem; border-radius: 8px;
+            height: 200px; overflow-y: auto; margin-bottom: 1.5rem; font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        #app-container { display: none; height: 100vh; display: flex; flex-direction: column; }
+        #app-container.visible { display: flex; }
+        
+        .topbar {
+            height: 60px; background: var(--bg-secondary); display: flex; align-items: center;
+            padding: 0 1.5rem; border-bottom: 1px solid var(--border-color);
+            justify-content: space-between;
+        }
+        .topbar-brand { font-weight: 800; font-size: 1.2rem; color: var(--accent-purple); display: flex; align-items: center; gap: 10px; }
+        .topbar-info { display: flex; gap: 15px; font-size: 0.85rem; color: var(--text-secondary); }
+        .badge { background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); }
+        
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+        
+        .sidebar {
+            width: 300px; background: var(--bg-secondary); border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+        }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .file-tree { flex: 1; overflow-y: auto; padding: 0.5rem; font-size: 0.9rem; }
+        .tree-item { padding: 4px 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
+        .tree-item:hover { background: var(--bg-tertiary); }
+        .tree-item.directory { font-weight: 600; color: var(--text-primary); }
+        .tree-item.file { color: var(--text-secondary); margin-left: 14px; }
+        
+        .content-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary); }
+        .breadcrumb { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-secondary); }
+        .code-container { flex: 1; overflow: auto; padding: 1.5rem; }
+        
+        pre[class*="language-"] { margin: 0; background: transparent; }
+        
+        /* Overlay for obfuscation when focus lost */
+        #obfuscation-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--bg-primary); z-index: 9999; display: none;
+            align-items: center; justify-content: center; color: var(--accent-red);
+            font-size: 1.5rem; font-weight: bold; flex-direction: column;
+        }
+    </style>
+</head>
+<body class="noselect">
+    <div id="obfuscation-overlay">
+        <div>Content Hidden</div>
+        <div style="font-size: 1rem; color: var(--text-secondary); margin-top: 10px;">Return to window to view source</div>
+    </div>
+
+    <!-- Access Gate -->
+    <div id="gate-container">
+        <div class="license-box reveal stagger-up">
+            <h1>CloudCord SourceVault</h1>
+            <h2>Review the CloudCord source under the CloudCord Proprietary Source License (CPSL).</h2>
+            
+            <div class="license-text">
+                <strong>CloudCord Proprietary Source License (CPSL) 1.0</strong><br><br>
+                This is a proprietary license. It is NOT open-source.<br><br>
+                By clicking "I Agree & Continue", you acknowledge and agree that viewing or accessing this source code does NOT grant you permission to:<br>
+                - Fork, clone, or mirror CloudCord.<br>
+                - Redistribute or publish the source code.<br>
+                - Modify CloudCord into a derivative project.<br>
+                - Rename, rebrand, or rehost CloudCord.<br>
+                - Remove ownership or license notices.<br>
+                - Create competing products using protected CloudCord code.<br>
+                - Sell or sublicense CloudCord source.<br>
+                - Represent derivative/copy projects as official CloudCord products.<br><br>
+                All rights not expressly granted remain reserved by xohus and the CloudCord team.<br><br>
+                <em>Access is audited and logged for security and license enforcement purposes.</em>
+            </div>
+            
+            <button id="agree-btn" class="btn btn-primary cord-btn" style="width: 100%;">I Agree & Continue</button>
+        </div>
+    </div>
+
+    <!-- SourceVault App -->
+    <div id="app-container" style="display: none;">
+        <div class="topbar">
+            <div class="topbar-brand">
+                <div style="width: 16px; height: 16px; background: var(--accent-purple); border-radius: 4px;"></div>
+                CloudCord SourceVault
+            </div>
+            <div class="topbar-info">
+                <span class="badge">CPSL v1.0</span>
+                <span class="badge">Version: <span id="cc-version">1.0.0</span></span>
+                <span class="badge" style="border-color: var(--accent-green); color: var(--accent-green);">Status: SECURE</span>
+            </div>
+        </div>
+        
+        <div class="main-layout">
+            <div class="sidebar">
+                <div class="sidebar-header">Browse Source</div>
+                <div class="file-tree" id="file-tree">
+                    <!-- Tree rendered here -->
+                </div>
+            </div>
+            <div class="content-area">
+                <div class="breadcrumb" id="breadcrumb">Select a file to view</div>
+                <div class="code-container">
+                    <pre><code id="code-block" class="language-javascript">// CloudCord SourceVault
+// Awaiting file selection...</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-tsx.min.js"></script>
+    <script src="source.js"></script>
+</body>
+</html>
