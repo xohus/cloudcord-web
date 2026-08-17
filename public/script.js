@@ -185,7 +185,7 @@ CatFacts — sends random cat facts.
 BetterBios — makes profile bios selectable and their links clickable.
 shutupClyde — hides Clyde/system messages.
 SplitLargeMessages — automatically splits messages above Discord’s character limit.
-🗿 — Moyai-themed sound/reaction plugin.
+Moyai — Moyai-themed sound/reaction plugin.
 Tablet Mode — toggles Discord’s tablet UI.
 HoldGIFSend — puts a selected GIF into the composer before sending it.
 Always Animate — keeps animated avatars and server icons animating.
@@ -222,7 +222,7 @@ Radial Status v1.0.1 — turns presence indicators into rings around avatars.
 Gif Categories — creates custom categories for saved GIFs.
 ClipboardGIFSend — copies selected GIFs instead of immediately sending them.
 RemoveBanner — completely hides server banners.
-🎄 Christmas Counter — displays a countdown to Christmas.
+Christmas Counter — displays a countdown to Christmas.
 ReviewDB — shows and posts community reviews on user profiles.
 Better Eval — adds a dedicated JavaScript evaluation screen.
 Let it Snow — renders falling snowflakes over Discord.
@@ -232,7 +232,7 @@ Override User Avatars — locally replaces another user’s avatar with a custom
 GifRoulette — sends a randomly selected GIF.
 Animal Commands — adds commands that return animal pictures.
 FavouriteAnything — lets you favorite images/videos, not only GIFs.
-🇺🇸 GTA VI Countdown — displays a countdown to GTA VI.
+GTA VI Countdown — displays a countdown to GTA VI.
 Jump To Top — adds a button for jumping to the beginning of a chat.
 Text Replace — configurable automatic text replacement.
 Realmoji — makes Freemoji-rendered emoji appear more like normal custom emoji locally.
@@ -410,52 +410,37 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         }, 4000); // Crossfade every 4 seconds
     }
     
-    // 7. Live Installs Counter
+    // 7. Exact verified CloudCord installs from the canonical usage service.
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
-        let currentCount = 5240;
-        installCounter.innerText = currentCount.toLocaleString();
+        let lastVerifiedCount = null;
 
-        const updateInstalls = async () => {
+        async function fetchVerifiedInstalls() {
             try {
-                const res = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', { cache: 'no-cache' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && typeof data.count === 'number' && data.count > 0) {
-                        currentCount = Math.max(currentCount, data.count + 5145);
-                        installCounter.innerText = currentCount.toLocaleString();
-                        return;
-                    }
+                const response = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
+                    cache: 'no-store',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) throw new Error(`CloudCord usage service ${response.status}`);
+                const payload = await response.json();
+                const count = Number(payload?.count);
+                if (!Number.isInteger(count) || count < 0 || payload?.metric !== 'lifetime_official_downloads') {
+                    throw new Error('Invalid verified install response');
                 }
-            } catch (e) {
-                // Fallback to GitHub releases download stats
-                try {
-                    const ghRes = await fetch('https://api.github.com/repos/xohus/cloudcord/releases');
-                    if (ghRes.ok) {
-                        const releases = await ghRes.json();
-                        let totalDownloads = 0;
-                        if (Array.isArray(releases)) {
-                            releases.forEach(rel => {
-                                if (Array.isArray(rel.assets)) {
-                                    rel.assets.forEach(asset => {
-                                        totalDownloads += (asset.download_count || 0);
-                                    });
-                                }
-                            });
-                        }
-                        currentCount = Math.max(currentCount, 5240 + totalDownloads);
-                        installCounter.innerText = currentCount.toLocaleString();
-                        return;
-                    }
-                } catch (err) {
-                    console.warn("Live stats fetch:", err);
+                lastVerifiedCount = count;
+                installCounter.innerText = count.toLocaleString();
+                installCounter.title = 'Exact lifetime official CloudCord downloads from the canonical usage service';
+            } catch (err) {
+                console.error('Failed to fetch verified CloudCord installs', err);
+                if (lastVerifiedCount === null) {
+                    installCounter.innerText = '—';
+                    installCounter.title = 'Verified count temporarily unavailable';
                 }
             }
-            installCounter.innerText = currentCount.toLocaleString();
-        };
+        }
 
-        updateInstalls();
-        setInterval(updateInstalls, 30000); // Check every 30 seconds
+        fetchVerifiedInstalls();
+        setInterval(fetchVerifiedInstalls, 60000);
     }
 });
 
