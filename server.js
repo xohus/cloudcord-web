@@ -176,6 +176,104 @@ app.get('/api/source/file/*', checkSourceAccess, async (req, res) => {
     }
 });
 
+// ==========================================
+// CLIENT RUNTIME PROXY
+// Securely serves updates to the iOS/Android/Desktop apps
+// without exposing the GITHUB_PAT to the public.
+// ==========================================
+
+function checkClientAuth(req, res, next) {
+    // Simple protection against casual browser scraping
+    if (req.headers['user-agent'] && req.headers['user-agent'].includes('Mozilla') && !req.headers['x-cc-client']) {
+        return res.status(403).json({ error: 'Direct browser access to runtime assets is forbidden.' });
+    }
+    next();
+}
+
+app.get('/api/proxy/releases/latest', checkClientAuth, async (req, res) => {
+    const token = process.env.GITHUB_PAT;
+    if (!token) return res.status(500).json({ error: 'Unconfigured' });
+    
+    try {
+        const ghRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'CloudCord-Client'
+            }
+        });
+        if (!ghRes.ok) return res.status(ghRes.status).send('GitHub Error');
+        const data = await ghRes.json();
+        
+        // Rewrite asset download URLs to proxy through this server
+        if (data.assets) {
+            data.assets = data.assets.map(asset => {
+                asset.browser_download_url = `https://${req.get('host')}/api/proxy/assets/${asset.id}`;
+                return asset;
+            });
+        }
+        res.json(data);
+    } catch (err) {
+        res.status(500).send('Proxy Error');
+    }
+});
+
+app.get('/api/proxy/assets/:assetId', checkClientAuth, async (req, res) => {
+    const token = process.env.GITHUB_PAT;
+    if (!token) return res.status(500).json({ error: 'Unconfigured' });
+    
+    try {
+        const ghRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/assets/${req.params.assetId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/octet-stream',
+                'User-Agent': 'CloudCord-Client'
+            },
+            redirect: 'manual' // We need to handle the S3 redirect manually or let node-fetch follow it
+        });
+        
+        // GitHub redirects asset downloads to AWS S3
+        if (ghRes.status === 302 || ghRes.status === 301) {
+            return res.redirect(ghRes.headers.get('location'));
+        }
+        
+        if (!ghRes.ok) return res.status(ghRes.status).send('GitHub Error');
+        
+        const contentType = ghRes.headers.get('content-type') || 'application/octet-stream';
+        res.set('Content-Type', contentType);
+        
+        const buffer = await ghRes.arrayBuffer();
+        res.send(Buffer.from(buffer));
+    } catch (err) {
+        res.status(500).send('Proxy Error');
+    }
+});
+
+app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
+    const filePathParam = req.params[0];
+    const token = process.env.GITHUB_PAT;
+    if (!token) return res.status(500).json({ error: 'Unconfigured' });
+    
+    try {
+        const ghRes = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${filePathParam}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'User-Agent': 'CloudCord-Client'
+            }
+        });
+        
+        if (!ghRes.ok) return res.status(ghRes.status).send('GitHub Error');
+        
+        const contentType = ghRes.headers.get('content-type') || 'text/plain';
+        res.set('Content-Type', contentType);
+        
+        const buffer = await ghRes.arrayBuffer();
+        res.send(Buffer.from(buffer));
+    } catch (err) {
+        res.status(500).send('Proxy Error');
+    }
+});
+
 // Serve the source.html for /source route
 app.get('/source', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'source.html'));
