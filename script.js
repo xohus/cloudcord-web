@@ -410,41 +410,28 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         }, 4000); // Crossfade every 4 seconds
     }
     
-    // 7. Verified installer downloads from GitHub — no simulated increments.
+    // 7. Exact verified CloudCord installs from the canonical usage service.
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
         let lastVerifiedCount = null;
 
-        async function fetchVerifiedInstallerDownloads() {
+        async function fetchVerifiedInstalls() {
             try {
-                let page = 1;
-                let totalDownloads = 0;
-                while (true) {
-                    const response = await fetch(`https://api.github.com/repos/xohus/cloudcord/releases?per_page=100&page=${page}`, {
-                        cache: 'no-store',
-                        headers: { 'Accept': 'application/vnd.github+json' }
-                    });
-                    if (!response.ok) throw new Error(`GitHub ${response.status}`);
-                    const releases = await response.json();
-                    if (!Array.isArray(releases)) throw new Error('Invalid GitHub response');
-
-                    for (const release of releases) {
-                        for (const asset of (release.assets || [])) {
-                            const name = String(asset.name || '').toLowerCase();
-                            if (name.endsWith('.exe') || name.endsWith('.apk') || name.endsWith('.ipa')) {
-                                totalDownloads += Number(asset.download_count || 0);
-                            }
-                        }
-                    }
-                    if (releases.length < 100) break;
-                    page += 1;
+                const response = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
+                    cache: 'no-store',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) throw new Error(`CloudCord usage service ${response.status}`);
+                const payload = await response.json();
+                const count = Number(payload?.count);
+                if (!Number.isInteger(count) || count < 0 || payload?.metric !== 'lifetime_official_downloads') {
+                    throw new Error('Invalid verified install response');
                 }
-
-                lastVerifiedCount = totalDownloads;
-                installCounter.innerText = totalDownloads.toLocaleString();
-                installCounter.title = 'Exact GitHub download count for CloudCord installer APK, IPA, and EXE assets';
+                lastVerifiedCount = count;
+                installCounter.innerText = count.toLocaleString();
+                installCounter.title = 'Exact lifetime official CloudCord downloads from the canonical usage service';
             } catch (err) {
-                console.error('Failed to fetch verified installer downloads', err);
+                console.error('Failed to fetch verified CloudCord installs', err);
                 if (lastVerifiedCount === null) {
                     installCounter.innerText = '—';
                     installCounter.title = 'Verified count temporarily unavailable';
@@ -452,7 +439,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
             }
         }
 
-        fetchVerifiedInstallerDownloads();
-        setInterval(fetchVerifiedInstallerDownloads, 60000);
+        fetchVerifiedInstalls();
+        setInterval(fetchVerifiedInstalls, 60000);
     }
 });
