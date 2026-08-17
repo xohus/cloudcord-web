@@ -6,12 +6,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const breadcrumb = document.getElementById('breadcrumb');
     const codeBlock = document.getElementById('code-block');
     
+    // Icons
+    const folderIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-purple);"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
+    const fileIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>';
+
     // Anti-copy & anti-screenshot protections
-    
-    // Disable right click
     document.addEventListener('contextmenu', e => e.preventDefault());
     
-    // Disable keyboard shortcuts (Ctrl+C, Ctrl+P, Ctrl+S, etc.)
     document.addEventListener('keydown', e => {
         if (e.ctrlKey || e.metaKey) {
             const key = e.key.toLowerCase();
@@ -21,17 +22,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
-    // Disable copy event
     document.addEventListener('copy', e => {
         e.preventDefault();
         e.clipboardData.setData('text/plain', 'Access denied by CloudCord Proprietary Source License.');
     });
     
-    // Check if already agreed
     try {
         const statusRes = await fetch('/api/source/status');
         const status = await statusRes.json();
-        
         if (status.agreed) {
             showApp();
         }
@@ -65,8 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadFileTree();
     }
     
-    function renderTree(nodes, parentEl) {
-        // Sort directories first
+    function buildTreeUI(nodes, parentEl) {
         nodes.sort((a, b) => {
             if (a.type === 'directory' && b.type === 'file') return -1;
             if (a.type === 'file' && b.type === 'directory') return 1;
@@ -78,27 +75,36 @@ document.addEventListener('DOMContentLoaded', async () => {
             el.className = 'tree-item ' + node.type;
             
             if (node.type === 'directory') {
-                el.innerHTML = '📁 ' + node.name;
-                parentEl.appendChild(el);
+                const wrap = document.createElement('div');
+                wrap.style.display = 'flex';
+                wrap.style.alignItems = 'center';
+                wrap.style.gap = '8px';
+                wrap.innerHTML = folderIcon + ' <span>' + node.name + '</span>';
+                el.appendChild(wrap);
                 
                 const childrenContainer = document.createElement('div');
-                childrenContainer.style.display = 'none'; // Collapsed by default
+                childrenContainer.style.display = 'none';
                 childrenContainer.style.paddingLeft = '10px';
-                parentEl.appendChild(childrenContainer);
                 
-                el.addEventListener('click', () => {
-                    childrenContainer.style.display = childrenContainer.style.display === 'none' ? 'block' : 'none';
-                    el.innerHTML = (childrenContainer.style.display === 'none' ? '📁 ' : '📂 ') + node.name;
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isHidden = childrenContainer.style.display === 'none';
+                    childrenContainer.style.display = isHidden ? 'block' : 'none';
                 });
                 
-                renderTree(node.children, childrenContainer);
+                parentEl.appendChild(el);
+                parentEl.appendChild(childrenContainer);
+                if (node.children) {
+                    buildTreeUI(node.children, childrenContainer);
+                }
             } else {
-                el.innerHTML = '📄 ' + node.name;
+                el.innerHTML = fileIcon + ' <span style="margin-left:8px;">' + node.name + '</span>';
                 parentEl.appendChild(el);
                 
-                el.addEventListener('click', () => {
-                    document.querySelectorAll('.tree-item.file').forEach(i => i.style.color = 'var(--text-secondary)');
-                    el.style.color = 'var(--accent-purple)';
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.tree-item.file').forEach(i => i.style.background = 'transparent');
+                    el.style.background = 'var(--bg-tertiary)';
                     loadFile(node.path);
                 });
             }
@@ -111,9 +117,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
                 const data = await res.json();
                 fileTree.innerHTML = '';
-                renderTree(data.tree, fileTree);
+                buildTreeUI(data.tree, fileTree);
             } else if (res.status === 403) {
-                location.reload(); // Session expired
+                location.reload(); 
             }
         } catch (err) {
             fileTree.innerHTML = '<div style="color:var(--accent-red)">Error loading source tree.</div>';
@@ -121,31 +127,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     async function loadFile(filePath) {
-        breadcrumb.innerText = 'CloudCord / ' + filePath.split('/').join(' / ');
+        breadcrumb.innerText = filePath;
+        const codeBlock = document.getElementById('code-block');
         codeBlock.textContent = 'Loading...';
         
         try {
-            const res = await fetch('/api/source/file/' + filePath);
+            const res = await fetch('/api/source/file/' + encodeURIComponent(filePath).replace(/%2F/g, '/'));
             if (res.ok) {
                 const text = await res.text();
                 codeBlock.textContent = text;
                 
-                // Set language class based on extension
+                codeBlock.className = '';
                 const ext = filePath.split('.').pop().toLowerCase();
                 let lang = 'javascript';
                 if (ext === 'ts' || ext === 'tsx') lang = 'typescript';
-                else if (ext === 'css') lang = 'css';
                 else if (ext === 'html') lang = 'html';
+                else if (ext === 'css') lang = 'css';
                 else if (ext === 'json') lang = 'json';
                 else if (ext === 'md') lang = 'markdown';
                 
-                codeBlock.className = 'language-' + lang;
-                Prism.highlightElement(codeBlock);
+                codeBlock.classList.add('language-' + lang);
+                if (window.Prism && Prism.languages[lang]) {
+                    Prism.highlightElement(codeBlock);
+                }
             } else {
                 codeBlock.textContent = 'Error: ' + res.statusText;
             }
         } catch (err) {
-            codeBlock.textContent = 'Failed to load file.';
+            codeBlock.textContent = 'Error loading file content. ' + err.message;
         }
     }
 });
