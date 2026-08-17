@@ -410,48 +410,49 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         }, 4000); // Crossfade every 4 seconds
     }
     
-    // 7. Live Installs Counter from GitHub (with live ticking)
+    // 7. Verified installer downloads from GitHub — no simulated increments.
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
-        let currentCount = 54;
-        let isCountInitialized = false;
+        let lastVerifiedCount = null;
 
-        async function fetchGitHubDownloads() {
+        async function fetchVerifiedInstallerDownloads() {
             try {
-                const response = await fetch('https://api.github.com/repos/xohus/cloudcord/releases');
-                const releases = await response.json();
-                
+                let page = 1;
                 let totalDownloads = 0;
-                if (Array.isArray(releases)) {
-                    releases.forEach(release => {
-                        release.assets.forEach(asset => {
-                            totalDownloads += asset.download_count;
-                        });
+                while (true) {
+                    const response = await fetch(`https://api.github.com/repos/xohus/cloudcord/releases?per_page=100&page=${page}`, {
+                        cache: 'no-store',
+                        headers: { 'Accept': 'application/vnd.github+json' }
                     });
+                    if (!response.ok) throw new Error(`GitHub ${response.status}`);
+                    const releases = await response.json();
+                    if (!Array.isArray(releases)) throw new Error('Invalid GitHub response');
+
+                    for (const release of releases) {
+                        for (const asset of (release.assets || [])) {
+                            const name = String(asset.name || '').toLowerCase();
+                            if (name.endsWith('.exe') || name.endsWith('.apk') || name.endsWith('.ipa')) {
+                                totalDownloads += Number(asset.download_count || 0);
+                            }
+                        }
+                    }
+                    if (releases.length < 100) break;
+                    page += 1;
                 }
-                
-                if (totalDownloads > 0) {
-                    currentCount = totalDownloads;
-                }
+
+                lastVerifiedCount = totalDownloads;
+                installCounter.innerText = totalDownloads.toLocaleString();
+                installCounter.title = 'Exact GitHub download count for CloudCord installer APK, IPA, and EXE assets';
             } catch (err) {
-                console.error('Failed to fetch download count', err);
-            }
-            
-            if (!isCountInitialized) {
-                installCounter.innerText = currentCount.toLocaleString();
-                isCountInitialized = true;
+                console.error('Failed to fetch verified installer downloads', err);
+                if (lastVerifiedCount === null) {
+                    installCounter.innerText = '—';
+                    installCounter.title = 'Verified count temporarily unavailable';
+                }
             }
         }
-        
-        // Fetch baseline on load
-        fetchGitHubDownloads();
 
-        // Simulate live installs every 3.5 seconds
-        setInterval(() => {
-            if (isCountInitialized && Math.random() > 0.3) {
-                currentCount += Math.floor(Math.random() * 3) + 1;
-                installCounter.innerText = currentCount.toLocaleString();
-            }
-        }, 3500);
+        fetchVerifiedInstallerDownloads();
+        setInterval(fetchVerifiedInstallerDownloads, 60000);
     }
 });
