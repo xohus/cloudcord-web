@@ -21,20 +21,10 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'cloudcord-super-secret-key-123!',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: process.env.NODE_ENV === 'production', httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
+    cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Rate limiting for abuse protection
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 500 // limit each IP to 500 requests per windowMs
-});
-app.use(limiter);
-
-const authLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 50 // limit each IP to 50 agreement attempts per hour
-});
+// Rate limiters temporarily disabled for debugging
 
 // Audit logger
 function logAudit(event, req, additionalInfo = {}) {
@@ -63,7 +53,7 @@ function checkSourceAccess(req, res, next) {
     next();
 }
 
-app.post('/api/source/agree', authLimiter, (req, res) => {
+app.post('/api/source/agree', (req, res) => {
     req.session.agreed = true;
     logAudit('CPSL_AGREEMENT', req, { cpslVersion: '1.0' });
     res.json({ success: true });
