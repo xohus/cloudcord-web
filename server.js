@@ -93,7 +93,7 @@ app.get('/api/source/files', checkSourceAccess, async (req, res) => {
         
         const data = await ghRes.json();
         
-        const excludePatterns = [/^\.git/, /^\.env/, /^node_modules/, /^dist/];
+        const excludePatterns = [/^\.git/, /^\.env/, /^node_modules/, /^dist/, /^LICENSE/i];
         const root = { type: 'directory', children: [] };
         
         data.tree.forEach(item => {
@@ -138,8 +138,10 @@ app.get('/api/source/files', checkSourceAccess, async (req, res) => {
 
 app.get('/api/source/file/*', checkSourceAccess, async (req, res) => {
     const filePathParam = req.params[0];
-    if (!filePathParam || filePathParam.includes('..')) {
-        return res.status(400).json({ error: 'Invalid path' });
+    const excludePatterns = [/^\.git/, /^\.env/, /^node_modules/, /^dist/, /^LICENSE/i];
+    
+    if (!filePathParam || filePathParam.includes('..') || excludePatterns.some(p => p.test(filePathParam))) {
+        return res.status(400).json({ error: 'Invalid path or access denied' });
     }
     
     const token = process.env.GITHUB_PAT;
