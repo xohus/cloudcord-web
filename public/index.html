@@ -5,90 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CloudCord - The Ultimate Chat Experience</title>
     <meta name="description" content="A modern, highly customizable chat client experience for all platforms.">
-    <link rel="icon" href="/assets/cloudcord-favicon.png">
+    <link rel="icon" href="assets/cloudcord-favicon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <link rel="canonical" href="https://cloudcord.xohus.lol/">
-    <meta name="application-name" content="CloudCord">
-    <meta name="author" content="Xohus">
-    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "@id": "https://cloudcord.xohus.lol/#software",
-  "name": "CloudCord",
-  "alternateName": [
-    "CloudCord Mobile",
-    "CloudCord Discord Client Mod"
-  ],
-  "url": "https://cloudcord.xohus.lol/",
-  "description": "CloudCord is an actively maintained client-side Discord modification framework focused on iOS and Android, with Windows desktop support. It provides runtime/framework injection, plugins, fake profile badges, profile customization, UI overrides, and cross-device profile synchronization. CloudCord is not a Discord bot hosting service.",
-  "applicationCategory": "Utilities",
-  "applicationSubCategory": "Mobile client modification framework",
-  "operatingSystem": [
-    "iOS",
-    "iPadOS",
-    "Android",
-    "Windows"
-  ],
-  "runtimePlatform": [
-    "iOS",
-    "Android",
-    "React Native",
-    "Windows"
-  ],
-  "featureList": [
-    "Mobile Discord client modification framework",
-    "iOS framework injection",
-    "Android client modification",
-    "Fake profile badges",
-    "Profile customization",
-    "User interface overrides",
-    "Plugin loading",
-    "Theme and appearance customization",
-    "Cross-device CloudCord profile synchronization",
-    "Client-side runtime injection"
-  ],
-  "author": {
-    "@type": "Person",
-    "@id": "https://xohus.lol/#xohus",
-    "name": "Xohus",
-    "url": "https://xohus.lol/",
-    "sameAs": [
-      "https://github.com/xohus"
-    ]
-  },
-  "publisher": {
-    "@type": "Organization",
-    "@id": "https://cloudcord.xohus.lol/#organization",
-    "name": "CloudCord",
-    "url": "https://cloudcord.xohus.lol/",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://raw.githubusercontent.com/xohus/cloudcord/main/cloudcord-favicon.png"
-    }
-  },
-  "codeRepository": "https://github.com/xohus/cloudcord",
-  "installUrl": "https://cloudcord.xohus.lol/",
-  "isAccessibleForFree": true,
-  "keywords": [
-    "CloudCord",
-    "Discord mobile client mod",
-    "Discord iOS modification",
-    "Discord Android modification",
-    "Discord client framework",
-    "mobile Discord plugins",
-    "React Native Discord mod"
-  ],
-  "sameAs": [
-    "https://github.com/xohus/cloudcord",
-    "https://xohus.lol/"
-  ]
-}
-</script>
 </head>
 <body>
     <script>
@@ -100,7 +21,7 @@
     <nav class="navbar">
         <div class="nav-content">
             <a href="index.html" class="logo-link">
-                <img src="/assets/cloudcord-favicon.png" alt="CloudCord Logo" class="nav-logo">
+                <img src="assets/cloudcord-favicon.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="nav-logo">
             </a>
             <div class="nav-links">
                 <a href="#download" id="nav-download" class="nav-link">Download</a>
@@ -108,7 +29,6 @@
                 <a href="plugins.html" class="nav-link">Plugins</a>
                 <a href="team.html" class="nav-link">Team</a>
                 <a href="faq.html" class="nav-link">FAQ</a>
-                <a href="/source" class="nav-link" style="color: var(--accent-purple); font-weight: bold;">SourceVault</a>
                 <button id="theme-toggle" aria-label="Toggle Theme" class="theme-btn">
                     <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                     <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -124,40 +44,39 @@
             <h2>Select Your Platform</h2>
             <p>Get the ultimate chat experience on your favorite device.</p>
             <div class="platform-options">
-                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta/cloudcord0.ipa" target="_blank" class="platform-btn">iOS / iPadOS</a>
-                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_android/cloudcord.apk" target="_blank" class="platform-btn">Android</a>
-                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/cloudcord.exe" target="_blank" class="platform-btn">Windows</a>
+                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/CloudCordSetup.exe" target="_blank" class="platform-btn">Windows <span style="font-size: 0.8rem; color: var(--text-muted);">(Setup .exe)</span></a>
+                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta/cloudcord0.ipa" target="_blank" class="platform-btn">iOS / iPadOS <span style="font-size: 0.8rem; color: var(--text-muted);">(Sideload .ipa)</span></a>
+                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCord.apk" target="_blank" class="platform-btn">Android <span style="font-size: 0.8rem; color: var(--text-muted);">(Direct .apk)</span></a>
             </div>
         </div>
     </div>
 
+    <!-- Hero Section -->
     <header class="hero">
         <div class="hero-container">
             <div class="hero-left reveal stagger-up">
-                <div class="hexcheats-badge">The Ultimate Chat Client</div>
-                <img src="https://raw.githubusercontent.com/xohus/cloudcord/main/assets/logo-full.png" alt="CloudCord" class="hero-main-logo">
-                <p class="hero-tagline" style="margin-bottom: 1.5rem;">Imagine a place where you can completely customize your chat, unlock insane features, and connect like never before.</p>
-                <div style="display: flex; gap: 0.75rem; margin-bottom: 2.5rem; flex-wrap: wrap;">
-                    <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; padding: 0.35rem 0.8rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">Available on Windows</span>
-                    <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; padding: 0.35rem 0.8rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">iOS / iPadOS</span>
-                    <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; padding: 0.35rem 0.8rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">Android</span>
+                <div class="hexcheats-badge">
+                    <span>⚡ The Next-Gen Chat Mod</span>
                 </div>
+                <img src="assets/logo-full.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/logo-full.png'" alt="CloudCord" class="hero-main-logo">
+                <p class="hero-tagline">Experience Discord like never before. Native Bot accounts, Fake Profiles, custom themes, 450+ plugins, and zero compromises.</p>
+                
                 <div class="hero-buttons">
-                    <button id="hero-download-btn" class="btn btn-primary cord-btn">Download for Free</button>
+                    <a href="#download" id="hero-download-btn" class="btn btn-primary cord-btn">Download Now</a>
                     <a href="features.html" class="btn btn-secondary cord-btn">Explore Features</a>
                 </div>
-                
+
                 <div class="live-installs reveal stagger-up" style="margin-top: 2rem; display: flex; align-items: center; gap: 0.75rem; transition-delay: 0.1s;">
                     <div style="width: 12px; height: 12px; background-color: var(--accent-green); border-radius: 50%; box-shadow: 0 0 12px var(--accent-green); animation: pulse 2s infinite;"></div>
-                    <span style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary); letter-spacing: 0.5px;" id="install-counter">—</span>
-                    <span style="color: var(--text-secondary); font-size: 1rem; font-weight: 500;">Verified Installer Downloads</span>
+                    <span style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary); letter-spacing: 0.5px;" id="install-counter">...</span>
+                    <span style="color: var(--text-secondary); font-size: 1rem; font-weight: 500;">Live Installs</span>
                 </div>
             </div>
             
             <div class="hero-right reveal stagger-up" style="transition-delay: 0.2s">
                 <div class="tilt-showcase" id="tilt-showcase">
-                    <img src="https://files.catbox.moe/88lcki.png" onerror="this.src='https://files.catbox.moe/alh2v9.jpg'" alt="CloudCord Preview" class="tilt-img active">
-                    <img src="https://files.catbox.moe/eyxpb9.png" onerror="this.src='https://files.catbox.moe/alh2v9.jpg'" alt="CloudCord Settings" class="tilt-img">
+                    <img src="client1.png" onerror="this.src='preview.jpg'" alt="CloudCord Preview" class="tilt-img active">
+                    <img src="client2.png" onerror="this.src='preview.png'" alt="CloudCord Settings" class="tilt-img">
                 </div>
             </div>
         </div>
@@ -221,7 +140,7 @@
         <div class="footer-content reveal stagger-up">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <img src="https://raw.githubusercontent.com/xohus/cloudcord/main/assets/logo-full.png" alt="CloudCord Logo" class="footer-logo">
+                    <img src="assets/logo-full.png" onerror="this.src='assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="footer-logo">
                     <p>The ultimate chat experience, customized exactly for you.</p>
                 </div>
                 <div class="footer-links">
@@ -247,6 +166,9 @@
             </div>
         </div>
     </footer>
-    <script src="script.js?v=2"></script>
+    <script src="script.js"></script>
 </body>
 </html>
+
+
+
