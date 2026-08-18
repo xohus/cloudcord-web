@@ -13,7 +13,7 @@
         const pass = prompt("Admin authentication required:");
         if (pass !== "localhost6767@") {
             document.write("<h1 style='color: white; text-align: center; margin-top: 20%; font-family: Outfit;'>Access Denied</h1>");
-            setTimeout(() => { window.location.href = "index.html"; }, 1500);
+            setTimeout(() => { window.location.href = "/"; }, 1500);
             window.stop();
         }
 
@@ -22,9 +22,9 @@
     </script>
     <nav class="navbar">
         <div class="nav-content">
-            <a href="index.html" class="logo-link"><img src="assets/cloudcord-favicon.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="nav-logo"></a>
+            <a href="/" class="logo-link"><img src="assets/cloudcord-favicon.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="nav-logo"></a>
             <div class="nav-links">
-                <a href="index.html" class="nav-link">Back to Site</a>
+                <a href="/" class="nav-link">Back to Site</a>
             </div>
         </div>
     </nav>
