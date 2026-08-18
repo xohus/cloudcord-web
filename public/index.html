@@ -18,10 +18,10 @@
             document.body.classList.add('light');
         }
     </script>
-    <div class="announcement-bar">
+    <div class="announcement-bar" style="background: rgba(237, 66, 69, 0.15); border-bottom: 1px solid rgba(237, 66, 69, 0.3);">
         <div class="announcement-content">
-            <span class="announcement-badge">ANNOUNCEMENT</span>
-            <span class="announcement-text">Windows Desktop update issue is fixed! All systems are operational.</span>
+            <span class="announcement-badge" style="background: #ed4245; color: #fff;">MAINTENANCE</span>
+            <span class="announcement-text" style="color: #ed4245; font-weight: 600;">CloudCord Desktop (PC) is currently DOWN / Under Investigation. Mobile systems are operational.</span>
             <a href="/status" class="announcement-link">System Status &rarr;</a>
         </div>
     </div>
@@ -53,9 +53,15 @@
             <h2>Select Your Platform</h2>
             <p>Get the ultimate chat experience on your favorite device.</p>
             <div class="platform-options">
-                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/CloudCordSetup.exe" target="_blank" class="platform-btn">Windows <span style="font-size: 0.8rem; color: var(--text-muted);">(Setup .exe)</span></a>
+                <div class="platform-btn disabled" style="opacity: 0.85; cursor: not-allowed; border: 1.5px solid #ed4245; background: rgba(237, 66, 69, 0.12); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.85rem; border-radius: 12px;">
+                    <span style="font-weight: 700; color: var(--text-primary);">Windows (PC)</span>
+                    <span style="font-size: 0.8rem; color: #ed4245; font-weight: 800; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">🔴 Status: DOWN (Investigating)</span>
+                </div>
                 <a href="https://github.com/xohus/cloudcord/releases/download/new_beta/cloudcord0.ipa" target="_blank" class="platform-btn">iOS / iPadOS <span style="font-size: 0.8rem; color: var(--text-muted);">(Sideload .ipa)</span></a>
                 <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCord.apk" target="_blank" class="platform-btn">Android <span style="font-size: 0.8rem; color: var(--text-muted);">(Direct .apk)</span></a>
+            </div>
+            <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(237, 66, 69, 0.12); border-left: 4px solid #ed4245; border-radius: 6px; font-size: 0.85rem; color: var(--text-secondary); text-align: left;">
+                <strong style="color: #ed4245;">⚠️ Service Notice:</strong> CloudCord Desktop for Windows is currently listed as <strong>DOWN</strong> while our team investigates compatibility updates. Mobile versions (iOS & Android) remain fully available and active.
             </div>
         </div>
     </div>

@@ -22,10 +22,10 @@
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
     </script>
-    <div class="announcement-bar">
+    <div class="announcement-bar" style="background: rgba(237, 66, 69, 0.15); border-bottom: 1px solid rgba(237, 66, 69, 0.3);">
         <div class="announcement-content">
-            <span class="announcement-badge">ANNOUNCEMENT</span>
-            <span class="announcement-text">Windows Desktop update issue is fixed! All systems are operational.</span>
+            <span class="announcement-badge" style="background: #ed4245; color: #fff;">MAINTENANCE</span>
+            <span class="announcement-text" style="color: #ed4245; font-weight: 600;">CloudCord Desktop (PC) is currently DOWN / Under Investigation. Mobile systems are operational.</span>
             <a href="/status" class="announcement-link">System Status &rarr;</a>
         </div>
     </div>
@@ -85,20 +85,18 @@
             </ul>
         </div>
 
-        <div class="status-card reveal stagger-up" style="transition-delay: 0.3s" onclick="toggleChangelog('windows')">
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.3s; border-color: rgba(237, 66, 69, 0.4);" onclick="toggleChangelog('windows')">
             <div>
                 <div class="status-platform">Windows Desktop</div>
-                
+                <div class="click-hint" style="color: #ed4245;">🔴 Offline — Under Investigation</div>
             </div>
-            <div class="status-badge status-online">Operational</div>
+            <div class="status-badge status-offline">Down (Investigating)</div>
         </div>
-        <div id="changelog-windows" class="changelog-details">
-            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Latest Updates (v2.1.0)</h3>
+        <div id="changelog-windows" class="changelog-details" style="display: block; border-color: rgba(237, 66, 69, 0.3);">
+            <h3 style="color: #ed4245; margin-bottom: 0.5rem;">Status Notice: Desktop Client Down</h3>
             <ul>
-                <li><span class="tag-new" style="color: #22c55e;">RESOLVED</span> Fixed runtime installation and update issue on Windows. All systems fully operational.</li>
-                <li><span class="tag-update">UPDATE</span> Revamped the Desktop Installer UI for a modernized, fool-proof experience.</li>
-                <li><span class="tag-fix">FIX</span> Resolved a critical issue causing corrupt installations for new users on Windows.</li>
-                <li><span class="tag-new">NEW</span> Added official System Status page for all CloudCord platforms.</li>
+                <li><span class="tag-fix" style="background: rgba(237, 66, 69, 0.2); color: #ed4245; padding: 2px 6px; border-radius: 4px;">INVESTIGATING</span> Windows PC downloads and client updates are temporarily paused while our team investigates compatibility updates.</li>
+                <li><span class="tag-update">UPDATE</span> Mobile platforms (iOS & Android) remain fully online and unaffected.</li>
             </ul>
         </div>
         

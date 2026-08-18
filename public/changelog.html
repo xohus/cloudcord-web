@@ -27,10 +27,10 @@
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
     </script>
-    <div class="announcement-bar">
+    <div class="announcement-bar" style="background: rgba(237, 66, 69, 0.15); border-bottom: 1px solid rgba(237, 66, 69, 0.3);">
         <div class="announcement-content">
-            <span class="announcement-badge">ANNOUNCEMENT</span>
-            <span class="announcement-text">Windows Desktop update issue is fixed! All systems are operational.</span>
+            <span class="announcement-badge" style="background: #ed4245; color: #fff;">MAINTENANCE</span>
+            <span class="announcement-text" style="color: #ed4245; font-weight: 600;">CloudCord Desktop (PC) is currently DOWN / Under Investigation. Mobile systems are operational.</span>
             <a href="/status" class="announcement-link">System Status &rarr;</a>
         </div>
     </div>
