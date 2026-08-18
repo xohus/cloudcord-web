@@ -414,13 +414,14 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         else if (isAndroid) devicePrefix = 'iphone'; // Android images not ready, use iPhone as fallback
 
         if (devicePrefix !== 'desktop') {
+            const ext = (devicePrefix === 'ipad') ? 'jpg' : 'png';
             if (tiltImages[0]) {
                 tiltImages[0].setAttribute('onerror', "this.src='client1.png'"); 
-                tiltImages[0].src = `${devicePrefix}-client1.png`;
+                tiltImages[0].src = `${devicePrefix}-client1.${ext}`;
             }
             if (tiltImages[1]) {
                 tiltImages[1].setAttribute('onerror', "this.src='client2.png'");
-                tiltImages[1].src = `${devicePrefix}-client2.png`;
+                tiltImages[1].src = `${devicePrefix}-client2.${ext}`;
             }
         }
 
