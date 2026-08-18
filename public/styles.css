@@ -395,11 +395,8 @@ body:not(.light) .moon-icon { display: none; }
 }
 
 .tilt-img {
-    position: absolute;
-    top: 0; left: 0;
     width: 100%;
     height: auto;
-    max-height: 100%;
     object-fit: contain;
     border-radius: 12px;
     box-shadow: -30px 30px 80px rgba(0,0,0,0.5);
@@ -410,8 +407,14 @@ body:not(.light) .moon-icon { display: none; }
 }
 
 .tilt-img.active {
+    position: relative;
     opacity: 1;
     z-index: 2;
+}
+
+.tilt-img:not(.active) {
+    position: absolute;
+    top: 0; left: 0;
 }
 
 /* Hover effect un-tilts it towards the user smoothly */
