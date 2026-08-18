@@ -994,11 +994,42 @@ html, body {
         align-self: flex-start !important;
     }
 
-    .admin-layout { flex-direction: column !important; }
-    .admin-sidebar { width: 100% !important; border-right: none !alignment; border-bottom: 1px solid var(--border-color) !important; }
-    .footer-grid { grid-template-columns: 1fr !important; gap: 2rem !important; text-align: center !important; }
-    .footer-brand { grid-column: 1 / -1 !important; text-align: center !important; }
-    .footer-links { display: flex !important; flex-direction: column !important; align-items: center !important; }
+    .plugins-header {
+        text-align: center !important;
+        margin: 0 auto 2rem !important;
+        padding: 0 1rem !important;
+        width: 100% !important;
+    }
+
+    .plugins-header .section-title,
+    .plugins-header .section-subtitle {
+        text-align: center !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        width: 100% !important;
+    }
+
+    .footer-brand {
+        grid-column: 1 / -1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    .footer-brand p {
+        margin: 1rem auto 0 !important;
+        text-align: center !important;
+        max-width: 300px !important;
+    }
+
+    .footer-logo {
+        margin: 0 auto !important;
+    }
+
+    .footer-links { display: flex !important; flex-direction: column !important; align-items: center !important; text-align: center !important; }
     .footer-bottom { flex-direction: column !important; gap: 1rem !important; text-align: center !important; }
 }
 
