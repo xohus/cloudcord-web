@@ -1,4 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Mobile Hamburger Menu Toggle
+    const navContent = document.querySelector('.nav-content');
+    if (navContent && !document.getElementById('mobile-toggle')) {
+        const toggleBtn = document.createElement('button');
+        toggleBtn.id = 'mobile-toggle';
+        toggleBtn.className = 'mobile-toggle';
+        toggleBtn.setAttribute('aria-label', 'Toggle Menu');
+        toggleBtn.innerHTML = '<span class="bar"></span><span class="bar"></span><span class="bar"></span>';
+        navContent.appendChild(toggleBtn);
+
+        const navLinks = document.querySelector('.nav-links');
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleBtn.classList.toggle('active');
+            if (navLinks) navLinks.classList.toggle('mobile-open');
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (navLinks && navLinks.classList.contains('mobile-open') && !navContent.contains(e.target)) {
+                toggleBtn.classList.remove('active');
+                navLinks.classList.remove('mobile-open');
+            }
+        });
+    }
     // 1. Theme Toggle Logic
     const themeToggleBtn = document.getElementById('theme-toggle');
     function setTheme(isLight) {
