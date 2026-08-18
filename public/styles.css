@@ -725,26 +725,47 @@ body:not(.light) .moon-icon { display: none; }
 /* Mobile & Phone Responsive Optimizations */
 @media (max-width: 768px) {
     .navbar {
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 1rem;
     }
     
     .nav-content {
-        flex-direction: column;
-        gap: 0.75rem;
+        flex-direction: row;
+        justify-content: space-between;
         align-items: center;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .nav-logo {
+        height: 38px;
+        flex-shrink: 0;
     }
 
     .nav-links {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.5rem 0.75rem;
-        width: 100%;
-        font-size: 0.9rem;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0.5rem;
+        width: auto;
+        max-width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        padding: 0.25rem 0;
+    }
+
+    .nav-links::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
     }
 
     .nav-link {
-        padding: 0.35rem 0.6rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        flex-shrink: 0;
     }
 
     .hero-container {
