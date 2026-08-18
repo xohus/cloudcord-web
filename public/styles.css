@@ -889,6 +889,11 @@ html, body {
         padding: 0 0.5rem !important;
     }
 
+    .available-platforms {
+        justify-content: center !important;
+        width: 100% !important;
+    }
+
     .hero-buttons {
         display: flex !important;
         flex-direction: column !important;
