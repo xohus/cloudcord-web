@@ -11,13 +11,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="has-announcement">
     <script>
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
             document.body.classList.add('light');
         }
     </script>
+    <div class="announcement-bar">
+        <div class="announcement-content">
+            <span class="announcement-badge">ANNOUNCEMENT</span>
+            <span class="announcement-text">Windows Desktop update issue is fixed! All systems are operational.</span>
+            <a href="/status" class="announcement-link">System Status &rarr;</a>
+        </div>
+    </div>
     <nav class="navbar">
         <div class="nav-content">
             <a href="/" class="logo-link">
@@ -46,7 +53,7 @@
             <h2>Select Your Platform</h2>
             <p>Get the ultimate chat experience on your favorite device.</p>
             <div class="platform-options">
-                <button disabled class="platform-btn" style="cursor: not-allowed; opacity: 0.6; text-align: left; display: block; width: 100%; font-family: inherit;">Windows <span style="font-size: 0.8rem; color: #ef4444;">(Down - Investigating ASAR)</span></button>
+                <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/CloudCordSetup.exe" target="_blank" class="platform-btn">Windows <span style="font-size: 0.8rem; color: var(--text-muted);">(Setup .exe)</span></a>
                 <a href="https://github.com/xohus/cloudcord/releases/download/new_beta/cloudcord0.ipa" target="_blank" class="platform-btn">iOS / iPadOS <span style="font-size: 0.8rem; color: var(--text-muted);">(Sideload .ipa)</span></a>
                 <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCord.apk" target="_blank" class="platform-btn">Android <span style="font-size: 0.8rem; color: var(--text-muted);">(Direct .apk)</span></a>
             </div>

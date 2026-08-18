@@ -22,11 +22,18 @@
         .tag-fix { color: #f59e0b; font-weight: 600; margin-right: 0.5rem; }
     </style>
 </head>
-<body>
+<body class="has-announcement">
     <script>
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
     </script>
+    <div class="announcement-bar">
+        <div class="announcement-content">
+            <span class="announcement-badge">ANNOUNCEMENT</span>
+            <span class="announcement-text">Windows Desktop update issue is fixed! All systems are operational.</span>
+            <a href="/status" class="announcement-link">System Status &rarr;</a>
+        </div>
+    </div>
     <nav class="navbar">
         <div class="nav-content">
             <a href="/" class="logo-link"><img src="assets/cloudcord-favicon.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="nav-logo"></a>

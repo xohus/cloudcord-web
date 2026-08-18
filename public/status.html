@@ -17,11 +17,18 @@
         .status-offline { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
     </style>
 </head>
-<body>
+<body class="has-announcement">
     <script>
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
     </script>
+    <div class="announcement-bar">
+        <div class="announcement-content">
+            <span class="announcement-badge">ANNOUNCEMENT</span>
+            <span class="announcement-text">Windows Desktop update issue is fixed! All systems are operational.</span>
+            <a href="/status" class="announcement-link">System Status &rarr;</a>
+        </div>
+    </div>
     <nav class="navbar">
         <div class="nav-content">
             <a href="/" class="logo-link"><img src="assets/cloudcord-favicon.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="nav-logo"></a>
@@ -83,15 +90,12 @@
                 <div class="status-platform">Windows Desktop</div>
                 
             </div>
-            <div class="status-badge status-offline">Down</div>
+            <div class="status-badge status-online">Operational</div>
         </div>
         <div id="changelog-windows" class="changelog-details">
-            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Incident Notice</h3>
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Latest Updates (v2.1.0)</h3>
             <ul>
-                <li><span class="tag-fix" style="color: #ef4444;">INVESTIGATING</span> We are currently investigating an issue with the ASAR runtime. Desktop downloads and updates are temporarily paused while our team resolves the situation.</li>
-            </ul>
-            <h3 style="color: var(--text-primary); margin-top: 1rem; margin-bottom: 0.5rem;">Recent Updates (v2.1.0)</h3>
-            <ul>
+                <li><span class="tag-new" style="color: #22c55e;">RESOLVED</span> Fixed runtime installation and update issue on Windows. All systems fully operational.</li>
                 <li><span class="tag-update">UPDATE</span> Revamped the Desktop Installer UI for a modernized, fool-proof experience.</li>
                 <li><span class="tag-fix">FIX</span> Resolved a critical issue causing corrupt installations for new users on Windows.</li>
                 <li><span class="tag-new">NEW</span> Added official System Status page for all CloudCord platforms.</li>
