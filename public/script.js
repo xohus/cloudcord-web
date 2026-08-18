@@ -424,7 +424,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         });
     }
 
-    // 6. Tilt Image Carousel (Hero Section)
+    // 6. Tilt Image Carousel + 3D tilt effect (Hero Section)
     const tiltImages = document.querySelectorAll('.tilt-img');
     if (tiltImages.length > 0) {
         // Device detection for dynamic images
@@ -432,6 +432,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         const isIpad = /ipad|macintosh/.test(userAgent) && 'ontouchend' in document;
         const isIphone = /iphone|ipod/.test(userAgent);
         const isAndroid = /android/.test(userAgent);
+        const isMobile = isIpad || isIphone || isAndroid;
         
         let devicePrefix = 'desktop';
         if (isIpad) devicePrefix = 'ipad';
@@ -450,13 +451,122 @@ SearchActionSheet — makes long-pressing search results open their action sheet
             }
         }
 
+        // Image crossfade carousel
         let currentImgIndex = 0;
         setInterval(() => {
             tiltImages[currentImgIndex].classList.remove('active');
             currentImgIndex = (currentImgIndex + 1) % tiltImages.length;
             tiltImages[currentImgIndex].classList.add('active');
-        }, 4000); // Crossfade every 4 seconds
+        }, 4000);
+
+        // --- 3D TILT EFFECT ---
+        const showcase = document.querySelector('.tilt-showcase');
+        if (showcase) {
+            if (isMobile) {
+                // === MOBILE: gyroscope tilt (deviceorientation) ===
+                let gyroEnabled = false;
+                let baseAlpha = null, baseBeta = null, baseGamma = null;
+
+                const applyGyroTilt = (beta, gamma) => {
+                    // beta = front-back tilt (-180 to 180), gamma = left-right (-90 to 90)
+                    const maxTilt = 18;
+                    const rotX = Math.max(-maxTilt, Math.min(maxTilt, beta * 0.4));
+                    const rotY = Math.max(-maxTilt, Math.min(maxTilt, gamma * 0.6));
+                    tiltImages.forEach(img => {
+                        img.style.transition = 'transform 0.15s ease-out';
+                        img.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.04)`;
+                    });
+                };
+
+                const resetTilt = () => {
+                    tiltImages.forEach(img => {
+                        img.style.transition = 'transform 0.6s ease';
+                        img.style.transform = 'rotateY(-8deg) rotateX(3deg)';
+                    });
+                };
+
+                const handleOrientation = (e) => {
+                    if (!gyroEnabled) return;
+                    const beta = e.beta || 0;   // X-axis: front-back
+                    const gamma = e.gamma || 0; // Y-axis: left-right
+                    // Normalize: portrait-mode phone held naturally has beta ~45
+                    applyGyroTilt(beta - 45, gamma);
+                };
+
+                // Request permission on iOS 13+
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    showcase.addEventListener('touchstart', () => {
+                        DeviceOrientationEvent.requestPermission().then(state => {
+                            if (state === 'granted') {
+                                gyroEnabled = true;
+                                window.addEventListener('deviceorientation', handleOrientation);
+                            }
+                        }).catch(() => {});
+                    }, { once: true });
+                } else if (typeof DeviceOrientationEvent !== 'undefined') {
+                    // Android / older iOS — no permission needed
+                    window.addEventListener('deviceorientation', (e) => {
+                        // Check if there's actually gyro data
+                        if (e.gamma !== null || e.beta !== null) {
+                            gyroEnabled = true;
+                        }
+                        handleOrientation(e);
+                    });
+                }
+
+                // === MOBILE TOUCH DRAG fallback (always active alongside gyro) ===
+                let touchStartX = 0, touchStartY = 0;
+                let isDragging = false;
+
+                showcase.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    isDragging = true;
+                }, { passive: true });
+
+                showcase.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    const dx = e.touches[0].clientX - touchStartX;
+                    const dy = e.touches[0].clientY - touchStartY;
+                    const maxTilt = 22;
+                    const rotY = Math.max(-maxTilt, Math.min(maxTilt, dx * 0.25));
+                    const rotX = Math.max(-maxTilt, Math.min(maxTilt, -dy * 0.25));
+                    tiltImages.forEach(img => {
+                        img.style.transition = 'transform 0.05s linear';
+                        img.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.05)`;
+                    });
+                }, { passive: true });
+
+                showcase.addEventListener('touchend', () => {
+                    isDragging = false;
+                    resetTilt();
+                }, { passive: true });
+
+            } else {
+                // === DESKTOP: mouse tilt ===
+                showcase.addEventListener('mousemove', (e) => {
+                    const rect = showcase.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const cy = rect.top + rect.height / 2;
+                    const dx = (e.clientX - cx) / (rect.width / 2);
+                    const dy = (e.clientY - cy) / (rect.height / 2);
+                    const rotY = dx * 18;
+                    const rotX = -dy * 12;
+                    tiltImages.forEach(img => {
+                        img.style.transition = 'transform 0.1s ease-out';
+                        img.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.04)`;
+                    });
+                });
+                showcase.addEventListener('mouseleave', () => {
+                    tiltImages.forEach(img => {
+                        img.style.transition = 'transform 0.6s ease';
+                        img.style.transform = 'rotateY(-8deg) rotateX(4deg)';
+                    });
+                });
+            }
+        }
     }
+
     
     // 7. Exact verified CloudCord installs from the canonical usage service.
     const installCounter = document.getElementById('install-counter');
