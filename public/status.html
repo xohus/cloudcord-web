@@ -22,11 +22,11 @@
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
     </script>
-    <div class="announcement-bar" style="background: rgba(237, 66, 69, 0.15); border-bottom: 1px solid rgba(237, 66, 69, 0.3);">
+    <div class="announcement-bar" style="background: rgba(237, 66, 69, 0.18); border-bottom: 1px solid rgba(237, 66, 69, 0.35);">
         <div class="announcement-content">
             <span class="announcement-badge" style="background: #ed4245; color: #fff;">MAINTENANCE</span>
-            <span class="announcement-text" style="color: #ed4245; font-weight: 600;">CloudCord Desktop (PC) is currently DOWN / Under Investigation. Mobile systems are operational.</span>
-            <a href="/status" class="announcement-link">System Status &rarr;</a>
+            <span class="announcement-text" style="color: #ed4245; font-weight: 600;">Desktop installation will be down for 1-4 days+. Users who didn't update: please continue on your version as it's one of the only working ones.</span>
+            <a href="/status" class="announcement-link" style="color: #fff; background: #ed4245; padding: 2px 8px; border-radius: 6px; text-decoration: none; font-size: 0.78rem;">Status &rarr;</a>
         </div>
     </div>
     <nav class="navbar">
@@ -88,15 +88,15 @@
         <div class="status-card reveal stagger-up" style="transition-delay: 0.3s; border-color: rgba(237, 66, 69, 0.4);" onclick="toggleChangelog('windows')">
             <div>
                 <div class="status-platform">Windows Desktop</div>
-                <div class="click-hint" style="color: #ed4245;">🔴 Offline — Under Investigation</div>
+                <div class="click-hint" style="color: #ed4245;">[MAINTENANCE] Down for Installation (1-4 Days+) &bull; Tap for advisory &darr;</div>
             </div>
-            <div class="status-badge status-offline">Down (Investigating)</div>
+            <div class="status-badge status-offline">Down (1-4 Days+)</div>
         </div>
         <div id="changelog-windows" class="changelog-details" style="display: block; border-color: rgba(237, 66, 69, 0.3);">
-            <h3 style="color: #ed4245; margin-bottom: 0.5rem;">Status Notice: Desktop Client Down</h3>
+            <h3 style="color: #ed4245; margin-bottom: 0.5rem;">Desktop Installation Advisory</h3>
             <ul>
-                <li><span class="tag-fix" style="background: rgba(237, 66, 69, 0.2); color: #ed4245; padding: 2px 6px; border-radius: 4px;">INVESTIGATING</span> Windows PC downloads and client updates are temporarily paused while our team investigates compatibility updates.</li>
-                <li><span class="tag-update">UPDATE</span> Mobile platforms (iOS & Android) remain fully online and unaffected.</li>
+                <li><span class="tag-fix" style="background: rgba(237, 66, 69, 0.2); color: #ed4245; padding: 2px 6px; border-radius: 4px;">DOWN</span> <b>New Desktop Installations:</b> Desktop will be down for installation for 1-4 days+ while updates and core rebuilds are taking place.</li>
+                <li><span class="tag-update" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 2px 6px; border-radius: 4px;">NOTICE FOR USERS</span> <b>Users who didn't update:</b> Please continue on your existing version as it is one of the only working ones. Do NOT reinstall, uninstall, or update.</li>
             </ul>
         </div>
         
