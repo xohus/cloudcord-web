@@ -807,12 +807,30 @@ body:not(.light) .moon-icon { display: none; }
 
     .tilt-showcase {
         transform: none !important;
-        margin-top: 1rem;
+        margin: 1rem auto 0;
+        aspect-ratio: auto;
+        height: auto;
+        min-height: auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
     }
 
     .tilt-img {
+        position: relative !important;
         transform: none !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        width: auto !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: 600px !important;
+        object-fit: contain !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4) !important;
+        margin: 0 auto;
+    }
+
+    .tilt-img:not(.active) {
+        display: none !important;
     }
 
     .features-section, .plugins-container, .page-content {
