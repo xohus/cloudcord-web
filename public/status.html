@@ -28,33 +28,100 @@
             <div class="nav-links">
                 <a href="/" class="nav-link">Home</a>
                 <a href="/status" class="nav-link" style="color: var(--text-primary)">Status</a>
+                <a href="/changelog" class="nav-link">Changelog</a>
             </div>
         </div>
     </nav>
+    <style>
+        .status-card { cursor: pointer; transition: transform 0.2s, border-color 0.2s; position: relative; }
+        .status-card:hover { transform: translateY(-2px); border-color: var(--text-secondary); }
+        .click-hint { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px; margin-top: 0.5rem; }
+        .changelog-details { display: none; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-top: -1rem; margin-bottom: 2rem; }
+        .changelog-details.active { display: block; }
+        .changelog-details ul { padding-left: 1.5rem; margin-top: 1rem; color: var(--text-secondary); line-height: 1.6; }
+        .changelog-details li { margin-bottom: 0.5rem; }
+        .tag-update { color: #3b82f6; font-weight: 600; margin-right: 0.5rem; }
+        .tag-fix { color: #f59e0b; font-weight: 600; margin-right: 0.5rem; }
+        .tag-new { color: #22c55e; font-weight: 600; margin-right: 0.5rem; }
+    </style>
     <main class="page-content">
         <h1 class="reveal stagger-up">Platform Status</h1>
         <p class="section-subtitle reveal stagger-up" style="margin-bottom: 3rem; text-align: left; margin-left: 0;">Current operational status for all CloudCord clients.</p>
         
-        <div class="status-card reveal stagger-up" style="transition-delay: 0.1s">
-            <div class="status-platform">iOS / iPadOS</div>
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.1s" onclick="toggleChangelog('ios')">
+            <div>
+                <div class="status-platform">iOS / iPadOS</div>
+                <div class="click-hint">Click to view changelog <span style="font-size: 1rem; color: var(--accent-purple);">➔</span></div>
+            </div>
             <div class="status-badge status-online">Operational</div>
         </div>
-
-        <div class="status-card reveal stagger-up" style="transition-delay: 0.2s">
-            <div class="status-platform">Android</div>
-            <div class="status-badge status-online">Operational</div>
+        <div id="changelog-ios" class="changelog-details">
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Latest Updates</h3>
+            <ul>
+                <li><span class="tag-fix">FIX</span> Fixed random crashing when swiping back on iOS 17.</li>
+                <li><span class="tag-update">UPDATE</span> Improved native feeling of the settings menu.</li>
+            </ul>
         </div>
 
-        <div class="status-card reveal stagger-up" style="transition-delay: 0.3s">
-            <div class="status-platform">Windows Desktop</div>
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.2s" onclick="toggleChangelog('android')">
+            <div>
+                <div class="status-platform">Android</div>
+                <div class="click-hint">Click to view changelog <span style="font-size: 1rem; color: var(--accent-purple);">➔</span></div>
+            </div>
+            <div class="status-badge status-online">Operational</div>
+        </div>
+        <div id="changelog-android" class="changelog-details">
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Latest Updates</h3>
+            <ul>
+                <li><span class="tag-new">NEW</span> Added support for animated profile themes.</li>
+                <li><span class="tag-fix">FIX</span> Resolved issue with plugin list not scrolling.</li>
+            </ul>
+        </div>
+
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.3s" onclick="toggleChangelog('windows')">
+            <div>
+                <div class="status-platform">Windows Desktop</div>
+                <div class="click-hint">Click to view changelog <span style="font-size: 1rem; color: var(--accent-purple);">➔</span></div>
+            </div>
             <div class="status-badge status-updating">Under Updating</div>
         </div>
+        <div id="changelog-windows" class="changelog-details">
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Latest Updates (v2.1.0)</h3>
+            <ul>
+                <li><span class="tag-update">UPDATE</span> Revamped the Desktop Installer UI for a modernized, fool-proof experience.</li>
+                <li><span class="tag-fix">FIX</span> Resolved a critical issue causing corrupt installations for new users on Windows.</li>
+                <li><span class="tag-new">NEW</span> Added official System Status page for all CloudCord platforms.</li>
+                <li><span class="tag-fix">FIX</span> Reduced CLI terminal popup on installer launch.</li>
+            </ul>
+        </div>
         
-        <div class="status-card reveal stagger-up" style="transition-delay: 0.4s">
-            <div class="status-platform">CloudCord Web Services</div>
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.4s" onclick="toggleChangelog('web')">
+            <div>
+                <div class="status-platform">CloudCord Web Services</div>
+                <div class="click-hint">Click to view changelog <span style="font-size: 1rem; color: var(--accent-purple);">➔</span></div>
+            </div>
             <div class="status-badge status-online">Operational</div>
         </div>
+        <div id="changelog-web" class="changelog-details">
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Latest Updates</h3>
+            <ul>
+                <li><span class="tag-fix">FIX</span> Fixed the Live Install Counter bug displaying `—` instead of actual metrics.</li>
+                <li><span class="tag-update">UPDATE</span> Complete website redesign and code cleanup.</li>
+            </ul>
+        </div>
     </main>
+
+    <script>
+        function toggleChangelog(platformId) {
+            const el = document.getElementById('changelog-' + platformId);
+            if (el.classList.contains('active')) {
+                el.classList.remove('active');
+            } else {
+                // Close others if you want, or just leave them independent
+                el.classList.add('active');
+            }
+        }
+    </script>
 
     <footer class="footer">
         <div class="footer-content reveal stagger-up">
@@ -75,6 +142,7 @@
                     <a href="/faq">FAQ</a>
                 <a href="/changelog" class="nav-link">Changelog</a>
                     <a href="/status">System Status</a>
+                <a href="/changelog" class="nav-link">Changelog</a>
                 </div>
                 <div class="footer-links">
                     <h4>Legal</h4>
