@@ -519,6 +519,11 @@ body:not(.light) .moon-icon { display: none; }
 .plugins-section {
     padding: 6rem 0;
     overflow: hidden;
+    clip-path: inset(0);
+    contain: paint;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
     background-color: var(--bg-secondary);
 }
 .plugins-header {
@@ -530,6 +535,8 @@ body:not(.light) .moon-icon { display: none; }
     width: 100%;
     max-width: 100%;
     overflow: hidden;
+    clip-path: inset(0);
+    contain: paint;
     position: relative;
     padding: 2rem 0;
 }
@@ -863,6 +870,11 @@ html, body {
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 auto 1rem !important;
+    }
+
+    .hexcheats-badge {
+        margin: 0 auto 1rem !important;
+        align-self: center !important;
     }
 
     .hero-right {
