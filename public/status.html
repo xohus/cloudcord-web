@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Status | CloudCord</title>
+    <link rel="icon" href="assets/cloudcord-favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .page-content { padding: 150px 2rem 100px; max-width: 800px; margin: 0 auto; min-height: 80vh; }
+        .status-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;}
+        .status-platform { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.875rem; font-weight: 600; }
+        .status-online { background-color: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2); }
+        .status-updating { background-color: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.2); }
+        .status-offline { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+    </style>
+</head>
+<body>
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
+    </script>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo-link"><img src="assets/cloudcord-favicon.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="nav-logo"></a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="status.html" class="nav-link" style="color: var(--text-primary)">Status</a>
+            </div>
+        </div>
+    </nav>
+    <main class="page-content">
+        <h1 class="reveal stagger-up">Platform Status</h1>
+        <p class="section-subtitle reveal stagger-up" style="margin-bottom: 3rem; text-align: left; margin-left: 0;">Current operational status for all CloudCord clients.</p>
+        
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.1s">
+            <div class="status-platform">iOS / iPadOS</div>
+            <div class="status-badge status-online">Operational</div>
+        </div>
+
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.2s">
+            <div class="status-platform">Android</div>
+            <div class="status-badge status-online">Operational</div>
+        </div>
+
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.3s">
+            <div class="status-platform">Windows Desktop</div>
+            <div class="status-badge status-updating">Under Updating</div>
+        </div>
+        
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.4s">
+            <div class="status-platform">CloudCord Web Services</div>
+            <div class="status-badge status-online">Operational</div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content reveal stagger-up">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="assets/logo-full.png" onerror="this.src='assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="footer-logo">
+                    <p>The ultimate chat experience, customized exactly for you.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <a href="features.html">Features</a>
+                    <a href="plugins.html">Plugins Library</a>
+                    <a href="https://github.com/xohus/cloudcord" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <a href="team.html">The Team</a>
+                    <a href="faq.html">FAQ</a>
+                    <a href="status.html">System Status</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <a href="tos.html">Terms of Service</a>
+                    <a href="privacy.html">Privacy Policy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Xohus & CloudCord contributors. All rights reserved.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Not affiliated with Discord.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>

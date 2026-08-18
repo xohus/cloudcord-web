@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelogs | CloudCord</title>
+    <link rel="icon" href="assets/cloudcord-favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .page-content { padding: 150px 2rem 100px; max-width: 800px; margin: 0 auto; min-height: 80vh; }
+        .changelog-item { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; transition: transform 0.2s; }
+        .changelog-item:hover { border-color: var(--text-secondary); }
+        .changelog-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        .changelog-title { font-size: 1.5rem; color: var(--text-primary); font-weight: 700; }
+        .changelog-date { color: var(--text-muted); font-size: 0.9rem; }
+        .changelog-content { color: var(--text-secondary); line-height: 1.6; }
+        .changelog-content ul { padding-left: 1.5rem; margin-top: 1rem; }
+        .changelog-content li { margin-bottom: 0.5rem; }
+        .tag-update { color: #3b82f6; font-weight: 600; margin-right: 0.5rem; }
+        .tag-new { color: #22c55e; font-weight: 600; margin-right: 0.5rem; }
+        .tag-fix { color: #f59e0b; font-weight: 600; margin-right: 0.5rem; }
+    </style>
+</head>
+<body>
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
+    </script>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo-link"><img src="assets/cloudcord-favicon.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="nav-logo"></a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="changelog.html" class="nav-link" style="color: var(--text-primary)">Changelogs</a>
+            </div>
+        </div>
+    </nav>
+    <main class="page-content">
+        <h1 class="reveal stagger-up">Changelogs</h1>
+        <p class="section-subtitle reveal stagger-up" style="margin-bottom: 3rem; text-align: left; margin-left: 0;">Stay up to date with the latest features, fixes, and improvements to CloudCord.</p>
+        
+        <div class="changelog-item reveal stagger-up" style="transition-delay: 0.1s">
+            <div class="changelog-header">
+                <div class="changelog-title">CloudCord v2.1.0</div>
+                <div class="changelog-date">August 18, 2026</div>
+            </div>
+            <div class="changelog-content">
+                <p>A new milestone in our platform features, bringing much needed enhancements to the Windows installer and mobile stability.</p>
+                <ul>
+                    <li><span class="tag-update">UPDATE</span> Revamped the Desktop Installer UI for a modernized, fool-proof experience.</li>
+                    <li><span class="tag-fix">FIX</span> Resolved a critical issue causing corrupt installations for new users on Windows.</li>
+                    <li><span class="tag-new">NEW</span> Added official System Status page for all CloudCord platforms.</li>
+                    <li><span class="tag-fix">FIX</span> Reduced CLI terminal popup on installer launch.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="changelog-item reveal stagger-up" style="transition-delay: 0.2s">
+            <div class="changelog-header">
+                <div class="changelog-title">CloudCord Web Update</div>
+                <div class="changelog-date">August 17, 2026</div>
+            </div>
+            <div class="changelog-content">
+                <p>Website enhancements and bug fixes to keep things running smoothly.</p>
+                <ul>
+                    <li><span class="tag-fix">FIX</span> Fixed the Live Install Counter bug displaying `—` instead of actual metrics.</li>
+                    <li><span class="tag-update">UPDATE</span> Complete website redesign and code cleanup.</li>
+                    <li><span class="tag-new">NEW</span> Setup automated deployment to production Railway server.</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content reveal stagger-up">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="assets/logo-full.png" onerror="this.src='assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="footer-logo">
+                    <p>The ultimate chat experience, customized exactly for you.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <a href="features.html">Features</a>
+                    <a href="plugins.html">Plugins Library</a>
+                    <a href="https://github.com/xohus/cloudcord" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <a href="team.html">The Team</a>
+                    <a href="faq.html">FAQ</a>
+                    <a href="status.html">System Status</a>
+                    <a href="changelog.html">Changelogs</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <a href="tos.html">Terms of Service</a>
+                    <a href="privacy.html">Privacy Policy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Xohus & CloudCord contributors. All rights reserved.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Not affiliated with Discord.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
