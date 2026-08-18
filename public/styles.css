@@ -527,7 +527,8 @@ body:not(.light) .moon-icon { display: none; }
     padding: 0 2rem;
 }
 .marquee-container {
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
     position: relative;
     padding: 2rem 0;
@@ -965,7 +966,11 @@ html, body {
         max-width: 100% !important;
     }
 
-    .section-title, .section-subtitle, .page-header {
+    .page-content h1,
+    .page-content p,
+    .section-title, 
+    .section-subtitle, 
+    .page-header {
         text-align: center !important;
         margin-left: auto !important;
         margin-right: auto !important;
