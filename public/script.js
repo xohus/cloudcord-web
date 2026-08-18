@@ -411,7 +411,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         let devicePrefix = 'desktop';
         if (isIpad) devicePrefix = 'ipad';
         else if (isIphone) devicePrefix = 'iphone';
-        else if (isAndroid) devicePrefix = 'android';
+        else if (isAndroid) devicePrefix = 'iphone'; // Android images not ready, use iPhone as fallback
 
         if (devicePrefix !== 'desktop') {
             if (tiltImages[0]) {
