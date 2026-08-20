@@ -33,8 +33,11 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 app.use(cors());
-app.use(express.json());
+// StoreCloud's sync endpoint accepts larger encrypted settings archives and
+// applies its own 16 MB JSON limit. Mount it before the site's default parser
+// so Express's 100 KB default does not reject valid sync requests first.
 app.use(makeStoreCloudRouter(express));
+app.use(express.json());
 
 // Lightweight status endpoint for uptime monitors and the public status page.
 // BOTCORD_STATUS can be changed to "operational" after the desktop feature is restored.
