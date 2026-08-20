@@ -52,7 +52,7 @@ function makeStoreCloudRouter(express) {
     const redirectUri = process.env.DISCORD_REDIRECT_URI || "https://cloudcord.xohus.lol/v1/oauth/callback";
     const limiter = rateLimit({ windowMs: 60_000, limit: 90, standardHeaders: true, legacyHeaders: false });
 
-    const ready = pool?.query(`
+    const schema = `
         CREATE TABLE IF NOT EXISTS storecloud_devices (
             user_id TEXT NOT NULL,
             secret_hash TEXT NOT NULL,
@@ -70,7 +70,20 @@ function makeStoreCloudRouter(express) {
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             PRIMARY KEY (user_id, key)
         );
-    `);
+    `;
+    let readyPromise = null;
+
+    function ensureDatabase() {
+        if (!pool) return null;
+        if (!readyPromise) {
+            readyPromise = pool.query(schema).catch(error => {
+                // Permit a later request to retry after PostgreSQL recovers.
+                readyPromise = null;
+                throw error;
+            });
+        }
+        return readyPromise;
+    }
 
     // OAuth configuration is static and must remain available even while the
     // database is recovering. Scope readiness checks to routes that need it so
@@ -79,6 +92,7 @@ function makeStoreCloudRouter(express) {
 
     router.use(["/v1/oauth/callback", "/v2"], limiter);
     router.use(["/v1/oauth/callback", "/v2"], async (_req, res, next) => {
+        const ready = ensureDatabase();
         if (!ready) return res.status(503).json({ error: "StoreCloud database is not configured" });
         try { await ready; next(); }
         catch (error) { console.error("[STORECLOUD] database initialization failed", error); res.status(503).json({ error: "StoreCloud is unavailable" }); }
