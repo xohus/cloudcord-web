@@ -10,6 +10,7 @@ const { makeStoreCloudRouter } = require('./storecloud');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SOURCE_DIR = path.join(__dirname, 'sourcevault-data');
+const SERVER_STARTED_AT = new Date().toISOString();
 
 // Security middlewares
 app.set('trust proxy', 1); // Trust Railway/Cloudflare proxy for accurate IP
@@ -33,6 +34,27 @@ app.use(helmet({
 }));
 app.use(cors());
 app.use(express.json());
+app.use(makeStoreCloudRouter(express));
+
+// Lightweight status endpoint for uptime monitors and the public status page.
+// BOTCORD_STATUS can be changed to "operational" after the desktop feature is restored.
+app.get(['/api/status', '/v1/status'], (req, res) => {
+    const botCordOperational = process.env.BOTCORD_STATUS === 'operational';
+    res.set('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
+    res.json({
+        ok: true,
+        checkedAt: new Date().toISOString(),
+        startedAt: SERVER_STARTED_AT,
+        uptimeSeconds: Math.floor(process.uptime()),
+        services: {
+            web: { status: 'operational', label: 'Operational' },
+            botcord: {
+                status: botCordOperational ? 'operational' : 'maintenance',
+                label: botCordOperational ? 'Operational' : 'Temporarily unavailable'
+            }
+        }
+    });
+});
 
 // Direct live installs proxy to bypass any CORS/client network issues
 app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {

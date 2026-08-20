@@ -98,13 +98,27 @@
                 <li><span class="tag-update">UPDATE</span> Resolved runtime compatibility and streamlined the desktop setup flow.</li>
             </ul>
         </div>
+
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.4s" onclick="toggleChangelog('botcord')">
+            <div>
+                <div class="status-platform">BotCord on Desktop</div>
+            </div>
+            <div class="status-badge status-offline" data-service="botcord">Temporarily unavailable</div>
+        </div>
+        <div id="changelog-botcord" class="changelog-details">
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Current Status</h3>
+            <ul>
+                <li><span class="tag-fix">MAINTENANCE</span> BotCord is temporarily disabled on Desktop while stability work is completed.</li>
+                <li>Existing locally saved bot entries are preserved.</li>
+            </ul>
+        </div>
         
-        <div class="status-card reveal stagger-up" style="transition-delay: 0.4s" onclick="toggleChangelog('web')">
+        <div class="status-card reveal stagger-up" style="transition-delay: 0.5s" onclick="toggleChangelog('web')">
             <div>
                 <div class="status-platform">CloudCord Web Services</div>
                 
             </div>
-            <div class="status-badge status-online">Operational</div>
+            <div class="status-badge status-online" data-service="web">Operational</div>
         </div>
         <div id="changelog-web" class="changelog-details">
             <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Latest Updates</h3>
@@ -125,6 +139,31 @@
                 el.classList.add('active');
             }
         }
+
+        async function refreshLiveStatus() {
+            try {
+                const response = await fetch('/api/status', { headers: { Accept: 'application/json' } });
+                if (!response.ok) throw new Error('Status endpoint unavailable');
+                const data = await response.json();
+                for (const [service, state] of Object.entries(data.services || {})) {
+                    const badge = document.querySelector(`[data-service="${service}"]`);
+                    if (!badge) continue;
+                    badge.textContent = state.label;
+                    badge.classList.toggle('status-online', state.status === 'operational');
+                    badge.classList.toggle('status-offline', state.status !== 'operational');
+                }
+            } catch {
+                const webBadge = document.querySelector('[data-service="web"]');
+                if (webBadge) {
+                    webBadge.textContent = 'Status check unavailable';
+                    webBadge.classList.remove('status-online');
+                    webBadge.classList.add('status-updating');
+                }
+            }
+        }
+
+        refreshLiveStatus();
+        window.setInterval(refreshLiveStatus, 60000);
     </script>
 
     <footer class="footer">

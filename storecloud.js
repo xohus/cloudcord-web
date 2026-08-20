@@ -72,14 +72,17 @@ function makeStoreCloudRouter(express) {
         );
     `);
 
-    router.use(limiter);
-    router.use(async (_req, res, next) => {
+    // OAuth configuration is static and must remain available even while the
+    // database is recovering. Scope readiness checks to routes that need it so
+    // StoreCloud cannot take down the website or public status endpoint.
+    router.get("/v1/oauth/settings", (_req, res) => res.json({ clientId: requiredEnv("DISCORD_CLIENT_ID"), redirectUri }));
+
+    router.use(["/v1/oauth/callback", "/v2"], limiter);
+    router.use(["/v1/oauth/callback", "/v2"], async (_req, res, next) => {
         if (!ready) return res.status(503).json({ error: "StoreCloud database is not configured" });
         try { await ready; next(); }
         catch (error) { console.error("[STORECLOUD] database initialization failed", error); res.status(503).json({ error: "StoreCloud is unavailable" }); }
     });
-
-    router.get("/v1/oauth/settings", (_req, res) => res.json({ clientId: requiredEnv("DISCORD_CLIENT_ID"), redirectUri }));
 
     router.get("/v1/oauth/callback", async (req, res) => {
         if (typeof req.query.code !== "string" || req.query.code.length > 256)
