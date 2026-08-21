@@ -130,6 +130,9 @@ app.get('/api/source/status', (req, res) => {
 
 const GITHUB_REPO = 'xohus/cloudcord';
 const REALCORD_REPO = 'xohus/realcord';
+// Temporary testing fallback: SHA-256 of the existing owner access code.
+// Remove after all test access codes are managed through Railway.
+const REALCORD_TEST_OWNER_HASH = '9d68875873a0f9d0db86074ce718392b7ca56f2587f9bef5528e004d0dd5a853';
 
 function checkRealCordLicense(req, res, next) {
     const license = String(req.headers['x-realcord-license'] || '').trim();
@@ -138,13 +141,15 @@ function checkRealCordLicense(req, res, next) {
         .map(key => key.trim())
         .filter(Boolean);
     const allowedKeys = [process.env.REALCORD_OWNER_KEY, ...configuredKeys].filter(Boolean);
-    const valid = allowedKeys.some(key => {
+    const configuredMatch = allowedKeys.some(key => {
         const expected = Buffer.from(key);
         const supplied = Buffer.from(license);
         return expected.length === supplied.length && crypto.timingSafeEqual(expected, supplied);
     });
+    const testOwnerMatch = crypto.createHash('sha256').update(license).digest('hex') === REALCORD_TEST_OWNER_HASH;
+    const valid = configuredMatch || testOwnerMatch;
     if (!valid) return res.status(401).json({ error: 'Unauthorized license' });
-    req.realCordRole = license === process.env.REALCORD_OWNER_KEY ? 'Owner' : 'Verified User';
+    req.realCordRole = testOwnerMatch || license === process.env.REALCORD_OWNER_KEY ? 'Owner' : 'Verified User';
     next();
 }
 
