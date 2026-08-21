@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const fs = require('fs');
 const path = require('path');
 const { Readable } = require('stream');
+const crypto = require('crypto');
 const { makeStoreCloudRouter } = require('./storecloud');
 
 const app = express();
@@ -136,12 +137,14 @@ function checkRealCordLicense(req, res, next) {
         .split(',')
         .map(key => key.trim())
         .filter(Boolean);
-    const valid = license.length >= 16 && (
-        license === process.env.REALCORD_OWNER_KEY ||
-        configuredKeys.includes(license) ||
-        license.startsWith('REALCORD-')
-    );
+    const allowedKeys = [process.env.REALCORD_OWNER_KEY, ...configuredKeys].filter(Boolean);
+    const valid = allowedKeys.some(key => {
+        const expected = Buffer.from(key);
+        const supplied = Buffer.from(license);
+        return expected.length === supplied.length && crypto.timingSafeEqual(expected, supplied);
+    });
     if (!valid) return res.status(401).json({ error: 'Unauthorized license' });
+    req.realCordRole = license === process.env.REALCORD_OWNER_KEY ? 'Owner' : 'Verified User';
     next();
 }
 
@@ -153,6 +156,11 @@ function realCordGitHubHeaders(accept = 'application/vnd.github+json') {
         'X-GitHub-Api-Version': '2022-11-28'
     };
 }
+
+app.get('/api/realcord/license', checkRealCordLicense, (req, res) => {
+    res.set('Cache-Control', 'private, no-store');
+    res.json({ valid: true, role: req.realCordRole });
+});
 
 // Licensed RealCord updates are delivered by CloudCord Web. The private GitHub
 // token stays server-side; clients receive only a verified checksum and proxy URL.
