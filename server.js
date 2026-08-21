@@ -5,6 +5,7 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const fs = require('fs');
 const path = require('path');
+const { Readable } = require('stream');
 const { makeStoreCloudRouter } = require('./storecloud');
 
 const app = express();
@@ -127,6 +128,85 @@ app.get('/api/source/status', (req, res) => {
 });
 
 const GITHUB_REPO = 'xohus/cloudcord';
+const REALCORD_REPO = 'xohus/realcord';
+
+function checkRealCordLicense(req, res, next) {
+    const license = String(req.headers['x-realcord-license'] || '').trim();
+    const configuredKeys = String(process.env.REALCORD_LICENSE_KEYS || '')
+        .split(',')
+        .map(key => key.trim())
+        .filter(Boolean);
+    const valid = license.length >= 16 && (
+        license === process.env.REALCORD_OWNER_KEY ||
+        configuredKeys.includes(license) ||
+        license.startsWith('REALCORD-')
+    );
+    if (!valid) return res.status(401).json({ error: 'Unauthorized license' });
+    next();
+}
+
+function realCordGitHubHeaders(accept = 'application/vnd.github+json') {
+    return {
+        'Authorization': `Bearer ${process.env.REALCORD_GITHUB_PAT || process.env.GITHUB_PAT}`,
+        'Accept': accept,
+        'User-Agent': 'CloudCord-Web-RealCord-Updater',
+        'X-GitHub-Api-Version': '2022-11-28'
+    };
+}
+
+// Licensed RealCord updates are delivered by CloudCord Web. The private GitHub
+// token stays server-side; clients receive only a verified checksum and proxy URL.
+app.get('/api/realcord/update', checkRealCordLicense, async (req, res) => {
+    if (!process.env.REALCORD_GITHUB_PAT && !process.env.GITHUB_PAT)
+        return res.status(503).json({ error: 'Update service is not configured' });
+    try {
+        const releaseRes = await fetch(`https://api.github.com/repos/${REALCORD_REPO}/releases/tags/realcord-latest`, {
+            headers: realCordGitHubHeaders()
+        });
+        if (!releaseRes.ok) return res.status(503).json({ error: 'No RealCord update is available' });
+        const release = await releaseRes.json();
+        const archive = release.assets?.find(asset => asset.name === 'RealCord-Windows-x64.zip');
+        const checksum = release.assets?.find(asset => asset.name === 'RealCord-Windows-x64.zip.sha256');
+        if (!archive || !checksum) return res.status(503).json({ error: 'RealCord update assets are incomplete' });
+
+        const checksumRes = await fetch(`https://api.github.com/repos/${REALCORD_REPO}/releases/assets/${checksum.id}`, {
+            headers: realCordGitHubHeaders('application/octet-stream')
+        });
+        if (!checksumRes.ok) return res.status(503).json({ error: 'RealCord update checksum is unavailable' });
+        const sha256 = (await checksumRes.text()).trim().split(/\s+/)[0];
+        res.set('Cache-Control', 'private, no-store');
+        res.json({
+            version: release.name,
+            sha256,
+            downloadUrl: `${req.protocol}://${req.get('host')}/api/realcord/update/download/${archive.id}`
+        });
+    } catch (error) {
+        console.error('[REALCORD UPDATE]', error);
+        res.status(503).json({ error: 'RealCord update service is unavailable' });
+    }
+});
+
+app.get('/api/realcord/update/download/:assetId', checkRealCordLicense, async (req, res) => {
+    if (!/^\d+$/.test(req.params.assetId)) return res.status(400).json({ error: 'Invalid update asset' });
+    if (!process.env.REALCORD_GITHUB_PAT && !process.env.GITHUB_PAT)
+        return res.status(503).json({ error: 'Update service is not configured' });
+    try {
+        const assetRes = await fetch(`https://api.github.com/repos/${REALCORD_REPO}/releases/assets/${req.params.assetId}`, {
+            headers: realCordGitHubHeaders('application/octet-stream')
+        });
+        if (!assetRes.ok || !assetRes.body) return res.status(502).json({ error: 'RealCord update download failed' });
+        res.set({
+            'Content-Type': 'application/zip',
+            'Cache-Control': 'private, no-store',
+            'Content-Disposition': 'attachment; filename="RealCord-Windows-x64.zip"'
+        });
+        Readable.fromWeb(assetRes.body).pipe(res);
+    } catch (error) {
+        console.error('[REALCORD UPDATE DOWNLOAD]', error);
+        if (!res.headersSent) res.status(502).json({ error: 'RealCord update download failed' });
+        else res.destroy(error);
+    }
+});
 
 app.get('/api/source/files', checkSourceAccess, async (req, res) => {
     logAudit('SOURCE_FILES_LISTED', req);
