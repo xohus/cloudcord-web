@@ -7,12 +7,15 @@ const fs = require('fs');
 const path = require('path');
 const { Readable } = require('stream');
 const crypto = require('crypto');
+const { Pool } = require('pg');
 const { makeStoreCloudRouter } = require('./storecloud');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SOURCE_DIR = path.join(__dirname, 'sourcevault-data');
 const SERVER_STARTED_AT = new Date().toISOString();
+const realCordDb = process.env.DATABASE_URL ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined }) : null;
+const realCordLicenseTableReady = realCordDb ? realCordDb.query(`CREATE TABLE IF NOT EXISTS realcord_license_activations (license_hash TEXT PRIMARY KEY, activated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`) : Promise.resolve();
 
 // Security middlewares
 app.set('trust proxy', 1); // Trust Railway/Cloudflare proxy for accurate IP
@@ -130,27 +133,109 @@ app.get('/api/source/status', (req, res) => {
 
 const GITHUB_REPO = 'xohus/cloudcord';
 const REALCORD_REPO = 'xohus/realcord';
-// Temporary testing fallback: SHA-256 of the existing owner access code.
-// Remove after all test access codes are managed through Railway.
-const REALCORD_TEST_OWNER_HASH = '9d68875873a0f9d0db86074ce718392b7ca56f2587f9bef5528e004d0dd5a853';
 
-function checkRealCordLicense(req, res, next) {
-    const license = String(req.headers['x-realcord-license'] || '').trim();
-    const configuredKeys = String(process.env.REALCORD_LICENSE_KEYS || '')
-        .split(',')
-        .map(key => key.trim())
-        .filter(Boolean);
-    const allowedKeys = [process.env.REALCORD_OWNER_KEY, ...configuredKeys].filter(Boolean);
-    const configuredMatch = allowedKeys.some(key => {
-        const expected = Buffer.from(key);
-        const supplied = Buffer.from(license);
-        return expected.length === supplied.length && crypto.timingSafeEqual(expected, supplied);
-    });
-    const testOwnerMatch = crypto.createHash('sha256').update(license).digest('hex') === REALCORD_TEST_OWNER_HASH;
-    const valid = configuredMatch || testOwnerMatch;
-    if (!valid) return res.status(401).json({ error: 'Unauthorized license' });
-    req.realCordRole = testOwnerMatch || license === process.env.REALCORD_OWNER_KEY ? 'Owner' : 'Verified User';
-    next();
+const realCordLicenseLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 10,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { valid: false, error: 'Too many verification attempts. Try again shortly.' }
+});
+
+const realCordKeyLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 5,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    keyGenerator: req => crypto.createHash('sha256').update(String(req.body?.key || 'empty')).digest('hex'),
+    message: { valid: false, error: 'Too many attempts for this license key. Try again shortly.' }
+});
+
+function parseRealCordSecrets(value) {
+    if (!value) return [];
+    try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.map(String).map(item => item.trim()).filter(Boolean);
+    } catch { }
+    return String(value).split(/[\r\n,]+/).map(item => item.trim()).filter(Boolean);
+}
+
+function timingSafeTextEqual(left, right) {
+    const expected = Buffer.from(String(left));
+    const supplied = Buffer.from(String(right));
+    return expected.length === supplied.length && crypto.timingSafeEqual(expected, supplied);
+}
+
+const REALCORD_PLANS = {
+    '7d': { label: '7 days', price: 2.49, days: 7 },
+    '30d': { label: '30 days', price: 5.49, days: 30 },
+    '90d': { label: '90 days', price: 11.99, days: 90 },
+    '6m': { label: '6 months', price: 19.99, months: 6 },
+    '1y': { label: '1 year', price: 29.99, years: 1 },
+    'lifetime': { label: 'Lifetime', price: 39.99 }
+};
+
+function parseRealCordRecords() {
+    const raw = String(process.env.REALCORD_LICENSE_RECORDS || '').trim();
+    if (!raw) return [];
+    try {
+        const records = JSON.parse(raw);
+        return Array.isArray(records) ? records : [];
+    } catch { }
+
+    const values = raw.split(/[\r\n,]+/).map(value => value.trim()).filter(Boolean);
+    const records = [];
+    for (let index = 0; index + 1 < values.length; index += 2) {
+        records.push({ duration: values[index].toLowerCase(), hash: values[index + 1].toLowerCase() });
+    }
+    return records;
+}
+
+function calculateRealCordExpiry(activatedAt, plan) {
+    if (plan === REALCORD_PLANS.lifetime) return null;
+    const expiresAt = new Date(activatedAt);
+    if (plan.days) expiresAt.setUTCDate(expiresAt.getUTCDate() + plan.days);
+    if (plan.months) expiresAt.setUTCMonth(expiresAt.getUTCMonth() + plan.months);
+    if (plan.years) expiresAt.setUTCFullYear(expiresAt.getUTCFullYear() + plan.years);
+    return expiresAt;
+}
+
+async function findRealCordLicense(license, activate = false) {
+    if (!license || license.length < 12 || license.length > 160) return null;
+    const submittedHash = crypto.createHash('sha256').update(license).digest('hex');
+    for (const record of parseRealCordRecords()) {
+        const plan = REALCORD_PLANS[String(record.duration || '').toLowerCase()];
+        if (!plan || !record.hash || !timingSafeTextEqual(String(record.hash).toLowerCase(), submittedHash)) continue;
+        if (!realCordDb) throw new Error('DATABASE_URL is required for duration-aware RealCord licenses');
+        await realCordLicenseTableReady;
+        if (activate) await realCordDb.query('INSERT INTO realcord_license_activations (license_hash) VALUES ($1) ON CONFLICT (license_hash) DO NOTHING', [submittedHash]);
+        const activation = await realCordDb.query('SELECT activated_at FROM realcord_license_activations WHERE license_hash = $1', [submittedHash]);
+        if (!activation.rows[0]) return { pendingActivation: true, duration: plan.label, price: plan.price, expiresAt: null };
+        const activatedAt = new Date(activation.rows[0].activated_at);
+        const expiresAt = calculateRealCordExpiry(activatedAt, plan);
+        if (expiresAt && (Number.isNaN(expiresAt.getTime()) || expiresAt <= new Date())) return null;
+        return { duration: plan.label, price: plan.price, activatedAt: activatedAt.toISOString(), expiresAt: expiresAt?.toISOString() || null };
+    }
+
+    // Backward-compatible entries have no duration metadata and are treated as lifetime.
+    const configuredHashes = parseRealCordSecrets(process.env.REALCORD_LICENSE_HASHES).map(hash => hash.toLowerCase());
+    const configuredKeys = parseRealCordSecrets(process.env.REALCORD_LICENSE_KEYS);
+    const legacyMatch = configuredHashes.some(hash => timingSafeTextEqual(hash, submittedHash))
+        || configuredKeys.some(key => timingSafeTextEqual(key, license));
+    return legacyMatch ? { duration: 'Lifetime', price: REALCORD_PLANS.lifetime.price, expiresAt: null } : null;
+}
+
+async function checkRealCordLicense(req, res, next) {
+    try {
+        const license = String(req.headers['x-realcord-license'] || '').trim();
+        const record = await findRealCordLicense(license, false);
+        if (!record) return res.status(401).json({ error: 'Unauthorized license' });
+        req.realCordLicense = record;
+        next();
+    } catch (error) {
+        console.error('[REALCORD LICENSE]', error);
+        res.status(503).json({ error: 'License service unavailable' });
+    }
 }
 
 function realCordGitHubHeaders(accept = 'application/vnd.github+json') {
@@ -162,9 +247,17 @@ function realCordGitHubHeaders(accept = 'application/vnd.github+json') {
     };
 }
 
-app.get('/api/realcord/license', checkRealCordLicense, (req, res) => {
-    res.set('Cache-Control', 'private, no-store');
-    res.json({ valid: true, role: req.realCordRole });
+app.post('/api/realcord/license', realCordLicenseLimiter, realCordKeyLimiter, async (req, res) => {
+    try {
+        const license = String(req.body?.key || '').trim();
+        res.set('Cache-Control', 'private, no-store');
+        const record = await findRealCordLicense(license, true);
+        if (!record) return res.status(401).json({ valid: false, error: 'License key is invalid or expired' });
+        res.json({ valid: true, tier: 'RealCord', ...record });
+    } catch (error) {
+        console.error('[REALCORD REDEEM]', error);
+        res.status(503).json({ valid: false, error: 'License service unavailable' });
+    }
 });
 
 // Licensed RealCord updates are delivered by CloudCord Web. The private GitHub
