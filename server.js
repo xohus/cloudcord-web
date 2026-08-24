@@ -38,11 +38,22 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 app.use(cors());
+// Keep inexpensive endpoints from being used to exhaust application workers. A
+// CDN/WAF should absorb volumetric attacks before they reach this process.
+const siteLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 180,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { error: 'Too many requests. Please try again shortly.' },
+    skip: req => req.path === '/health'
+});
+app.use(siteLimiter);
 // StoreCloud's sync endpoint accepts larger encrypted settings archives and
 // applies its own 16 MB JSON limit. Mount it before the site's default parser
 // so Express's 100 KB default does not reject valid sync requests first.
 app.use(makeStoreCloudRouter(express));
-app.use(express.json());
+app.use(express.json({ limit: '256kb' }));
 
 // Lightweight status endpoint for uptime monitors and the public status page.
 // BOTCORD_STATUS can be changed to "operational" after the desktop feature is restored.
@@ -82,13 +93,12 @@ app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {
 
 // Session setup
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'cloudcord-super-secret-key-123!',
+    // A production deployment must provide a secret; never use a public default.
+    secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
+    cookie: { secure: process.env.NODE_ENV === 'production', httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 }
 }));
-
-// Rate limiters temporarily disabled for debugging
 
 // Audit logger
 function logAudit(event, req, additionalInfo = {}) {
@@ -104,7 +114,11 @@ function logAudit(event, req, additionalInfo = {}) {
 }
 
 // Serve static files
-app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
+app.use(express.static(path.join(__dirname, 'public'), {
+    extensions: ['html'],
+    maxAge: '1h',
+    etag: true
+}));
 
 // SourceVault API
 
@@ -500,9 +514,13 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
     if (!token) return res.status(500).json({ error: 'Unconfigured' });
     
     try {
-        const ghRes = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${filePathParam}`, {
+        const upstreamUrl = new URL(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${filePathParam}`);
+        upstreamUrl.searchParams.set('cloudcord_version', Date.now().toString());
+        const ghRes = await fetch(upstreamUrl, {
+            cache: 'no-store',
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache',
                 'User-Agent': 'CloudCord-Client'
             }
         });
@@ -511,6 +529,7 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
         
         const contentType = ghRes.headers.get('content-type') || 'text/plain';
         res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'no-store, max-age=0');
         
         const buffer = await ghRes.arrayBuffer();
         res.send(Buffer.from(buffer));
