@@ -32,14 +32,14 @@
         <p>At CloudCord, your privacy is our top priority. Because of the nature of client modifications, we believe in complete transparency. This Privacy Policy outlines what information we collect, how it is used, and why we do not want your personal data.</p>
         
         <h3 style="color: var(--text-primary); margin-bottom: 1rem; margin-top: 2rem; font-size: 1.5rem;">2. Information We Collect</h3>
-        <p><strong>CloudCord is designed to operate locally on your machine.</strong> We do not track you, we do not employ telemetry, and we do not collect personal identifiers.</p>
+        <p><strong>CloudCord is designed to keep most configuration data locally on your device.</strong> We do not sell personal data or collect Discord passwords or raw account tokens.</p>
         <ul style="margin-left: 2rem; margin-top: 0.5rem; margin-bottom: 1.5rem;">
             <li><strong>Local Data:</strong> Your plugins, themes, and settings are stored locally on your device in your AppData directory. This data never leaves your computer unless you explicitly choose to export or share it.</li>
             <li><strong>Website Analytics:</strong> If you visit the CloudCord website, we may collect basic, anonymous analytics (such as page views or browser type) to help us improve the site. This does not include personally identifiable information.</li>
         </ul>
 
         <h3 style="color: var(--text-primary); margin-bottom: 1rem; margin-top: 2rem; font-size: 1.5rem;">3. Discord Data and Tokens</h3>
-        <p>CloudCord does <strong>not</strong> have access to your Discord account, messages, or authentication token. All communication with Discord servers happens directly between your modified client and Discord's API. We do not proxy, intercept, or log your messages.</p>
+        <p>For required community membership, CloudCord uses Discord OAuth2 with the limited <code>identify</code> and <code>guilds.join</code> scopes. The service receives your Discord user ID and a temporary scoped OAuth access token, uses it to add your account to the official CloudCord server, and does not store that OAuth access token after the join completes. CloudCord stores a hashed device credential, your Discord user ID, the accepted Terms version, and membership-check timestamps. CloudCord does <strong>not</strong> collect your Discord password, raw account token, messages, or cookies.</p>
 
         <h3 style="color: var(--text-primary); margin-bottom: 1rem; margin-top: 2rem; font-size: 1.5rem;">4. Third-Party Plugins</h3>
         <p>While the core CloudCord client respects your privacy, third-party plugins installed by you may have their own data collection practices. If you install a plugin that connects to an external API (for example, a translation plugin or an image host), that plugin may share your data with third parties. We urge you to review the source code or privacy policies of third-party plugins before installing them.</p>

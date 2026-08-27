@@ -9,6 +9,7 @@ const { Readable } = require('stream');
 const crypto = require('crypto');
 const { Pool } = require('pg');
 const { makeStoreCloudRouter } = require('./storecloud');
+const { makeMembershipRouter } = require('./membership');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -53,6 +54,7 @@ app.use(siteLimiter);
 // applies its own 16 MB JSON limit. Mount it before the site's default parser
 // so Express's 100 KB default does not reject valid sync requests first.
 app.use(makeStoreCloudRouter(express));
+app.use(makeMembershipRouter(express));
 app.use(express.json({ limit: '256kb' }));
 
 // Lightweight status endpoint for uptime monitors and the public status page.
