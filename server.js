@@ -613,6 +613,10 @@ app.get('/source', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'source.html'));
 });
 
+app.get('/join', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'join.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

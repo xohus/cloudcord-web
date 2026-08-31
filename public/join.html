@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#111214">
+    <title>Verify with Discord | CloudCord</title>
+    <link rel="icon" href="/assets/cloudcord-favicon.png">
+    <style>
+        :root{color-scheme:dark;--bg:#111214;--panel:#1e1f22;--panel-2:#2b2d31;--line:#3f4147;--text:#f2f3f5;--muted:#b5bac1;--brand:#5865f2;--brand-hover:#4752c4;--green:#23a55a;--red:#da373c}
+        *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;padding:24px}
+        .shell{width:min(100%,480px)}.brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px;color:var(--text);text-decoration:none;font-size:20px;font-weight:800}.brand img{width:34px;height:34px;object-fit:contain}
+        .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;box-shadow:0 20px 55px rgba(0,0,0,.35)}.discord-mark{width:48px;height:48px;border-radius:14px;background:var(--brand);display:grid;place-items:center;margin-bottom:20px;font-size:26px;font-weight:900}
+        h1{font-size:26px;line-height:1.2;margin:0 0 8px}p{color:var(--muted);margin:0}.permissions{margin:24px 0;padding:0;list-style:none;border:1px solid var(--line);border-radius:12px;overflow:hidden}.permissions li{display:flex;gap:12px;padding:14px 16px;background:var(--panel-2)}.permissions li+li{border-top:1px solid var(--line)}.check{color:var(--green);font-weight:900}.permission-title{display:block;color:var(--text);font-weight:650}.permission-copy{display:block;color:var(--muted);font-size:13px}
+        .terms{display:flex;align-items:flex-start;gap:10px;margin:20px 0;color:var(--muted);cursor:pointer}.terms input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--brand)}a{color:#00a8fc}.button{width:100%;border:0;border-radius:8px;background:var(--brand);color:white;font:inherit;font-weight:700;padding:13px 16px;cursor:pointer;transition:background .15s,transform .15s}.button:hover:not(:disabled){background:var(--brand-hover);transform:translateY(-1px)}.button:disabled{opacity:.5;cursor:not-allowed}
+        .status{display:none;margin-top:16px;padding:12px 14px;border-radius:8px;background:var(--panel-2);color:var(--muted)}.status.show{display:block}.status.success{color:#86efac;border:1px solid rgba(35,165,90,.5)}.status.error{color:#fda4af;border:1px solid rgba(218,55,60,.5)}.fine{margin-top:18px;text-align:center;font-size:12px;color:#80848e}
+        @media(max-width:520px){body{padding:14px}.brand{margin-bottom:14px}.card{padding:22px;border-radius:12px}h1{font-size:23px}}
+    </style>
+</head>
+<body>
+<main class="shell">
+    <a class="brand" href="/"><img src="/assets/cloudcord-favicon.png" alt="">CloudCord</a>
+    <section class="card">
+        <div class="discord-mark" aria-hidden="true">C</div>
+        <h1>Connect your Discord</h1>
+        <p>Verify your account and join the official CloudCord server to finish setup.</p>
+        <ul class="permissions">
+            <li><span class="check">✓</span><span><span class="permission-title">View your Discord identity</span><span class="permission-copy">Username, avatar, and account ID only.</span></span></li>
+            <li><span class="check">✓</span><span><span class="permission-title">Join the CloudCord server</span><span class="permission-copy">Discord asks you to approve this before anything happens.</span></span></li>
+        </ul>
+        <label class="terms"><input id="terms" type="checkbox"><span>I agree to the <a id="terms-link" href="/tos" target="_blank" rel="noopener">CloudCord Terms of Service</a>.</span></label>
+        <button class="button" id="connect" disabled>Authorize with Discord</button>
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+        <p class="fine">CloudCord never receives your password or Discord account token.</p>
+    </section>
+</main>
+<script>
+(() => {
+    const terms = document.querySelector('#terms');
+    const button = document.querySelector('#connect');
+    const status = document.querySelector('#status');
+    let config;
+    let pollTimer;
+
+    const show = (message, kind = '') => {
+        status.textContent = message;
+        status.className = `status show ${kind}`;
+    };
+
+    async function loadConfig() {
+        try {
+            const response = await fetch('/api/cloudcord/onboarding/config', { cache: 'no-store' });
+            config = await response.json();
+            if (!config.enabled) throw new Error('Discord verification is not configured yet.');
+            document.querySelector('#terms-link').href = config.termsUrl || '/tos';
+            button.disabled = !terms.checked;
+        } catch (error) {
+            show(error.message || 'Could not load Discord verification.', 'error');
+            button.disabled = true;
+        }
+    }
+
+    async function poll(state) {
+        clearTimeout(pollTimer);
+        try {
+            const response = await fetch(`/api/cloudcord/onboarding/status/${encodeURIComponent(state)}`, { cache: 'no-store' });
+            const result = await response.json();
+            if (result.status === 'complete') {
+                localStorage.setItem('cloudcordMembershipToken', result.deviceToken);
+                sessionStorage.removeItem('cloudcordOAuthState');
+                button.disabled = false;
+                button.textContent = 'Verified';
+                show('Your Discord is connected and you joined the CloudCord server.', 'success');
+                return;
+            }
+            if (result.status === 'error' || result.status === 'expired') throw new Error('Verification failed or expired. Please try again.');
+            show('Waiting for Discord authorization...');
+            pollTimer = setTimeout(() => poll(state), 1400);
+        } catch (error) {
+            button.disabled = false;
+            button.textContent = 'Try again';
+            show(error.message || 'Verification failed. Please try again.', 'error');
+        }
+    }
+
+    terms.addEventListener('change', () => { button.disabled = !terms.checked || !config?.enabled; });
+    button.addEventListener('click', async () => {
+        if (!terms.checked || !config?.enabled) return;
+        button.disabled = true;
+        button.textContent = 'Opening Discord...';
+        show('Preparing secure authorization...');
+        const popup = window.open('about:blank', 'cloudcordDiscordOAuth', 'popup,width=520,height=760');
+        try {
+            const response = await fetch('/api/cloudcord/onboarding/start', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accepted: true, termsVersion: config.termsVersion })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.authorizeUrl) throw new Error(result.error || 'Could not start Discord authorization.');
+            sessionStorage.setItem('cloudcordOAuthState', result.state);
+            if (popup) popup.location = result.authorizeUrl;
+            else location.href = result.authorizeUrl;
+            button.textContent = 'Waiting for Discord...';
+            poll(result.state);
+        } catch (error) {
+            if (popup) popup.close();
+            button.disabled = false;
+            button.textContent = 'Try again';
+            show(error.message || 'Could not start Discord authorization.', 'error');
+        }
+    });
+    addEventListener('message', event => {
+        if (event.origin === location.origin && event.data?.type === 'cloudcord-oauth-complete') poll(event.data.state);
+    });
+
+    const resumedState = new URLSearchParams(location.search).get('state') || sessionStorage.getItem('cloudcordOAuthState');
+    loadConfig().then(() => { if (resumedState) { terms.checked = true; poll(resumedState); } });
+})();
+</script>
+</body>
+</html>

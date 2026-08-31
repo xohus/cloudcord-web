@@ -6,11 +6,14 @@ const { Pool } = require("pg");
 const TERMS_VERSION = "2026-08-27";
 const REQUIRED = ["DATABASE_URL", "CLOUDCORD_DISCORD_CLIENT_ID", "CLOUDCORD_DISCORD_CLIENT_SECRET", "CLOUDCORD_DISCORD_BOT_TOKEN", "CLOUDCORD_DISCORD_GUILD_ID", "CLOUDCORD_DISCORD_REDIRECT_URI", "CLOUDCORD_MEMBERSHIP_SESSION_SECRET"];
 const digest = value => crypto.createHmac("sha256", process.env.CLOUDCORD_MEMBERSHIP_SESSION_SECRET || "unconfigured").update(value).digest("hex");
+const databaseSsl = () => ["require", "required", "true", "1"].includes(String(process.env.DATABASE_SSL || process.env.PGSSLMODE || "").toLowerCase())
+    ? { rejectUnauthorized: false }
+    : false;
 
 function makeMembershipRouter(express) {
     const router = express.Router();
     const enabled = REQUIRED.every(name => Boolean(process.env[name]));
-    const pool = enabled ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined }) : null;
+    const pool = enabled ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: databaseSsl() }) : null;
     const pending = new Map();
     const schema = `CREATE TABLE IF NOT EXISTS cloudcord_membership_devices (
         device_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, terms_version TEXT NOT NULL,
@@ -48,7 +51,8 @@ function makeMembershipRouter(express) {
             const deviceToken = crypto.randomBytes(32).toString("base64url");
             await pool.query("INSERT INTO cloudcord_membership_devices (device_hash,user_id,terms_version) VALUES ($1,$2,$3) ON CONFLICT (device_hash) DO NOTHING", [digest(deviceToken), user.id, TERMS_VERSION]);
             pending.set(req.query.state, { status: "complete", expires: Date.now() + 2 * 60_000, deviceToken });
-            res.set("Cache-Control", "no-store").send("CloudCord verification complete. You may return to Discord.");
+            const state = JSON.stringify(String(req.query.state));
+            res.set("Cache-Control", "no-store").type("html").send(`<!doctype html><meta name="viewport" content="width=device-width"><title>CloudCord verified</title><style>body{margin:0;background:#111214;color:#f2f3f5;font:16px system-ui;display:grid;place-items:center;min-height:100vh;text-align:center}.card{padding:32px;border:1px solid #2b2d31;border-radius:16px;background:#1e1f22;max-width:380px}h1{margin:0 0 10px;font-size:24px}p{color:#b5bac1}</style><div class="card"><h1>You're verified</h1><p>You joined the CloudCord server. This window can close now.</p></div><script>const state=${state};if(window.opener){window.opener.postMessage({type:"cloudcord-oauth-complete",state},location.origin);setTimeout(()=>window.close(),700)}else{location.replace("/join?state="+encodeURIComponent(state))}</script>`);
         } catch (error) {
             console.error("[CLOUDCORD MEMBERSHIP]", error);
             pending.set(req.query.state, { status: "error", expires: Date.now() + 2 * 60_000 });
