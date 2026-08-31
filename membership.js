@@ -38,7 +38,12 @@ function makeMembershipRouter(express) {
 
     router.get("/discord/join/callback", async (req, res) => {
         const item = pending.get(String(req.query.state || ""));
-        if (!enabled || !item || item.expires < Date.now() || typeof req.query.code !== "string") return res.status(400).send("Invalid or expired CloudCord authorization.");
+        if (!enabled || !item || item.expires < Date.now()) return res.status(400).send("Invalid or expired CloudCord authorization.");
+        if (req.query.error === "access_denied") {
+            pending.set(req.query.state, { status: "blacklisted", expires: Date.now() + 10 * 60_000 });
+            return res.status(200).type("html").send(`<!doctype html><meta name="viewport" content="width=device-width"><title>CloudCord access denied</title><style>body{margin:0;background:#111214;color:#f2f3f5;font:16px system-ui;display:grid;place-items:center;min-height:100vh;text-align:center}.card{padding:32px;border:1px solid #3f4147;border-radius:16px;background:#1e1f22;max-width:380px}h1{margin:0 0 10px;font-size:24px}p{color:#b5bac1}</style><div class="card"><h1>Access denied</h1><p>CloudCord access was denied. Return to Discord.</p></div>`);
+        }
+        if (typeof req.query.code !== "string") return res.status(400).send("Invalid CloudCord authorization response.");
         try {
             const tokenRes = await fetch("https://discord.com/api/v10/oauth2/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ client_id: process.env.CLOUDCORD_DISCORD_CLIENT_ID, client_secret: process.env.CLOUDCORD_DISCORD_CLIENT_SECRET, grant_type: "authorization_code", code: req.query.code, redirect_uri: process.env.CLOUDCORD_DISCORD_REDIRECT_URI }) });
             if (!tokenRes.ok) throw new Error("Discord authorization failed");
