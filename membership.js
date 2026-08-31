@@ -56,7 +56,7 @@ function makeMembershipRouter(express) {
         } catch (error) {
             console.error("[CLOUDCORD MEMBERSHIP]", error);
             pending.set(req.query.state, { status: "error", expires: Date.now() + 2 * 60_000 });
-            res.status(502).send("CloudCord could not complete Discord verification.");
+            res.status(200).type("html").send(`<!doctype html><meta name="viewport" content="width=device-width"><title>CloudCord verification</title><style>body{margin:0;background:#111214;color:#f2f3f5;font:16px system-ui;display:grid;place-items:center;min-height:100vh;text-align:center}.card{padding:32px;border:1px solid #3f4147;border-radius:16px;background:#1e1f22;max-width:380px}h1{margin:0 0 10px;font-size:24px}p{color:#b5bac1}</style><div class="card"><h1>Verification could not finish</h1><p>Return to CloudCord and try again. If this continues, check that the CloudCord bot is inside the server and the bot token and server ID are correct.</p></div>`);
         }
     });
 
