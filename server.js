@@ -60,6 +60,13 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 app.use(cors());
+
+// Docker/Coolify liveness check. Keep this independent of external services so
+// a temporary database or GitHub outage does not restart a healthy web server.
+app.get('/health', (_req, res) => {
+    res.status(200).type('text/plain').send('ok');
+});
+
 // Keep inexpensive endpoints from being used to exhaust application workers. A
 // CDN/WAF should absorb volumetric attacks before they reach this process.
 const siteLimiter = rateLimit({
