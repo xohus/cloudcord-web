@@ -15,8 +15,29 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const SOURCE_DIR = path.join(__dirname, 'sourcevault-data');
 const SERVER_STARTED_AT = new Date().toISOString();
-const realCordDb = process.env.DATABASE_URL ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined }) : null;
-const realCordLicenseTableReady = realCordDb ? realCordDb.query(`CREATE TABLE IF NOT EXISTS realcord_license_activations (license_hash TEXT PRIMARY KEY, activated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`) : Promise.resolve();
+
+function postgresSsl() {
+    const configured = String(process.env.DATABASE_SSL || process.env.PGSSLMODE || '').trim().toLowerCase();
+    if (['require', 'required', 'true', '1', 'no-verify'].includes(configured)) return { rejectUnauthorized: false };
+    if (['verify-full', 'verify-ca'].includes(configured)) return { rejectUnauthorized: true };
+    if (['disable', 'disabled', 'false', '0'].includes(configured)) return false;
+
+    try {
+        const mode = new URL(process.env.DATABASE_URL).searchParams.get('sslmode')?.toLowerCase();
+        if (mode === 'require') return { rejectUnauthorized: false };
+        if (mode === 'verify-full' || mode === 'verify-ca') return { rejectUnauthorized: true };
+    } catch {}
+
+    // Internal Coolify, Railway, and Docker Postgres connections commonly do
+    // not expose TLS. Enable it explicitly for an external TLS-only database.
+    return false;
+}
+
+const realCordDb = process.env.DATABASE_URL ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: postgresSsl() }) : null;
+const realCordLicenseTableReady = realCordDb
+    ? realCordDb.query(`CREATE TABLE IF NOT EXISTS realcord_license_activations (license_hash TEXT PRIMARY KEY, activated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`)
+        .catch(error => console.error('Could not prepare the RealCord license table:', error.message))
+    : Promise.resolve();
 
 // Security middlewares
 app.set('trust proxy', 1); // Trust Railway/Cloudflare proxy for accurate IP
