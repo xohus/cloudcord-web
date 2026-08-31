@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+node_modules
+npm-debug.log*
+Dockerfile*
+README.md
+cookies.txt
+temp_bullets.txt
+tree.json
+scripts
