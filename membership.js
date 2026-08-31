@@ -13,6 +13,7 @@ const databaseSsl = () => ["require", "required", "true", "1"].includes(String(p
 function makeMembershipRouter(express) {
     const router = express.Router();
     const enabled = REQUIRED.every(name => Boolean(process.env[name]));
+    const oauth2Off = ["true", "1", "yes", "on"].includes(String(process.env.OAUTH2_OFF || process.env["oauth2-off"] || "").toLowerCase());
     const pool = enabled ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: databaseSsl() }) : null;
     const pending = new Map();
     const schema = `CREATE TABLE IF NOT EXISTS cloudcord_membership_devices (
@@ -23,11 +24,11 @@ function makeMembershipRouter(express) {
     const ensureReady = () => ready ||= pool.query(schema);
 
     router.get("/api/cloudcord/onboarding/config", (_req, res) => {
-        res.set("Cache-Control", "no-store").json({ enabled, termsVersion: TERMS_VERSION, termsUrl: "https://cloudcord.xohus.lol/tos", guildId: enabled ? process.env.CLOUDCORD_DISCORD_GUILD_ID : null });
+        res.set("Cache-Control", "no-store").json({ enabled, oauth2Off, termsVersion: TERMS_VERSION, termsUrl: "https://cloudcord.xohus.lol/tos", guildId: enabled ? process.env.CLOUDCORD_DISCORD_GUILD_ID : null });
     });
 
     router.post("/api/cloudcord/onboarding/start", express.json({ limit: "8kb" }), async (req, res) => {
-        if (!enabled) return res.status(503).json({ error: "CloudCord membership is not configured" });
+        if (!enabled || oauth2Off) return res.status(503).json({ error: oauth2Off ? "CloudCord OAuth is temporarily disabled" : "CloudCord membership is not configured" });
         if (req.body?.termsVersion !== TERMS_VERSION || req.body?.accepted !== true) return res.status(400).json({ error: "Current Terms must be accepted" });
         await ensureReady();
         const state = crypto.randomBytes(32).toString("base64url");
