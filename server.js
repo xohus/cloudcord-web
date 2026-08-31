@@ -292,6 +292,13 @@ function realCordGitHubHeaders(accept = 'application/vnd.github+json') {
 }
 
 app.post('/api/realcord/license', realCordLicenseLimiter, realCordKeyLimiter, async (req, res) => {
+    res.set('Cache-Control', 'private, no-store');
+    return res.status(423).json({
+        valid: false,
+        shutdown: true,
+        error: 'RealCord has been shut down. Using third-party Discord clients can result in Discord limiting or terminating your account.'
+    });
+    /* RealCord shutdown: keep the previous verifier below for a recoverable rollback. */
     try {
         const license = String(req.body?.key || '').trim();
         res.set('Cache-Control', 'private, no-store');
