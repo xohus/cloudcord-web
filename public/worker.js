@@ -25,21 +25,22 @@ export default {
     // ----------------------------------------------------
     if (request.method === "GET" && url.pathname === "/api/installs") {
       try {
-        let count = await env.PROFILES.get("live_installs_count");
-        if (!count) count = "1245892"; // Base number
-        
-        // Simulate live growth (adds 1-4 installs randomly every time it's called)
-        if (Math.random() > 0.5) {
-            count = (parseInt(count, 10) + Math.floor(Math.random() * 4) + 1).toString();
-            ctx.waitUntil(env.PROFILES.put("live_installs_count", count));
+        const storedCount = await env.PROFILES.get("live_installs_count");
+        const count = Number(storedCount);
+        if (!Number.isSafeInteger(count) || count < 0) {
+          return new Response(JSON.stringify({ error: "Verified install count unavailable" }), {
+            status: 503,
+            headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
+          });
         }
 
-        return new Response(JSON.stringify({ count: parseInt(count, 10) }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ count, verified: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
         });
       } catch (err) {
-        return new Response(JSON.stringify({ count: 1245892 }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "Verified install count unavailable" }), {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
         });
       }
     }

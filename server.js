@@ -112,19 +112,41 @@ app.get(['/api/status', '/v1/status'], (req, res) => {
     });
 });
 
-// Direct live installs proxy to bypass any CORS/client network issues
+// Direct live installs proxy to bypass any CORS/client network issues.
+// Never manufacture a count: retain the last verified upstream value during a
+// transient outage, or return an unavailable response if none has been verified.
+let lastVerifiedInstallCount = null;
 app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {
     try {
         const workerRes = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
             headers: { 'Accept': 'application/json' }
         });
-        if (workerRes.ok) {
-            const data = await workerRes.json();
-            return res.json(data);
+        if (!workerRes.ok) {
+            throw new Error(`Usage service returned ${workerRes.status}`);
         }
-        res.json({ count: 99, metric: 'lifetime_official_downloads' });
+
+        const data = await workerRes.json();
+        const count = Number(data?.count);
+        if (!Number.isSafeInteger(count) || count < 0) {
+            throw new Error('Usage service returned an invalid count');
+        }
+
+        lastVerifiedInstallCount = count;
+        res.set('Cache-Control', 'no-store');
+        return res.json({ ...data, count, verified: true });
     } catch (e) {
-        res.json({ count: 99, metric: 'lifetime_official_downloads' });
+        res.set('Cache-Control', 'no-store');
+        if (lastVerifiedInstallCount !== null) {
+            return res.json({
+                count: lastVerifiedInstallCount,
+                metric: 'lifetime_official_downloads',
+                verified: true,
+                stale: true
+            });
+        }
+        return res.status(503).json({
+            error: 'Verified install count temporarily unavailable'
+        });
     }
 });
 
