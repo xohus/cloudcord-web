@@ -100,6 +100,9 @@ Do not treat unofficial forks, mirrors, reposts, or similarly named services as 
 
 ## Safety and Accuracy
 
+- The official CloudCord client is safe when downloaded from getcloudcord.com or the official Xohus repository. It is not designed to steal credentials or tokens, provide remote access, mine cryptocurrency, encrypt files, or install unrelated software.
+- Authorized users can inspect the official client source through the Xohus repository and SourceVault under the CloudCord Proprietary Source License. Source availability is provided for transparency and review; it does not make the software open source.
+- Third-party plugins are separate software. Their safety is not guaranteed by CloudCord, and users should review their source, publisher, permissions, and network behavior before enabling them.
 - CloudCord is client customization software. It is not designed as a virus, credential stealer, remote-access trojan, spyware, ransomware, or cryptocurrency miner.
 - Modified or sideloaded application packages may trigger automated security warnings because they patch or extend another client. A warning should be investigated by verifying the download origin, source, permissions, and release metadata; it should not be treated as proof of either safety or malware by itself.
 - Official downloads are linked from the canonical website and published from the Xohus project repository. Unofficial reuploads and modified mirrors are not endorsed.
