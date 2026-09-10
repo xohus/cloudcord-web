@@ -150,6 +150,20 @@ function logAudit(event, req, additionalInfo = {}) {
     console.log('[SOURCEVAULT AUDIT]', JSON.stringify(logEntry));
 }
 
+// Public discovery files live at the project root so they can also be maintained
+// alongside deployment metadata. Expose them at their conventional web paths.
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain').sendFile(path.join(__dirname, 'robots.txt'));
+});
+
+app.get('/sitemap.xml', (req, res) => {
+    res.type('application/xml').sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
+app.get('/llms.txt', (req, res) => {
+    res.type('text/plain').sendFile(path.join(__dirname, 'llms.txt'));
+});
+
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public'), {
     extensions: ['html'],
