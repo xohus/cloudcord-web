@@ -49,7 +49,7 @@ function makeStoreCloudRouter(express) {
     const pool = process.env.DATABASE_URL
         ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined })
         : null;
-    const redirectUri = process.env.DISCORD_REDIRECT_URI || "https://cloudcord.xohus.lol/v1/oauth/callback";
+    const redirectUri = process.env.DISCORD_REDIRECT_URI || "https://getcloudcord.com/v1/oauth/callback";
     const limiter = rateLimit({ windowMs: 60_000, limit: 90, standardHeaders: true, legacyHeaders: false });
 
     const schema = `

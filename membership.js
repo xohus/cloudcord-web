@@ -24,7 +24,7 @@ function makeMembershipRouter(express) {
     const ensureReady = () => ready ||= pool.query(schema);
 
     router.get("/api/cloudcord/onboarding/config", (_req, res) => {
-        res.set("Cache-Control", "no-store").json({ enabled, oauth2Off, termsVersion: TERMS_VERSION, termsUrl: "https://cloudcord.xohus.lol/tos", guildId: enabled ? process.env.CLOUDCORD_DISCORD_GUILD_ID : null });
+        res.set("Cache-Control", "no-store").json({ enabled, oauth2Off, termsVersion: TERMS_VERSION, termsUrl: "https://getcloudcord.com/tos", guildId: enabled ? process.env.CLOUDCORD_DISCORD_GUILD_ID : null });
     });
 
     router.post("/api/cloudcord/onboarding/start", express.json({ limit: "8kb" }), async (req, res) => {

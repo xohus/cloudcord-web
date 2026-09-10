@@ -1,7 +1,7 @@
-Contact: https://cloudcord.xohus.lol/join
+Contact: https://getcloudcord.com/join
 Contact: https://github.com/xohus/cloudcord/security
-Canonical: https://cloudcord.xohus.lol/.well-known/security.txt
-Policy: https://cloudcord.xohus.lol/privacy
+Canonical: https://getcloudcord.com/.well-known/security.txt
+Policy: https://getcloudcord.com/privacy
 Acknowledgments: https://github.com/xohus/cloudcord
 Preferred-Languages: en
 Expires: 2027-09-10T00:00:00.000Z

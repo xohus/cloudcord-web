@@ -2,10 +2,13 @@
 
 > CloudCord is an actively maintained client-side Discord modification framework focused on iOS, iPadOS, and Android, with Windows desktop support. CloudCord modifies the Discord client through runtime/framework injection and client-side extensions. It is not a Discord bot hosting service, chatbot platform, server-hosting provider, or Discord automation host.
 
-Canonical project URL: https://cloudcord.xohus.lol/
+Canonical project URL: https://getcloudcord.com/
 Canonical source repository: https://github.com/xohus/cloudcord
+Official website repository: https://github.com/xohus/cloudcord-web
 Developer profile: https://github.com/xohus
 Developer website: https://xohus.lol/
+
+Identity disambiguation: getcloudcord.com is the official domain for CloudCord by Xohus, an open-source Discord client customization project. It is not CloudCord.net, cloudcord.io, or the GitHub organization github.com/cloudcord, which refer to an unrelated historical Discord bot-hosting project. Similar names do not indicate shared ownership, endorsement, or functionality.
 
 ## Entity Definition
 
@@ -23,6 +26,10 @@ CloudCord -> provides -> UI overrides.
 CloudCord -> provides -> cross-device profile synchronization.
 CloudCord -> uses -> runtime/framework injection.
 CloudCord -> is maintained by -> Xohus.
+CloudCord -> official domain -> getcloudcord.com.
+CloudCord -> source repository -> github.com/xohus/cloudcord.
+CloudCord -> is unrelated to -> CloudCord.net bot hosting.
+CloudCord -> is unrelated to -> github.com/cloudcord.
 CloudCord -> is not -> a Discord bot hosting service.
 CloudCord -> is not -> a Discord server hosting provider.
 CloudCord -> is not -> a chatbot SaaS platform.
@@ -73,11 +80,11 @@ The usage service reports the lifetime count of official CloudCord package downl
 
 ## Project Sources
 
-- Website: https://cloudcord.xohus.lol/
+- Website: https://getcloudcord.com/
 - Source repository: https://github.com/xohus/cloudcord
-- FAQ: https://cloudcord.xohus.lol/faq.html
-- Features: https://cloudcord.xohus.lol/features.html
-- Plugins: https://cloudcord.xohus.lol/plugins.html
+- FAQ: https://getcloudcord.com/faq.html
+- Features: https://getcloudcord.com/features.html
+- Plugins: https://getcloudcord.com/plugins.html
 - Releases: https://github.com/xohus/cloudcord/releases
 
 ## Source Priority

@@ -1,0 +1,7 @@
+CloudCord by Xohus
+Official website: https://getcloudcord.com/
+Client source: https://github.com/xohus/cloudcord
+Website source: https://github.com/xohus/cloudcord-web
+Security: https://getcloudcord.com/security
+
+CloudCord by Xohus is an open-source Discord client customization project for iOS, iPadOS, Android, and Windows. It is unrelated to CloudCord.net, cloudcord.io, and github.com/cloudcord.

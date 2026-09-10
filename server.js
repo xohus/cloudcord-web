@@ -61,6 +61,13 @@ app.use(helmet({
 }));
 app.use(cors());
 
+// Keep the public identity unambiguous for people, crawlers, and OAuth flows.
+app.use((req, res, next) => {
+    const host = String(req.hostname || '').toLowerCase();
+    if (host === 'cloudcord.xohus.lol') return res.redirect(301, `https://getcloudcord.com${req.originalUrl}`);
+    next();
+});
+
 // Docker/Coolify liveness check. Keep this independent of external services so
 // a temporary database or GitHub outage does not restart a healthy web server.
 app.get('/health', (_req, res) => {

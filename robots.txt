@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://cloudcord.xohus.lol/sitemap.xml
-Host: cloudcord.xohus.lol
+Sitemap: https://getcloudcord.com/sitemap.xml
+Host: getcloudcord.com
