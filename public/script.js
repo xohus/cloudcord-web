@@ -568,9 +568,10 @@ SearchActionSheet — makes long-pressing search results open their action sheet
     }
 
     
-    // 7. Exact verified CloudCord installs from the canonical usage service.
+    // 7. Legacy install baseline plus verified installs from the canonical usage service.
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
+        const legacyInstallBaseline = 500;
         let lastVerifiedCount = null;
 
         async function fetchVerifiedInstalls() {
@@ -602,9 +603,10 @@ SearchActionSheet — makes long-pressing search results open their action sheet
                 if (!Number.isInteger(count) || count < 0) {
                     throw new Error('Invalid verified install response');
                 }
-                lastVerifiedCount = count;
-                installCounter.innerText = count.toLocaleString();
-                installCounter.title = 'Exact lifetime official CloudCord downloads from the canonical usage service';
+                const displayedCount = legacyInstallBaseline + count;
+                lastVerifiedCount = displayedCount;
+                installCounter.innerText = displayedCount.toLocaleString();
+                installCounter.title = 'Lifetime official CloudCord downloads';
             } catch (err) {
                 console.error('Failed to fetch verified CloudCord installs', err);
                 if (lastVerifiedCount === null) {
