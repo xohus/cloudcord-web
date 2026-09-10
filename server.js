@@ -190,7 +190,13 @@ app.get('/llms.txt', (req, res) => {
 app.use(express.static(path.join(__dirname, 'public'), {
     extensions: ['html'],
     maxAge: '1h',
-    etag: true
+    etag: true,
+    setHeaders: (res, servedPath) => {
+        const fileName = path.basename(servedPath).toLowerCase();
+        if (fileName === 'index.html' || fileName === 'script.js') {
+            res.setHeader('Cache-Control', 'no-store, max-age=0');
+        }
+    }
 }));
 
 // SourceVault API
