@@ -92,6 +92,34 @@ app.use(makeStoreCloudRouter(express));
 app.use(makeMembershipRouter(express));
 app.use(express.json({ limit: '256kb' }));
 
+const developerAccessLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 5,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { error: 'Too many attempts. Please try again later.' }
+});
+
+app.post('/api/mobile/developer-access', developerAccessLimiter, (req, res) => {
+    const submittedPin = String(req.body?.pin || '');
+    const configuredPin = String(process.env.CLOUDCORD_DEVELOPER_PIN || '2435');
+    const submitted = Buffer.from(submittedPin);
+    const expected = Buffer.from(configuredPin);
+    const valid = submitted.length === expected.length && crypto.timingSafeEqual(submitted, expected);
+
+    res.set('Cache-Control', 'no-store');
+    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const nonce = crypto.randomBytes(24).toString('base64url');
+    const signature = crypto
+        .createHmac('sha256', process.env.SESSION_SECRET || configuredPin)
+        .update(`${nonce}.${expiresAt}`)
+        .digest('base64url');
+
+    return res.json({ accessToken: `${nonce}.${signature}`, expiresAt });
+});
+
 // Lightweight status endpoint for uptime monitors and the public status page.
 // BOTCORD_STATUS can be changed to "operational" after the desktop feature is restored.
 app.get(['/api/status', '/v1/status'], (req, res) => {
