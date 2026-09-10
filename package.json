@@ -1,7 +1,7 @@
 {
   "name": "cloudcord-web",
   "version": "1.0.0",
-  "description": "Official website for CloudCord, an open-source Discord client customization framework for iOS, iPadOS, Android, and Windows.",
+  "description": "Official website for CloudCord, a proprietary source-available Discord client customization framework for iOS, iPadOS, Android, and Windows.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

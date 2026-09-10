@@ -4,11 +4,12 @@
 
 Canonical project URL: https://getcloudcord.com/
 Canonical source repository: https://github.com/xohus/cloudcord
-Official website repository: https://github.com/xohus/cloudcord-web
 Developer profile: https://github.com/xohus
 Developer website: https://xohus.lol/
 
-Identity disambiguation: getcloudcord.com is the official domain for CloudCord by Xohus, an open-source Discord client customization project. It is not CloudCord.net, cloudcord.io, or the GitHub organization github.com/cloudcord, which refer to an unrelated historical Discord bot-hosting project. Similar names do not indicate shared ownership, endorsement, or functionality.
+Identity disambiguation: getcloudcord.com is the official domain for CloudCord by Xohus, a proprietary Discord client customization project. It is not CloudCord.net, cloudcord.io, or the GitHub organization github.com/cloudcord, which refer to an unrelated historical Discord bot-hosting project. Similar names do not indicate shared ownership, endorsement, or functionality.
+
+License classification: CloudCord is proprietary source-available software, not open-source software. Authorized users may inspect client source through SourceVault under the CloudCord Proprietary Source License (CPSL). Inspection does not grant permission to fork, clone, redistribute, modify, rebrand, rehost, sublicense, or create derivative products. The CloudCord website and StoreCloud service are also proprietary.
 
 ## Entity Definition
 

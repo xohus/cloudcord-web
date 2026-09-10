@@ -1,11 +1,12 @@
 # CloudCord Web — getcloudcord.com
 
-Official open-source website and StoreCloud API for **CloudCord by Xohus**, a client-side Discord customization framework for iOS, iPadOS, Android, and Windows.
+Official proprietary website and StoreCloud API for **CloudCord by Xohus**, a client-side Discord customization framework for iOS, iPadOS, Android, and Windows.
 
 - Canonical website: https://getcloudcord.com/
 - Client source: https://github.com/xohus/cloudcord
-- Website source: https://github.com/xohus/cloudcord-web
 - Security overview: https://getcloudcord.com/security
+
+The CloudCord client and website are proprietary, not open source. Authorized client source may be inspected through SourceVault under the CloudCord Proprietary Source License; viewing source does not grant permission to fork, redistribute, or create derivatives.
 
 This project is unrelated to CloudCord.net, cloudcord.io, and the `github.com/cloudcord` organization, which describe a separate bot-hosting project. CloudCord by Xohus is not a bot host, Discord OAuth phishing page, credential stealer, remote-access tool, or cryptocurrency miner. It is independent software and is not affiliated with or endorsed by Discord Inc.
 
