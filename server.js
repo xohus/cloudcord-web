@@ -102,10 +102,12 @@ const developerAccessLimiter = rateLimit({
 
 app.post('/api/mobile/developer-access', developerAccessLimiter, (req, res) => {
     const submittedPin = String(req.body?.pin || '');
+    const submittedUsername = String(req.body?.username || '').trim().toLowerCase();
     const configuredPin = String(process.env.CLOUDCORD_DEVELOPER_PIN || '2435');
     const submitted = Buffer.from(submittedPin);
     const expected = Buffer.from(configuredPin);
-    const valid = submitted.length === expected.length && crypto.timingSafeEqual(submitted, expected);
+    const validPin = submitted.length === expected.length && crypto.timingSafeEqual(submitted, expected);
+    const valid = submittedUsername === 'kp9b' && validPin;
 
     res.set('Cache-Control', 'no-store');
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
