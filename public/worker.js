@@ -96,7 +96,9 @@ export default {
           badgeFlags: body.badgeFlags,
           nitro: body.nitro,
           nitroLevel: body.nitroLevel,
+          nitroSince: body.nitroSince,
           boostMonths: body.boostMonths,
+          giftLevel: body.giftLevel,
           customBadgeIds: body.customBadgeIds,
           oldName: body.oldName,
           decorationAsset: body.decorationAsset
