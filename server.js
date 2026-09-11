@@ -38,6 +38,16 @@ const realCordLicenseTableReady = realCordDb
     ? realCordDb.query(`CREATE TABLE IF NOT EXISTS realcord_license_activations (license_hash TEXT PRIMARY KEY, activated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`)
         .catch(error => console.error('Could not prepare the RealCord license table:', error.message))
     : Promise.resolve();
+const profileTableReady = realCordDb
+    ? realCordDb.query(`CREATE TABLE IF NOT EXISTS cloudcord_profiles (
+        id TEXT PRIMARY KEY,
+        owner_id TEXT NOT NULL,
+        profile JSONB NOT NULL,
+        edit_token_hash TEXT NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`).then(() => realCordDb.query('CREATE INDEX IF NOT EXISTS cloudcord_profiles_owner_updated_idx ON cloudcord_profiles (owner_id, updated_at DESC)'))
+        .catch(error => console.error('Could not prepare the CloudCord profile table:', error.message))
+    : Promise.resolve();
 
 // Security middlewares
 app.set('trust proxy', 1); // Trust Railway/Cloudflare proxy for accurate IP
@@ -92,34 +102,38 @@ app.use(makeStoreCloudRouter(express));
 app.use(makeMembershipRouter(express));
 app.use(express.json({ limit: '256kb' }));
 
-const developerAccessLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 5,
-    standardHeaders: 'draft-7',
-    legacyHeaders: false,
-    message: { error: 'Too many attempts. Please try again later.' }
+const profileLimiter = rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: 'draft-7', legacyHeaders: false });
+const validOwnerId = value => /^\d{15,22}$/.test(String(value || ''));
+const hashProfileToken = token => crypto.createHash('sha256').update(String(token)).digest('hex');
+
+app.get('/v1/profiles/user/:ownerId', profileLimiter, async (req, res) => {
+    if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
+    if (!validOwnerId(req.params.ownerId)) return res.status(400).json({ error: 'Invalid user' });
+    await profileTableReady;
+    const result = await realCordDb.query('SELECT id, owner_id, profile, updated_at FROM cloudcord_profiles WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT 1', [req.params.ownerId]);
+    if (!result.rows[0]) return res.status(404).json({ error: 'Profile not found' });
+    res.set('Cache-Control', 'no-store');
+    res.json({ id: result.rows[0].id, ownerId: result.rows[0].owner_id, profile: result.rows[0].profile, updatedAt: result.rows[0].updated_at });
 });
 
-app.post('/api/mobile/developer-access', developerAccessLimiter, (req, res) => {
-    const submittedPin = String(req.body?.pin || '');
-    const submittedUsername = String(req.body?.username || '').trim().toLowerCase();
-    const configuredPin = String(process.env.CLOUDCORD_DEVELOPER_PIN || '2435');
-    const submitted = Buffer.from(submittedPin);
-    const expected = Buffer.from(configuredPin);
-    const validPin = submitted.length === expected.length && crypto.timingSafeEqual(submitted, expected);
-    const valid = submittedUsername === 'kp9b' && validPin;
+app.post('/v1/profiles', profileLimiter, async (req, res) => {
+    if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
+    if (!validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile' });
+    await profileTableReady;
+    const id = crypto.randomUUID();
+    const editToken = crypto.randomBytes(32).toString('base64url');
+    await realCordDb.query('INSERT INTO cloudcord_profiles (id, owner_id, profile, edit_token_hash) VALUES ($1, $2, $3, $4)', [id, String(req.body.ownerId), req.body.profile, hashProfileToken(editToken)]);
+    res.status(201).json({ id, editToken });
+});
 
-    res.set('Cache-Control', 'no-store');
-    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
-
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-    const nonce = crypto.randomBytes(24).toString('base64url');
-    const signature = crypto
-        .createHmac('sha256', process.env.SESSION_SECRET || configuredPin)
-        .update(`${nonce}.${expiresAt}`)
-        .digest('base64url');
-
-    return res.json({ accessToken: `${nonce}.${signature}`, expiresAt });
+app.put('/v1/profiles/:id', profileLimiter, async (req, res) => {
+    if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
+    const token = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    if (!token || !validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile update' });
+    await profileTableReady;
+    const result = await realCordDb.query('UPDATE cloudcord_profiles SET owner_id = $1, profile = $2, updated_at = NOW() WHERE id = $3 AND edit_token_hash = $4 RETURNING id', [String(req.body.ownerId), req.body.profile, req.params.id, hashProfileToken(token)]);
+    if (!result.rows[0]) return res.status(401).json({ error: 'Invalid profile token' });
+    res.json({ id: result.rows[0].id, updated: true });
 });
 
 // Lightweight status endpoint for uptime monitors and the public status page.
