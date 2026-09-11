@@ -3,6 +3,6 @@
   "description": "Cross-client Fake Profile, BotCord and named badge compatibility.",
   "authors": [{ "name": "xohus" }],
   "main": "index.js",
-  "hash": "20fbcea673289312048f840a3d7174da62f85db1d07627dd03ebfa2ed2f6a3f0",
+  "hash": "d1506601c786108ba506b114de1060e9e56b938c65a6e8821224ce7b99f3e009",
   "vendetta": { "icon": "ic_link_24px" }
 }
