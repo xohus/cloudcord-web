@@ -110,10 +110,15 @@ app.get('/v1/profiles/user/:ownerId', profileLimiter, async (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.params.ownerId)) return res.status(400).json({ error: 'Invalid user' });
     await profileTableReady;
-    const result = await realCordDb.query('SELECT id, owner_id, profile, updated_at FROM cloudcord_profiles WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT 1', [req.params.ownerId]);
-    if (!result.rows[0]) return res.status(404).json({ error: 'Profile not found' });
+    const result = await realCordDb.query('SELECT id, owner_id, profile, updated_at FROM cloudcord_profiles WHERE owner_id = $1 ORDER BY updated_at ASC', [req.params.ownerId]);
+    if (!result.rows.length) return res.status(404).json({ error: 'Profile not found' });
+    // A user can edit from several devices, and each installation owns its own
+    // edit token/row. Merge those rows into one canonical profile so an older
+    // desktop row cannot hide fields last supplied by mobile (or vice versa).
+    const profile = result.rows.reduce((merged, row) => ({ ...merged, ...(row.profile || {}) }), {});
+    const latest = result.rows[result.rows.length - 1];
     res.set('Cache-Control', 'no-store');
-    res.json({ id: result.rows[0].id, ownerId: result.rows[0].owner_id, profile: result.rows[0].profile, updatedAt: result.rows[0].updated_at });
+    res.json({ schemaVersion: 1, id: latest.id, ownerId: latest.owner_id, profile, updatedAt: latest.updated_at });
 });
 
 app.post('/v1/profiles', profileLimiter, async (req, res) => {
