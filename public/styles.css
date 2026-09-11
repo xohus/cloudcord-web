@@ -569,6 +569,9 @@ body:not(.light) .moon-icon { display: none; }
 
 @media(max-width:700px){.bridge-platforms,.bridge-client-grid,.bridge-included-grid,.bridge-home-section,.bridge-home-list{grid-template-columns:1fr}.bridge-home-section{gap:2rem;padding:4rem 1.25rem}.bridge-home-list div+div{border-left:0;border-top:1px solid var(--border-color)}.bridge-actions .btn{width:100%;text-align:center}}
 
+/* Centered, progressive Bridge flow */
+.bridge-shell{max-width:860px;text-align:center}.bridge-shell>.bridge-step,.bridge-client-panel>.bridge-step,.bridge-install>.bridge-step{justify-content:center;text-align:center}.bridge-platforms{max-width:620px;margin:0 auto}.bridge-client-grid{max-width:820px;margin:0 auto}.bridge-choice,.bridge-client{text-align:center}.bridge-choice-icon{float:none;display:block;margin:0 auto .35rem}.bridge-client em{margin:.75rem auto 0}.bridge-install{text-align:left}.bridge-install>.bridge-step{text-align:center}.bridge-actions{justify-content:center}.bridge-included{text-align:center}.bridge-client-panel,.bridge-install{animation:bridgeStepIn .28s ease both}.bridge-client-panel[hidden],.bridge-install[hidden]{display:none!important}@keyframes bridgeStepIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
 .plugin-card {
     background-color: var(--bg-secondary);
     padding: 1.25rem;
