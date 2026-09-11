@@ -32,11 +32,12 @@
     <nav class="navbar">
         <div class="nav-content">
             <a href="/" class="logo-link"><img src="assets/cloudcord-favicon.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="nav-logo"></a>
-            <div class="nav-links">
+            <div class="nav-links" id="primary-navigation">
                 <a href="/" class="nav-link">Home</a>
                 <a href="/status" class="nav-link" style="color: var(--text-primary)">Status</a>
                 <a href="/changelog" class="nav-link">Changelogs</a>
             </div>
+            <button id="mobile-toggle" class="mobile-toggle" type="button" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded="false"><span class="bar"></span><span class="bar"></span><span class="bar"></span></button>
         </div>
     </nav>
     <style>
@@ -54,6 +55,21 @@
     <main class="page-content">
         <h1 class="reveal stagger-up">Platform Status</h1>
         <p class="section-subtitle reveal stagger-up" style="margin-bottom: 3rem; ">Current operational status for all CloudCord clients.</p>
+
+        <section class="sync-status-section reveal stagger-up" aria-labelledby="profile-sync-title" style="margin:0 0 2rem;padding:1.5rem;">
+            <div class="sync-status-copy">
+                <span class="bridge-kicker">PROFILE SYNC</span>
+                <h2 id="profile-sync-title" class="section-title">Profile sync</h2>
+                <p class="section-subtitle">Avatar, banner, username, and profile-date synchronization is being repaired and tested.</p>
+            </div>
+            <div class="sync-status-list">
+                <div><span>Mobile → Desktop</span><strong class="status-offline">Non working</strong></div>
+                <div><span>Desktop → Mobile</span><strong class="status-working">Working</strong></div>
+                <div><span>Mobile → Mobile</span><strong class="status-working">Working</strong></div>
+                <div><span>Desktop → Desktop</span><strong class="status-offline">Non working</strong></div>
+            </div>
+            <p class="sync-testers"><strong>Need 2 testers, mobile &amp; desktop.</strong> Please DM me if you can help!</p>
+        </section>
         
         <div class="status-card reveal stagger-up" style="transition-delay: 0.1s" onclick="toggleChangelog('ios')">
             <div>
@@ -199,6 +215,6 @@
             </div>
         </div>
     </footer>
-    <script src="script.js"></script>
+    <script src="script.js?v=20260911-mobile-nav-sync"></script>
 </body>
 </html>
