@@ -1,13 +1,8 @@
 {
-  "format": 1,
-  "id": "com.cloudcord.bridge",
   "name": "CloudCord Bridge",
   "description": "Cross-client Fake Profile, BotCord and named badge compatibility.",
-  "author": "xohus",
-  "version": "0.1.1",
-  "dependencies": {
-    "revenge.api": { "version": ">=1 <2" },
-    "discord": { "version": "*" }
-  },
-  "dist": { "script": "index.js" }
+  "authors": [{ "name": "xohus" }],
+  "main": "index.js",
+  "hash": "9b7478260ade41828b4a60ee6c40405bedb7870cc3ebafaeeb7bd20490468c6e",
+  "vendetta": { "icon": "ic_link_24px" }
 }

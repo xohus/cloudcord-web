@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const manifestUrl = `${location.origin}/bridge/mobile/manifest.json`;
+    const manifestUrl = `${location.origin}/bridge/mobile/`;
     const platformButtons = [...document.querySelectorAll("[data-platform]")];
     const clientButtons = [...document.querySelectorAll("[data-client]")];
     const mobilePanel = document.querySelector("#mobile-panel");
@@ -49,9 +49,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const status = document.querySelector("#bridge-status");
         try {
             await navigator.clipboard.writeText(manifestUrl);
-            status.textContent = "Manifest URL copied.";
+            status.textContent = "Plugin URL copied.";
         } catch {
-            status.textContent = `Copy this manifest URL: ${manifestUrl}`;
+            status.textContent = `Copy this plugin URL: ${manifestUrl}`;
         }
     };
 });
