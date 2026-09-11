@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const manifestUrl = `${location.origin}/bridge/mobile/manifest.json`;
     const platformButtons = [...document.querySelectorAll("[data-platform]")];
     const clientButtons = [...document.querySelectorAll("[data-client]")];
     const mobilePanel = document.querySelector("#mobile-panel");
@@ -21,6 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const originalHandler = button.onclick;
         button.onclick = event => {
             originalHandler?.call(button, event);
+            if (["revenge", "bunny", "kettu"].includes(button.dataset.client)) {
+                document.querySelectorAll("#install-steps code").forEach(code => code.textContent = manifestUrl);
+            }
             clientButtons.forEach(client => client.classList.remove("is-active"));
             installPanel.hidden = true;
             setProgress(2);
@@ -40,4 +44,14 @@ document.addEventListener("DOMContentLoaded", () => {
             installPanel.scrollIntoView({ behavior: "smooth", block: "start" });
         };
     });
+
+    document.querySelector("#copy-action").onclick = async () => {
+        const status = document.querySelector("#bridge-status");
+        try {
+            await navigator.clipboard.writeText(manifestUrl);
+            status.textContent = "Manifest URL copied.";
+        } catch {
+            status.textContent = `Copy this manifest URL: ${manifestUrl}`;
+        }
+    };
 });
