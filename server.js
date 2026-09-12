@@ -100,7 +100,9 @@ app.use(siteLimiter);
 // so Express's 100 KB default does not reject valid sync requests first.
 app.use(makeStoreCloudRouter(express));
 app.use(makeMembershipRouter(express));
-app.use(express.json({ limit: '256kb' }));
+// Fake profiles may contain an avatar and banner encoded as data URLs. Keep the
+// limit bounded, but large enough for the media limits enforced by clients.
+app.use(express.json({ limit: '4mb' }));
 
 const profileLimiter = rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: 'draft-7', legacyHeaders: false });
 const validOwnerId = value => /^\d{15,22}$/.test(String(value || ''));
@@ -110,13 +112,13 @@ app.get('/v1/profiles/user/:ownerId', profileLimiter, async (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.params.ownerId)) return res.status(400).json({ error: 'Invalid user' });
     await profileTableReady;
-    const result = await realCordDb.query('SELECT id, owner_id, profile, updated_at FROM cloudcord_profiles WHERE owner_id = $1 ORDER BY updated_at ASC', [req.params.ownerId]);
+    const result = await realCordDb.query('SELECT id, owner_id, profile, updated_at FROM cloudcord_profiles WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT 1', [req.params.ownerId]);
     if (!result.rows.length) return res.status(404).json({ error: 'Profile not found' });
-    // A user can edit from several devices, and each installation owns its own
-    // edit token/row. Merge those rows into one canonical profile so an older
-    // desktop row cannot hide fields last supplied by mobile (or vice versa).
-    const profile = result.rows.reduce((merged, row) => ({ ...merged, ...(row.profile || {}) }), {});
-    const latest = result.rows[result.rows.length - 1];
+    // Every client publishes a complete canonical snapshot. Returning the last
+    // updated row gives deterministic last-write-wins behavior across devices;
+    // merging historical rows allowed stale fields to reappear indefinitely.
+    const latest = result.rows[0];
+    const profile = latest.profile || {};
     res.set('Cache-Control', 'no-store');
     res.json({ schemaVersion: 1, id: latest.id, ownerId: latest.owner_id, profile, updatedAt: latest.updated_at });
 });
