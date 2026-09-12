@@ -127,6 +127,8 @@ app.post('/v1/profiles', profileLimiter, async (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile' });
     await profileTableReady;
+    const existing = await realCordDb.query('SELECT id FROM cloudcord_profiles WHERE owner_id = $1 LIMIT 1', [String(req.body.ownerId)]);
+    if (existing.rowCount) return res.status(409).json({ error: 'Profile already exists; update it with its edit token' });
     const id = crypto.randomUUID();
     const editToken = crypto.randomBytes(32).toString('base64url');
     await realCordDb.query('INSERT INTO cloudcord_profiles (id, owner_id, profile, edit_token_hash) VALUES ($1, $2, $3, $4)', [id, String(req.body.ownerId), req.body.profile, hashProfileToken(editToken)]);
@@ -138,7 +140,9 @@ app.put('/v1/profiles/:id', profileLimiter, async (req, res) => {
     const token = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
     if (!token || !validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile update' });
     await profileTableReady;
-    const result = await realCordDb.query('UPDATE cloudcord_profiles SET owner_id = $1, profile = $2, updated_at = NOW() WHERE id = $3 AND edit_token_hash = $4 RETURNING id', [String(req.body.ownerId), req.body.profile, req.params.id, hashProfileToken(token)]);
+    // An edit token owns one immutable profile identity. Never let a valid token
+    // for one row move that row onto somebody else's Discord user id.
+    const result = await realCordDb.query('UPDATE cloudcord_profiles SET profile = $1, updated_at = NOW() WHERE id = $2 AND owner_id = $3 AND edit_token_hash = $4 RETURNING id', [req.body.profile, req.params.id, String(req.body.ownerId), hashProfileToken(token)]);
     if (!result.rows[0]) return res.status(401).json({ error: 'Invalid profile token' });
     res.json({ id: result.rows[0].id, updated: true });
 });
