@@ -92,7 +92,15 @@ const siteLimiter = rateLimit({
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     message: { error: 'Too many requests. Please try again shortly.' },
-    skip: req => req.path === '/health'
+    // Do not spend the shared API quota on webpages, JS/CSS/images, or client
+    // runtime downloads. Those GET/HEAD responses are cacheable/read-only and
+    // many legitimate users can appear under one proxy address.
+    skip: req => {
+        if (req.path === '/health') return true;
+        if (!['GET', 'HEAD'].includes(req.method)) return false;
+        if (req.path.startsWith('/api/proxy/raw/') || req.path.startsWith('/api/proxy/assets/')) return true;
+        return !req.path.startsWith('/api/') && !req.path.startsWith('/v1/');
+    }
 });
 app.use(siteLimiter);
 // StoreCloud's sync endpoint accepts larger encrypted settings archives and
