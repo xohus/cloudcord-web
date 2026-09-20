@@ -112,11 +112,15 @@ app.use(makeMembershipRouter(express));
 // limit bounded, but large enough for the media limits enforced by clients.
 app.use(express.json({ limit: '4mb' }));
 
-const profileLimiter = rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: 'draft-7', legacyHeaders: false });
+// Profile cards can request several users at once while Discord mounts and
+// remounts its profile surfaces. Keep reads independent from writes so normal
+// browsing cannot consume the quota needed to save a Fake Profile.
+const profileReadLimiter = rateLimit({ windowMs: 60 * 1000, limit: 600, standardHeaders: 'draft-7', legacyHeaders: false });
+const profileWriteLimiter = rateLimit({ windowMs: 60 * 1000, limit: 120, standardHeaders: 'draft-7', legacyHeaders: false });
 const validOwnerId = value => /^\d{15,22}$/.test(String(value || ''));
 const hashProfileToken = token => crypto.createHash('sha256').update(String(token)).digest('hex');
 
-app.get('/v1/profiles/user/:ownerId', profileLimiter, async (req, res) => {
+app.get('/v1/profiles/user/:ownerId', profileReadLimiter, async (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.params.ownerId)) return res.status(400).json({ error: 'Invalid user' });
     await profileTableReady;
@@ -131,7 +135,7 @@ app.get('/v1/profiles/user/:ownerId', profileLimiter, async (req, res) => {
     res.json({ schemaVersion: 1, id: latest.id, ownerId: latest.owner_id, profile, updatedAt: latest.updated_at });
 });
 
-app.post('/v1/profiles', profileLimiter, async (req, res) => {
+app.post('/v1/profiles', profileWriteLimiter, async (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile' });
     await profileTableReady;
@@ -146,7 +150,7 @@ app.post('/v1/profiles', profileLimiter, async (req, res) => {
     res.status(201).json({ id, editToken });
 });
 
-app.put('/v1/profiles/:id', profileLimiter, async (req, res) => {
+app.put('/v1/profiles/:id', profileWriteLimiter, async (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
     const token = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
     if (!token || !validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile update' });
