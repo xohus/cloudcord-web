@@ -135,8 +135,11 @@ app.post('/v1/profiles', profileLimiter, async (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile' });
     await profileTableReady;
-    const existing = await realCordDb.query('SELECT id FROM cloudcord_profiles WHERE owner_id = $1 LIMIT 1', [String(req.body.ownerId)]);
-    if (existing.rowCount) return res.status(409).json({ error: 'Profile already exists; update it with its edit token' });
+    // Each installation owns its own row/edit token. Cross-device CloudCord
+    // installs cannot safely share that secret without account linking, so a
+    // second installation is allowed to create a new row for the same Discord
+    // user. Reads select the most recently updated row, giving deterministic
+    // last-write-wins sync without exposing another device's edit token.
     const id = crypto.randomUUID();
     const editToken = crypto.randomBytes(32).toString('base64url');
     await realCordDb.query('INSERT INTO cloudcord_profiles (id, owner_id, profile, edit_token_hash) VALUES ($1, $2, $3, $4)', [id, String(req.body.ownerId), req.body.profile, hashProfileToken(editToken)]);

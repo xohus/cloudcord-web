@@ -19,6 +19,10 @@ async function publish(profile: Record<string, string>) {
     const saved = JSON.parse(localStorage.getItem("cloudcord-bridge-share") || "{}");
     const path = saved.id ? `/v1/profiles/${encodeURIComponent(saved.id)}` : "/v1/profiles";
     const response = await fetch(API + path, { method: saved.id ? "PUT" : "POST", headers: { "Content-Type": "application/json", ...(saved.editToken ? { Authorization: `Bearer ${saved.editToken}` } : {}) }, body: JSON.stringify({ ownerId, profile }) });
+    if (saved.id && (response.status === 401 || response.status === 404 || response.status === 409)) {
+        localStorage.removeItem("cloudcord-bridge-share");
+        return publish(profile);
+    }
     if (!response.ok) throw new Error(`Sync failed (${response.status})`);
     const result = await response.json();
     if (!saved.id) localStorage.setItem("cloudcord-bridge-share", JSON.stringify({ id: result.id, editToken: result.editToken }));
