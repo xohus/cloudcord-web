@@ -48,6 +48,22 @@ const profileTableReady = realCordDb
     )`).then(() => realCordDb.query('CREATE INDEX IF NOT EXISTS cloudcord_profiles_owner_updated_idx ON cloudcord_profiles (owner_id, updated_at DESC)'))
         .catch(error => console.error('Could not prepare the CloudCord profile table:', error.message))
     : Promise.resolve();
+const staffApplicationsTableReady = realCordDb
+    ? realCordDb.query(`CREATE TABLE IF NOT EXISTS cloudcord_staff_applications (
+        id UUID PRIMARY KEY,
+        discord_user_id TEXT NOT NULL,
+        discord_username TEXT NOT NULL,
+        discord_global_name TEXT,
+        discord_avatar TEXT,
+        role TEXT NOT NULL,
+        answers JSONB NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        review_note TEXT,
+        submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        reviewed_at TIMESTAMPTZ
+    )`).then(() => realCordDb.query('CREATE INDEX IF NOT EXISTS cloudcord_staff_applications_status_idx ON cloudcord_staff_applications (status, submitted_at DESC)'))
+        .catch(error => console.error('Could not prepare the staff applications table:', error.message))
+    : Promise.resolve();
 
 // Security middlewares
 app.set('trust proxy', 1); // Trust Railway/Cloudflare proxy for accurate IP
@@ -263,7 +279,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
     etag: true,
     setHeaders: (res, servedPath) => {
         const fileName = path.basename(servedPath).toLowerCase();
-        if (fileName === 'index.html' || fileName === 'script.js') {
+        if (['index.html', 'script.js', 'admin.html', 'admin.js', 'staff-application.html', 'staff-application.js'].includes(fileName)) {
             res.setHeader('Cache-Control', 'no-store, max-age=0');
         }
     }
@@ -322,6 +338,152 @@ function parseRealCordSecrets(value) {
     } catch { }
     return String(value).split(/[\r\n,]+/).map(item => item.trim()).filter(Boolean);
 }
+
+const staffApplicationLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 8, standardHeaders: 'draft-7', legacyHeaders: false });
+const staffAdminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 12, standardHeaders: 'draft-7', legacyHeaders: false });
+const STAFF_ROLES = new Set(['Support Team', 'Moderator', 'Administrator', 'Developer']);
+const STAFF_FIELDS = new Set([
+    'discordUsername', 'discordId', 'age', 'timezone', 'role', 'motivation', 'experience', 'availability',
+    'cloudcordTime', 'devices', 'angryUser', 'friendViolation', 'securityBug', 'disagreement', 'bestChoice',
+    'additional', 'supportUnknown', 'supportDiagnostics', 'supportExplain', 'supportEscalate', 'modViolations',
+    'modEvidence', 'modAppeal', 'modActions', 'adminResponsibilities', 'adminDispute', 'adminAbuse',
+    'adminIncident', 'devStack', 'devWork', 'devDebug', 'devTesting', 'devSafety', 'devImprovement'
+]);
+
+function cleanStaffAnswers(input) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+    const answers = {};
+    for (const [key, value] of Object.entries(input)) {
+        if (!STAFF_FIELDS.has(key) || typeof value !== 'string') continue;
+        answers[key] = value.trim().slice(0, 5000);
+    }
+    if (!STAFF_ROLES.has(answers.role)) return null;
+    const required = ['discordUsername', 'discordId', 'age', 'timezone', 'motivation', 'experience', 'availability', 'cloudcordTime', 'angryUser', 'friendViolation', 'securityBug', 'disagreement', 'bestChoice'];
+    if (required.some(key => !answers[key]) || !/^\d{15,22}$/.test(answers.discordId)) return null;
+    return answers;
+}
+
+function checkStaffAdmin(req, res, next) {
+    if (req.session.staffAdmin === true) return next();
+    res.status(401).json({ error: 'Admin authentication required' });
+}
+
+async function discordBotRequest(route, options = {}) {
+    const token = String(process.env.CLOUDCORD_DISCORD_BOT_TOKEN || '');
+    if (!token) throw new Error('CloudCord bot token is not configured');
+    return fetch(`https://discord.com/api/v10${route}`, {
+        ...options,
+        headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json', ...(options.headers || {}) }
+    });
+}
+
+async function sendStaffDecisionDm(application, decision, note) {
+    const dmResponse = await discordBotRequest('/users/@me/channels', {
+        method: 'POST',
+        body: JSON.stringify({ recipient_id: application.discord_user_id })
+    });
+    if (!dmResponse.ok) throw new Error(`Discord DM channel failed (${dmResponse.status})`);
+    const dm = await dmResponse.json();
+    const accepted = decision === 'accepted';
+    const content = [
+        accepted ? '## Your CloudCord staff application was accepted' : '## Your CloudCord staff application was not accepted',
+        accepted
+            ? `Your application for **${application.role}** has been approved. A staff member will contact you with the next steps.`
+            : `Thank you for applying for **${application.role}**. We are not moving forward with this application at this time.`,
+        note ? `\n**Staff note:** ${String(note).slice(0, 1000)}` : '',
+        '\n— CloudCord Staff'
+    ].filter(Boolean).join('\n');
+    const messageResponse = await discordBotRequest(`/channels/${dm.id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ content, allowed_mentions: { parse: [] } })
+    });
+    if (!messageResponse.ok) throw new Error(`Discord DM failed (${messageResponse.status})`);
+}
+
+app.post('/api/staff/applications/start', staffApplicationLimiter, (req, res) => {
+    if (!realCordDb) return res.status(503).json({ error: 'Applications are temporarily unavailable' });
+    const answers = cleanStaffAnswers(req.body?.answers);
+    if (!answers || req.body?.confidentiality !== true || req.body?.consequences !== true) return res.status(400).json({ error: 'Complete every required field before continuing' });
+    const clientId = process.env.CLOUDCORD_DISCORD_CLIENT_ID;
+    const redirectUri = process.env.CLOUDCORD_STAFF_REDIRECT_URI || 'https://getcloudcord.com/staff-application/callback';
+    if (!clientId || !process.env.CLOUDCORD_DISCORD_CLIENT_SECRET) return res.status(503).json({ error: 'Discord sign-in is not configured' });
+    const state = crypto.randomBytes(24).toString('base64url');
+    req.session.staffApplication = { state, answers, createdAt: Date.now() };
+    const query = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: 'code', scope: 'identify', state, prompt: 'consent' });
+    res.set('Cache-Control', 'no-store').json({ authorizeUrl: `https://discord.com/oauth2/authorize?${query}` });
+});
+
+app.get('/staff-application/callback', staffApplicationLimiter, async (req, res) => {
+    const pending = req.session.staffApplication;
+    delete req.session.staffApplication;
+    if (req.query.error) return res.redirect('/staff-application?error=oauth_denied');
+    if (!pending || Date.now() - Number(pending.createdAt) > 15 * 60 * 1000 || !timingSafeTextEqual(req.query.state || '', pending.state) || !req.query.code) return res.redirect('/staff-application?error=session_expired');
+    try {
+        const redirectUri = process.env.CLOUDCORD_STAFF_REDIRECT_URI || 'https://getcloudcord.com/staff-application/callback';
+        const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ client_id: process.env.CLOUDCORD_DISCORD_CLIENT_ID, client_secret: process.env.CLOUDCORD_DISCORD_CLIENT_SECRET, grant_type: 'authorization_code', code: String(req.query.code), redirect_uri: redirectUri })
+        });
+        if (!tokenResponse.ok) throw new Error(`Discord authorization failed (${tokenResponse.status})`);
+        const token = await tokenResponse.json();
+        const userResponse = await fetch('https://discord.com/api/v10/users/@me', { headers: { Authorization: `Bearer ${token.access_token}` } });
+        if (!userResponse.ok) throw new Error(`Discord identity failed (${userResponse.status})`);
+        const user = await userResponse.json();
+        if (String(user.id) !== String(pending.answers.discordId)) return res.redirect('/staff-application?error=identity_mismatch');
+        await staffApplicationsTableReady;
+        const avatar = user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${String(user.avatar).startsWith('a_') ? 'gif' : 'png'}?size=128` : null;
+        await realCordDb.query(`INSERT INTO cloudcord_staff_applications (id, discord_user_id, discord_username, discord_global_name, discord_avatar, role, answers)
+            VALUES ($1,$2,$3,$4,$5,$6,$7)`, [crypto.randomUUID(), user.id, user.username, user.global_name || null, avatar, pending.answers.role, pending.answers]);
+        logAudit('STAFF_APPLICATION_SUBMITTED', req, { discordUserId: user.id, role: pending.answers.role });
+        res.redirect('/staff-application?submitted=1');
+    } catch (error) {
+        console.error('[STAFF APPLICATION OAUTH]', error);
+        res.redirect('/staff-application?error=submit_failed');
+    }
+});
+
+app.post('/api/admin/staff/login', staffAdminLimiter, (req, res) => {
+    const configured = String(process.env.ADMIN_PASSWORD || '');
+    const supplied = String(req.body?.password || '');
+    if (!configured || !timingSafeTextEqual(configured, supplied)) {
+        logAudit('STAFF_ADMIN_LOGIN_FAILED', req);
+        return res.status(401).json({ error: 'Invalid admin password' });
+    }
+    req.session.staffAdmin = true;
+    req.session.save(() => res.json({ authenticated: true }));
+});
+
+app.post('/api/admin/staff/logout', checkStaffAdmin, (req, res) => {
+    delete req.session.staffAdmin;
+    req.session.save(() => res.json({ authenticated: false }));
+});
+
+app.get('/api/admin/staff/session', (req, res) => res.json({ authenticated: req.session.staffAdmin === true }));
+
+app.get('/api/admin/staff/applications', checkStaffAdmin, async (req, res) => {
+    if (!realCordDb) return res.status(503).json({ error: 'Database unavailable' });
+    await staffApplicationsTableReady;
+    const status = ['pending', 'accepted', 'denied'].includes(req.query.status) ? req.query.status : 'pending';
+    const result = await realCordDb.query(`SELECT id, discord_user_id, discord_username, discord_global_name, discord_avatar, role, answers, status, review_note, submitted_at, reviewed_at
+        FROM cloudcord_staff_applications WHERE status = $1 ORDER BY submitted_at DESC LIMIT 200`, [status]);
+    res.set('Cache-Control', 'private, no-store').json({ applications: result.rows });
+});
+
+app.post('/api/admin/staff/applications/:id/decision', checkStaffAdmin, staffAdminLimiter, async (req, res) => {
+    const decision = String(req.body?.decision || '');
+    const note = String(req.body?.note || '').trim().slice(0, 1000);
+    if (!['accepted', 'denied'].includes(decision)) return res.status(400).json({ error: 'Invalid decision' });
+    await staffApplicationsTableReady;
+    const result = await realCordDb.query(`UPDATE cloudcord_staff_applications SET status=$1, review_note=$2, reviewed_at=NOW()
+        WHERE id=$3 AND status='pending' RETURNING *`, [decision, note || null, req.params.id]);
+    if (!result.rows[0]) return res.status(404).json({ error: 'Pending application not found' });
+    let notified = true;
+    let notificationError = null;
+    try { await sendStaffDecisionDm(result.rows[0], decision, note); }
+    catch (error) { notified = false; notificationError = error.message; console.error('[STAFF DECISION DM]', error); }
+    logAudit('STAFF_APPLICATION_REVIEWED', req, { applicationId: req.params.id, decision, notified });
+    res.json({ updated: true, notified, notificationError });
+});
 
 function timingSafeTextEqual(left, right) {
     const expected = Buffer.from(String(left));
@@ -741,6 +903,12 @@ app.get('/source', (req, res) => {
 
 app.get('/join', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'join.html'));
+});
+
+// Intentionally unlisted in the site navigation. Share this route directly
+// when staff applications are open.
+app.get('/staff-application', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'staff-application.html'));
 });
 
 app.listen(PORT, () => {

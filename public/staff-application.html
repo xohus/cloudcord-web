@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Staff Application | CloudCord</title>
+    <link rel="icon" href="assets/cloudcord-favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="staff-application.css">
+</head>
+<body class="staff-page">
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
+    </script>
+
+    <nav class="navbar staff-nav">
+        <div class="nav-content">
+            <a href="/" class="logo-link" aria-label="CloudCord home">
+                <img src="assets/cloudcord-favicon.png" alt="CloudCord" class="nav-logo">
+            </a>
+            <a href="/" class="staff-home-link">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                Return home
+            </a>
+        </div>
+    </nav>
+
+    <main class="application-shell">
+        <header class="application-hero reveal stagger-up">
+            <div class="eyebrow"><span></span> CloudCord staff applications</div>
+            <h1>Help shape what<br><em>comes next.</em></h1>
+            <p>Join the people supporting the community, keeping it safe, and building CloudCord. Choose the role that fits you and answer honestly.</p>
+            <div class="hero-meta">
+                <span><svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"/><path d="m8 12 2.5 2.5L16 9"/></svg> Draft saves automatically</span>
+                <span><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg> About 10–15 minutes</span>
+            </div>
+        </header>
+
+        <div class="application-layout">
+            <aside class="application-sidebar reveal stagger-up">
+                <div class="progress-card">
+                    <div class="progress-heading"><span>Application progress</span><strong id="progressText">0%</strong></div>
+                    <div class="progress-track"><span id="progressBar"></span></div>
+                    <p id="progressDetail">Choose a role to begin.</p>
+                </div>
+                <nav class="section-index" aria-label="Application sections">
+                    <button type="button" data-target="applicant"><span>01</span> About you</button>
+                    <button type="button" data-target="experience"><span>02</span> Experience</button>
+                    <button type="button" data-target="situations"><span>03</span> Situations</button>
+                    <button type="button" data-target="roleQuestions"><span>04</span> Role questions</button>
+                    <button type="button" data-target="final"><span>05</span> Final details</button>
+                </nav>
+            </aside>
+
+            <form id="staffForm" class="application-form" novalidate>
+                <section class="form-section reveal stagger-up" id="applicant">
+                    <div class="section-number">01 / 05</div>
+                    <div class="section-heading">
+                        <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>
+                        <div><h2>About you</h2><p>Tell us who you are and how we can reach you.</p></div>
+                    </div>
+                    <div class="field-grid two-column">
+                        <label class="field"><span>Discord username <b>*</b></span><input name="discordUsername" autocomplete="off" placeholder="yourname" required></label>
+                        <label class="field"><span>Discord user ID <b>*</b></span><input name="discordId" inputmode="numeric" pattern="[0-9]{15,22}" placeholder="000000000000000000" required></label>
+                        <label class="field"><span>Age <b>*</b></span><input name="age" type="number" min="13" max="99" placeholder="16" required></label>
+                        <label class="field"><span>Timezone <b>*</b></span><input name="timezone" placeholder="UTC+3 / Riyadh" required></label>
+                    </div>
+                    <fieldset class="role-fieldset">
+                        <legend>Choose your role <b>*</b></legend>
+                        <div class="role-grid">
+                            <label class="role-option"><input type="radio" name="role" value="Support Team" required><span class="role-card"><i class="role-icon"><svg viewBox="0 0 24 24"><path d="M4 13v-2a8 8 0 0 1 16 0v2"/><path d="M4 13a2 2 0 0 1 2-2h1v6H6a2 2 0 0 1-2-2v-2Zm16 0a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2v-2ZM17 19c-1 1-2.5 1.5-5 1.5"/></svg></i><strong>Support Team</strong><small>Help users solve problems</small></span></label>
+                            <label class="role-option"><input type="radio" name="role" value="Moderator"><span class="role-card"><i class="role-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4 7v5c0 5 3.5 8 8 10 4.5-2 8-5 8-10V7l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg></i><strong>Moderator</strong><small>Protect and guide the community</small></span></label>
+                            <label class="role-option"><input type="radio" name="role" value="Administrator"><span class="role-card"><i class="role-icon"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg></i><strong>Administrator</strong><small>Lead systems and staff</small></span></label>
+                            <label class="role-option"><input type="radio" name="role" value="Developer"><span class="role-card"><i class="role-icon"><svg viewBox="0 0 24 24"><path d="m8 9-4 3 4 3m8-6 4 3-4 3m-2-9-4 12"/></svg></i><strong>Developer</strong><small>Build and improve CloudCord</small></span></label>
+                        </div>
+                    </fieldset>
+                </section>
+
+                <section class="form-section reveal stagger-up" id="experience">
+                    <div class="section-number">02 / 05</div>
+                    <div class="section-heading"><div class="section-icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M9 6V4h6v2m-4 5h2"/></svg></div><div><h2>Experience</h2><p>Your availability, background, and connection to CloudCord.</p></div></div>
+                    <div class="field-stack">
+                        <label class="field"><span>Why do you want to join the CloudCord staff team? <b>*</b></span><textarea name="motivation" rows="4" placeholder="Tell us what motivates you and what you hope to contribute…" required></textarea><small>Be specific. A thoughtful answer matters more than a long one.</small></label>
+                        <label class="field"><span>What relevant experience do you have? <b>*</b></span><textarea name="experience" rows="4" placeholder="Communities, projects, moderation, support, development, or other useful experience…" required></textarea></label>
+                        <div class="field-grid two-column">
+                            <label class="field"><span>Hours available each week <b>*</b></span><input name="availability" placeholder="5–10 hours" required></label>
+                            <label class="field"><span>How long have you used CloudCord? <b>*</b></span><input name="cloudcordTime" placeholder="About 4 months" required></label>
+                        </div>
+                        <label class="field"><span>Which devices can you test on?</span><input name="devices" placeholder="Windows laptop, iPhone, iPad, Android…"></label>
+                    </div>
+                </section>
+
+                <section class="form-section reveal stagger-up" id="situations">
+                    <div class="section-number">03 / 05</div>
+                    <div class="section-heading"><div class="section-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2M17 3h4v4"/></svg></div><div><h2>Situations</h2><p>Show us how you think when things become difficult.</p></div></div>
+                    <div class="field-stack">
+                        <label class="field"><span>A user is angry and insulting staff because a feature is broken. How do you respond? <b>*</b></span><textarea name="angryUser" rows="4" required></textarea></label>
+                        <label class="field"><span>Your friend breaks a rule and asks you to ignore it. What do you do? <b>*</b></span><textarea name="friendViolation" rows="4" required></textarea></label>
+                        <label class="field"><span>You discover a serious bug involving user data. What steps do you take? <b>*</b></span><textarea name="securityBug" rows="4" required></textarea></label>
+                        <label class="field"><span>What would you do if you disagreed with a decision made by higher staff? <b>*</b></span><textarea name="disagreement" rows="4" required></textarea></label>
+                    </div>
+                </section>
+
+                <section class="form-section reveal stagger-up" id="roleQuestions">
+                    <div class="section-number">04 / 05</div>
+                    <div class="section-heading"><div class="section-icon"><svg viewBox="0 0 24 24"><path d="M12 2 9 9l-7 3 7 3 3 7 3-7 7-3-7-3-3-7Z"/></svg></div><div><h2>Role questions</h2><p id="roleDescription">Choose a role above to reveal this section.</p></div></div>
+                    <div id="roleQuestionFields" class="field-stack role-empty">
+                        <div class="empty-state"><span>?</span><p>Your selected role determines the questions shown here.</p></div>
+                    </div>
+                </section>
+
+                <section class="form-section reveal stagger-up" id="final">
+                    <div class="section-number">05 / 05</div>
+                    <div class="section-heading"><div class="section-icon"><svg viewBox="0 0 24 24"><path d="M5 3h14v18l-7-4-7 4V3Z"/></svg></div><div><h2>Final details</h2><p>Review the expectations before finishing your application.</p></div></div>
+                    <div class="field-stack">
+                        <label class="field"><span>What makes you a strong choice for this role? <b>*</b></span><textarea name="bestChoice" rows="4" required></textarea></label>
+                        <label class="field"><span>Anything else we should know?</span><textarea name="additional" rows="3" placeholder="Optional"></textarea></label>
+                        <label class="agreement"><input type="checkbox" name="confidentiality" required><span>I agree to follow staff rules, protect confidential information, and use staff permissions responsibly.</span></label>
+                        <label class="agreement"><input type="checkbox" name="consequences" required><span>I understand that inactivity, dishonesty, leaking, or permission abuse may result in removal.</span></label>
+                    </div>
+                </section>
+
+                <div class="form-actions reveal stagger-up">
+                    <div><strong>Ready to apply?</strong><p>Review your answers, then verify your Discord identity to submit securely.</p></div>
+                    <button type="submit" class="submit-button"><span>Prepare application</span><svg viewBox="0 0 24 24"><path d="m5 12 14-7-4 14-3-5-7-2Z"/></svg></button>
+                </div>
+                <p class="draft-note"><span id="saveIndicator">Draft saved locally</span> · Your answers stay in this browser until you submit them.</p>
+            </form>
+        </div>
+    </main>
+
+    <div class="result-modal" id="resultModal" aria-hidden="true">
+        <div class="modal-backdrop" data-close-modal></div>
+        <div class="result-dialog" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+            <button class="modal-close" type="button" data-close-modal aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+            <div class="result-icon"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></div>
+            <h2 id="resultTitle">Application ready</h2>
+            <p>Connect Discord so CloudCord can verify who submitted this application. Only your public Discord identity is requested.</p>
+            <div class="oauth-summary">
+                <div><svg viewBox="0 0 24 24"><path d="M12 3 4 7v5c0 5 3.5 8 8 10 4.5-2 8-5 8-10V7l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg><span><strong>Identity only</strong><small>Username, user ID, display name, and avatar</small></span></div>
+                <div><svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3"/><rect x="4" y="11" width="16" height="10" rx="2"/></svg><span><strong>No account access</strong><small>No email, password, token, servers, or messages</small></span></div>
+            </div>
+            <div class="result-actions">
+                <button type="button" id="authorizeApplication" class="submit-button"><span>Continue with Discord</span><svg viewBox="0 0 24 24"><path d="m5 12 14-7-4 14-3-5-7-2Z"/></svg></button>
+                <button type="button" class="secondary-button" data-close-modal>Go back</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="application-toast" role="status"></div>
+    <script src="script.js"></script>
+    <script src="staff-application.js"></script>
+</body>
+</html>
