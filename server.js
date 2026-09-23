@@ -139,6 +139,18 @@ const profileReadLimiter = rateLimit({ windowMs: 60 * 1000, limit: 600, standard
 const profileWriteLimiter = rateLimit({ windowMs: 60 * 1000, limit: 120, standardHeaders: 'draft-7', legacyHeaders: false });
 const validOwnerId = value => /^\d{15,22}$/.test(String(value || ''));
 const hashProfileToken = token => crypto.createHash('sha256').update(String(token)).digest('hex');
+const profileRevision = profile => Math.max(0, Number(profile?.syncRevision || 0) || 0);
+
+async function latestProfileForOwner(ownerId) {
+    const result = await realCordDb.query('SELECT id, profile, updated_at FROM cloudcord_profiles WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT 1', [String(ownerId)]);
+    return result.rows[0] || null;
+}
+
+function rejectStaleProfile(res, incomingProfile, latest) {
+    if (!latest || profileRevision(incomingProfile) >= profileRevision(latest.profile)) return false;
+    res.status(409).json({ error: 'A newer profile is already active', profile: latest.profile, updatedAt: latest.updated_at });
+    return true;
+}
 
 app.get('/v1/profiles/user/:ownerId', profileReadLimiter, async (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
@@ -159,6 +171,8 @@ app.post('/v1/profiles', profileWriteLimiter, async (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile' });
     await profileTableReady;
+    const latest = await latestProfileForOwner(req.body.ownerId);
+    if (rejectStaleProfile(res, req.body.profile, latest)) return;
     // Each installation owns its own row/edit token. Cross-device CloudCord
     // installs cannot safely share that secret without account linking, so a
     // second installation is allowed to create a new row for the same Discord
@@ -175,6 +189,8 @@ app.put('/v1/profiles/:id', profileWriteLimiter, async (req, res) => {
     const token = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
     if (!token || !validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile update' });
     await profileTableReady;
+    const latest = await latestProfileForOwner(req.body.ownerId);
+    if (rejectStaleProfile(res, req.body.profile, latest)) return;
     // An edit token owns one immutable profile identity. Never let a valid token
     // for one row move that row onto somebody else's Discord user id.
     const result = await realCordDb.query('UPDATE cloudcord_profiles SET profile = $1, updated_at = NOW() WHERE id = $2 AND owner_id = $3 AND edit_token_hash = $4 RETURNING id', [req.body.profile, req.params.id, String(req.body.ownerId), hashProfileToken(token)]);
