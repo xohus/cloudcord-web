@@ -398,12 +398,21 @@ async function discordBotRequest(route, options = {}) {
     });
 }
 
+async function discordFailure(response, action) {
+    let detail = '';
+    try {
+        const body = await response.clone().json();
+        detail = body?.message ? `: ${body.message}${body.code ? ` (${body.code})` : ''}` : '';
+    } catch {}
+    return new Error(`${action} failed (${response.status})${detail}`);
+}
+
 async function sendStaffDecisionDm(application, decision, note) {
     const dmResponse = await discordBotRequest('/users/@me/channels', {
         method: 'POST',
         body: JSON.stringify({ recipient_id: application.discord_user_id })
     });
-    if (!dmResponse.ok) throw new Error(`Discord DM channel failed (${dmResponse.status})`);
+    if (!dmResponse.ok) throw await discordFailure(dmResponse, 'Discord DM channel');
     const dm = await dmResponse.json();
     const accepted = decision === 'accepted';
     const content = [
@@ -418,7 +427,8 @@ async function sendStaffDecisionDm(application, decision, note) {
         method: 'POST',
         body: JSON.stringify({ content, allowed_mentions: { parse: [] } })
     });
-    if (!messageResponse.ok) throw new Error(`Discord DM failed (${messageResponse.status})`);
+    if (!messageResponse.ok) throw await discordFailure(messageResponse, 'Discord DM');
+    return { channelId: dm.id };
 }
 
 app.post('/api/staff/applications/start', staffApplicationLimiter, (req, res) => {
@@ -430,7 +440,8 @@ app.post('/api/staff/applications/start', staffApplicationLimiter, (req, res) =>
     if (!clientId || !process.env.CLOUDCORD_DISCORD_CLIENT_SECRET) return res.status(503).json({ error: 'Discord sign-in is not configured' });
     const state = crypto.randomBytes(24).toString('base64url');
     req.session.staffApplication = { state, answers, createdAt: Date.now() };
-    const query = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: 'code', scope: 'identify', state, prompt: 'consent' });
+    const canJoinGuild = Boolean(process.env.CLOUDCORD_DISCORD_GUILD_ID && process.env.CLOUDCORD_DISCORD_BOT_TOKEN);
+    const query = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: 'code', scope: canJoinGuild ? 'identify guilds.join' : 'identify', state, prompt: 'consent' });
     res.set('Cache-Control', 'no-store').json({ authorizeUrl: `https://discord.com/oauth2/authorize?${query}` });
 });
 
@@ -451,6 +462,16 @@ app.get('/staff-application/callback', staffApplicationLimiter, async (req, res)
         if (!userResponse.ok) throw new Error(`Discord identity failed (${userResponse.status})`);
         const user = await userResponse.json();
         if (String(user.id) !== String(pending.answers.discordId)) return res.redirect('/staff-application?error=identity_mismatch');
+        const guildId = String(process.env.CLOUDCORD_DISCORD_GUILD_ID || '');
+        if (guildId && process.env.CLOUDCORD_DISCORD_BOT_TOKEN) {
+            const joinResponse = await discordBotRequest(`/guilds/${encodeURIComponent(guildId)}/members/${encodeURIComponent(user.id)}`, {
+                method: 'PUT',
+                body: JSON.stringify({ access_token: token.access_token })
+            });
+            if (!joinResponse.ok && joinResponse.status !== 204) {
+                console.error('[STAFF APPLICATION GUILD JOIN]', await discordFailure(joinResponse, 'Discord server join'));
+            }
+        }
         await staffApplicationsTableReady;
         const avatar = user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${String(user.avatar).startsWith('a_') ? 'gif' : 'png'}?size=128` : null;
         await realCordDb.query(`INSERT INTO cloudcord_staff_applications (id, discord_user_id, discord_username, discord_global_name, discord_avatar, role, answers)
@@ -508,6 +529,24 @@ app.post('/api/admin/staff/applications/:id/decision', checkStaffAdmin, staffAdm
     catch (error) { notified = false; notificationError = error.message; console.error('[STAFF DECISION DM]', error); }
     logAudit('STAFF_APPLICATION_REVIEWED', req, { applicationId: req.params.id, decision, notified });
     res.json({ updated: true, notified, notificationError });
+});
+
+app.post('/api/admin/staff/applications/:id/notify', checkStaffAdmin, staffAdminLimiter, async (req, res) => {
+    if (!realCordDb) return res.status(503).json({ error: 'Database unavailable' });
+    await staffApplicationsTableReady;
+    const result = await realCordDb.query(`SELECT * FROM cloudcord_staff_applications
+        WHERE id=$1 AND status IN ('accepted','denied') LIMIT 1`, [req.params.id]);
+    const application = result.rows[0];
+    if (!application) return res.status(404).json({ error: 'Reviewed application not found' });
+    try {
+        await sendStaffDecisionDm(application, application.status, application.review_note || '');
+        logAudit('STAFF_APPLICATION_DM_RETRIED', req, { applicationId: req.params.id, notified: true });
+        res.json({ notified: true });
+    } catch (error) {
+        console.error('[STAFF DECISION DM RETRY]', error);
+        logAudit('STAFF_APPLICATION_DM_RETRIED', req, { applicationId: req.params.id, notified: false });
+        res.status(502).json({ error: error.message || 'Discord DM failed' });
+    }
 });
 
 function timingSafeTextEqual(left, right) {
