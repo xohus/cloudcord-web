@@ -1,13 +1,14 @@
-.staff-page { background: var(--bg-primary); min-height: 100vh; }
+.staff-page { background: var(--bg-primary); min-height: 100vh; font-family: var(--font-primary); font-kerning: normal; letter-spacing: 0; }
+.staff-page button, .staff-page input, .staff-page textarea { font-family: var(--font-primary); }
 .staff-page::before { content: ""; position: fixed; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(var(--accent-purple-rgb),.028) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-purple-rgb),.028) 1px, transparent 1px); background-size: 42px 42px; mask-image: linear-gradient(to bottom, black, transparent 72%); }
 .staff-nav { border-bottom: 1px solid rgba(255,255,255,.06); }
 .staff-home-link { display: inline-flex; align-items: center; gap: .4rem; color: var(--text-secondary); font-weight: 700; }
 .staff-home-link svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
 .application-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 150px 0 100px; position: relative; }
 .application-hero { max-width: 770px; margin: 0 auto 88px; text-align: center; }
-.eyebrow { display: inline-flex; align-items: center; gap: .55rem; padding: .42rem .75rem; border: 1px solid rgba(var(--accent-purple-rgb),.3); border-radius: 7px; color: var(--text-secondary); background: rgba(var(--accent-purple-rgb),.08); font-size: .76rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.eyebrow { display: inline-flex; align-items: center; gap: .55rem; padding: .42rem .75rem; border: 1px solid rgba(var(--accent-purple-rgb),.3); border-radius: 7px; color: var(--text-secondary); background: rgba(var(--accent-purple-rgb),.08); font-size: .78rem; font-weight: 800; letter-spacing: 0; }
 .eyebrow span { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 12px rgba(35,165,89,.65); }
-.application-hero h1 { font-size: clamp(3.1rem, 7vw, 5.9rem); line-height: .94; letter-spacing: -.06em; margin: 26px 0 28px; }
+.application-hero h1 { font-size: clamp(3.1rem, 7vw, 5.9rem); line-height: .98; letter-spacing: -.025em; margin: 26px 0 28px; }
 .application-hero h1 em { color: var(--accent-purple); font-style: normal; }
 .application-hero > p { max-width: 680px; margin: 0 auto; color: var(--text-secondary); font-size: 1.16rem; }
 .hero-meta { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-top: 28px; color: var(--text-muted); font-size: .88rem; font-weight: 600; }
@@ -23,15 +24,15 @@
 .progress-card p { color: var(--text-muted); font-size: .75rem; line-height: 1.4; }
 .section-index { display: grid; gap: 3px; margin-top: 18px; }
 .section-index button { border: 0; background: transparent; color: var(--text-muted); padding: 10px 12px; border-radius: 7px; text-align: left; font: 700 .82rem var(--font-primary); cursor: pointer; transition: .2s ease; }
-.section-index button span { display: inline-block; width: 28px; color: var(--text-muted); font-size: .68rem; letter-spacing: .06em; }
+.section-index button span { display: inline-block; width: 28px; color: var(--text-muted); font-size: .7rem; letter-spacing: 0; }
 .section-index button:hover, .section-index button.active { color: var(--text-primary); background: rgba(var(--accent-purple-rgb),.09); }
 .section-index button.active span { color: var(--accent-purple); }
 .application-form { min-width: 0; }
 .form-section { position: relative; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 34px; margin-bottom: 18px; box-shadow: 0 12px 32px rgba(0,0,0,.08); transition: border-color .2s ease, transform .2s ease; }
 .form-section:focus-within { border-color: rgba(var(--accent-purple-rgb),.46); }
-.section-number { position: absolute; top: 20px; right: 24px; color: var(--text-muted); font-size: .7rem; font-weight: 800; letter-spacing: .08em; }
+.section-number { position: absolute; top: 20px; right: 24px; color: var(--text-muted); font-size: .72rem; font-weight: 800; letter-spacing: 0; }
 .section-heading { display: flex; gap: 15px; align-items: center; padding-right: 50px; margin-bottom: 28px; }
-.section-heading h2 { font-size: 1.55rem; letter-spacing: -.02em; }
+.section-heading h2 { font-size: 1.55rem; letter-spacing: 0; }
 .section-heading p { color: var(--text-muted); font-size: .9rem; margin-top: 3px; }
 .section-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; background: rgba(var(--accent-purple-rgb),.11); border: 1px solid rgba(var(--accent-purple-rgb),.18); border-radius: 9px; color: var(--accent-purple); }
 .section-icon svg { width: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }

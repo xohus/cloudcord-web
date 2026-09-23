@@ -259,7 +259,8 @@ app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {
 // Session setup
 app.use(session({
     // A production deployment must provide a secret; never use a public default.
-    secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+    secret: process.env.SESSION_SECRET || process.env.CLOUDCORD_MEMBERSHIP_SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+    proxy: true,
     resave: false,
     saveUninitialized: true,
     cookie: { secure: process.env.NODE_ENV === 'production', httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 }
@@ -299,7 +300,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
     etag: true,
     setHeaders: (res, servedPath) => {
         const fileName = path.basename(servedPath).toLowerCase();
-        if (['index.html', 'script.js', 'admin.html', 'admin.js', 'staff-application.html', 'staff-application.js'].includes(fileName)) {
+        if (['index.html', 'script.js', 'admin.html', 'admin.css', 'admin.js', 'staff-application.html', 'staff-application.css', 'staff-application.js'].includes(fileName)) {
             res.setHeader('Cache-Control', 'no-store, max-age=0');
         }
     }
@@ -463,14 +464,18 @@ app.get('/staff-application/callback', staffApplicationLimiter, async (req, res)
 });
 
 app.post('/api/admin/staff/login', staffAdminLimiter, (req, res) => {
-    const configured = String(process.env.ADMIN_PASSWORD || '');
+    const configured = String(process.env.ADMIN_PASSWORD || process.env.admin_password || '');
     const supplied = String(req.body?.password || '');
-    if (!configured || !timingSafeTextEqual(configured, supplied)) {
+    if (!configured) return res.status(503).json({ error: 'Admin password is not configured on the server' });
+    if (!timingSafeTextEqual(configured, supplied)) {
         logAudit('STAFF_ADMIN_LOGIN_FAILED', req);
         return res.status(401).json({ error: 'Invalid admin password' });
     }
     req.session.staffAdmin = true;
-    req.session.save(() => res.json({ authenticated: true }));
+    req.session.save(error => {
+        if (error) return res.status(500).json({ error: 'Could not start the admin session' });
+        res.json({ authenticated: true });
+    });
 });
 
 app.post('/api/admin/staff/logout', checkStaffAdmin, (req, res) => {
