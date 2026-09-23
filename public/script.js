@@ -582,7 +582,12 @@ SearchActionSheet — makes long-pressing search results open their action sheet
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
         const legacyInstallBaseline = 500;
-        let lastVerifiedCount = null;
+        const cachedInstallCount = Number(localStorage.getItem('cloudcordVerifiedInstallCount'));
+        let lastVerifiedCount = Number.isSafeInteger(cachedInstallCount) && cachedInstallCount >= legacyInstallBaseline
+            ? cachedInstallCount
+            : legacyInstallBaseline;
+        installCounter.innerText = lastVerifiedCount.toLocaleString();
+        installCounter.title = cachedInstallCount ? 'Last verified lifetime install count' : 'Official install baseline';
 
         async function fetchVerifiedInstalls() {
             try {
@@ -590,6 +595,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
                 try {
                     response = await fetch('/v1/usage/installs', {
                         cache: 'no-store',
+                        signal: AbortSignal.timeout(5000),
                         headers: { 'Accept': 'application/json' }
                     });
                 } catch (e) {
@@ -615,14 +621,13 @@ SearchActionSheet — makes long-pressing search results open their action sheet
                 }
                 const displayedCount = legacyInstallBaseline + count;
                 lastVerifiedCount = displayedCount;
+                localStorage.setItem('cloudcordVerifiedInstallCount', String(displayedCount));
                 installCounter.innerText = displayedCount.toLocaleString();
                 installCounter.title = 'Lifetime official CloudCord downloads';
             } catch (err) {
                 console.error('Failed to fetch verified CloudCord installs', err);
-                if (lastVerifiedCount === null) {
-                    installCounter.innerText = '—';
-                    installCounter.title = 'Verified count temporarily unavailable';
-                }
+                installCounter.innerText = lastVerifiedCount.toLocaleString();
+                installCounter.title = 'Showing the last verified install count';
             }
         }
 

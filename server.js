@@ -225,7 +225,8 @@ let lastVerifiedInstallCount = null;
 app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {
     try {
         const workerRes = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
-            headers: { 'Accept': 'application/json' }
+            headers: { 'Accept': 'application/json' },
+            signal: AbortSignal.timeout(5000)
         });
         if (!workerRes.ok) {
             throw new Error(`Usage service returned ${workerRes.status}`);
@@ -254,6 +255,11 @@ app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {
             error: 'Verified install count temporarily unavailable'
         });
     }
+});
+
+app.get('/download/windows', (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/CloudCordSetup.exe?v=${Date.now()}`);
 });
 
 // Session setup
