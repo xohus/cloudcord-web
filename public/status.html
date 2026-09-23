@@ -24,9 +24,9 @@
     </script>
     <div class="announcement-bar">
         <div class="announcement-content">
-            <span class="announcement-badge">ANNOUNCEMENT</span>
-            <span class="announcement-text">CloudCord for Discord 331 is the current stable iOS and iPadOS build.</span>
-            <a href="https://github.com/xohus/cloudcord/releases/download/ios-legacy-331/cloudcord0-331.ipa" class="announcement-link">Download Discord 331 IPA &rarr;</a>
+            <span class="announcement-badge">WINDOWS STATUS</span>
+            <span class="announcement-text">The Windows installer and updater are temporarily down. Existing installations can still be used.</span>
+            <a href="#windows-status" class="announcement-link">View details &rarr;</a>
         </div>
     </div>
     <nav class="navbar">
@@ -94,17 +94,18 @@
             </ul>
         </div>
 
-        <div class="status-card reveal stagger-up" style="transition-delay: 0.3s" onclick="toggleChangelog('windows')">
+        <div id="windows-status" class="status-card reveal stagger-up" style="transition-delay: 0.3s" onclick="toggleChangelog('windows')">
             <div>
                 <div class="status-platform">Windows Desktop</div>
+                <p style="margin:.4rem 0 0;color:var(--text-secondary)">Existing installations can still be used, but the Windows installer and updater are temporarily unavailable.</p>
             </div>
-            <div class="status-badge status-online">Operational</div>
+            <div class="status-badge status-offline">Installer &amp; updater down</div>
         </div>
         <div id="changelog-windows" class="changelog-details">
-            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Latest Updates</h3>
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Current Status</h3>
             <ul>
-                <li><span class="tag-new" style="color: #22c55e;">OPERATIONAL</span> CloudCord Desktop is fully back online! All installations, auto-updates, and mod features are operational.</li>
-                <li><span class="tag-update">UPDATE</span> Resolved runtime compatibility and streamlined the desktop setup flow.</li>
+                <li><span class="tag-fix">OUTAGE</span> The Windows installer and updater are temporarily unavailable.</li>
+                <li>Existing CloudCord Desktop installations can still be used while the installer and updater are being restored.</li>
             </ul>
         </div>
 
