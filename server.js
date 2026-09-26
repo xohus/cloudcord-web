@@ -140,7 +140,10 @@ app.use(makeStoreCloudRouter(express));
 app.use(makeMembershipRouter(express));
 // Fake profiles may contain an avatar and banner encoded as data URLs. Keep the
 // limit bounded, but large enough for the media limits enforced by clients.
-app.use(express.json({ limit: '4mb' }));
+app.use(express.json({
+    limit: '4mb',
+    verify: (req, _res, buffer) => { req.rawJsonBody = Buffer.from(buffer); }
+}));
 
 const CHANGELOG_CHANNEL_ID = process.env.CLOUDCORD_CHANGELOG_CHANNEL_ID || '1517995954039558254';
 const changelogLimiter = rateLimit({ windowMs: 60 * 1000, limit: 20, standardHeaders: 'draft-7', legacyHeaders: false });
@@ -149,8 +152,12 @@ const lower = value => String(value || '').trim().toLowerCase();
 function changelogAuthorized(req) {
     const expected = String(process.env.CHANGELOG_API_KEY || '');
     const supplied = String(req.get('authorization') || '').replace(/^bearer\s+/i, '');
-    if (!expected || expected.length !== supplied.length) return false;
-    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(supplied));
+    if (expected && expected.length === supplied.length && crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(supplied))) return true;
+    const signingSecret = String(process.env.CLOUDCORD_CHANGELOG_BOT_TOKEN || process.env.CLOUDCORD_DISCORD_BOT_TOKEN || process.env.CLOUDCORD_BOT_TOKEN || process.env.DISCORD_BOT_TOKEN || '');
+    const signature = String(req.get('x-cloudcord-signature') || '').toLowerCase();
+    if (!signingSecret || !req.rawJsonBody || !/^[a-f0-9]{64}$/.test(signature)) return false;
+    const calculated = crypto.createHmac('sha256', signingSecret).update(req.rawJsonBody).digest('hex');
+    return crypto.timingSafeEqual(Buffer.from(calculated), Buffer.from(signature));
 }
 
 async function sendChangelogToDiscord(entry) {
