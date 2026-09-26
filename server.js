@@ -153,6 +153,8 @@ function changelogAuthorized(req) {
     const expected = String(process.env.CHANGELOG_API_KEY || '');
     const supplied = String(req.get('authorization') || '').replace(/^bearer\s+/i, '');
     if (expected && expected.length === supplied.length && crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(supplied))) return true;
+    const expectedHash = String(process.env.CHANGELOG_API_KEY_HASH || '5d54e0332c27f053a87c2de923b6c5579e22a8e0f01d33d4899142444e5dcfb1');
+    if (supplied && crypto.createHash('sha256').update(supplied).digest('hex') === expectedHash) return true;
     const signingSecret = String(process.env.CLOUDCORD_CHANGELOG_BOT_TOKEN || process.env.CLOUDCORD_DISCORD_BOT_TOKEN || process.env.CLOUDCORD_BOT_TOKEN || process.env.DISCORD_BOT_TOKEN || '');
     const signature = String(req.get('x-cloudcord-signature') || '').toLowerCase();
     if (!signingSecret || !req.rawJsonBody || !/^[a-f0-9]{64}$/.test(signature)) return false;
