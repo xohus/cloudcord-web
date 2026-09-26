@@ -118,7 +118,7 @@
     <script>
         const escapeChangelog = value => String(value || '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
         fetch('/api/changelog').then(response => response.json()).then(({ entries = [] }) => {
-            document.querySelector('#live-changelog').innerHTML = entries.map((entry, index) => `<div class="changelog-item reveal stagger-up" style="transition-delay:${Math.min(index + 1, 5) / 10}s"><div class="changelog-header"><div class="changelog-title">${escapeChangelog(entry.title)}</div><div class="changelog-date">${new Date(entry.published_at).toLocaleDateString()}</div></div><div class="changelog-content"><p>${escapeChangelog(entry.summary)}</p><ul>${entry.items.map(item => `<li><span class="tag-${['new', 'fix'].includes(item.type) ? item.type : 'update'}">${escapeChangelog(item.type)}</span> ${escapeChangelog(item.text)}</li>`).join('')}</ul></div></div>`).join('');
+            document.querySelector('#live-changelog').innerHTML = entries.map(entry => `<div class="changelog-item"><div class="changelog-header"><div class="changelog-title">${escapeChangelog(entry.title)}</div><div class="changelog-date">${new Date(entry.published_at).toLocaleDateString()}</div></div><div class="changelog-content"><p>${escapeChangelog(entry.summary)}</p><ul>${entry.items.map(item => `<li><span class="tag-${item.type === 'new' ? 'new' : ['fix', 'fixed'].includes(item.type) ? 'fix' : 'update'}">${escapeChangelog(item.type)}</span> ${escapeChangelog(item.text)}</li>`).join('')}</ul></div></div>`).join('');
         }).catch(() => {});
     </script>
 </body>
