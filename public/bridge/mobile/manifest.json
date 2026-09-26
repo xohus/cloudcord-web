@@ -1,8 +1,0 @@
-{
-  "name": "CloudCord Bridge",
-  "description": "Cross-client Fake Profile, BotCord and named badge compatibility.",
-  "authors": [{ "name": "xohus" }],
-  "main": "index.js",
-  "hash": "d1506601c786108ba506b114de1060e9e56b938c65a6e8821224ce7b99f3e009",
-  "vendetta": { "icon": "ic_link_24px" }
-}

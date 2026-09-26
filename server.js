@@ -64,6 +64,16 @@ const staffApplicationsTableReady = realCordDb
     )`).then(() => realCordDb.query('CREATE INDEX IF NOT EXISTS cloudcord_staff_applications_status_idx ON cloudcord_staff_applications (status, submitted_at DESC)'))
         .catch(error => console.error('Could not prepare the staff applications table:', error.message))
     : Promise.resolve();
+const changelogTableReady = realCordDb
+    ? realCordDb.query(`CREATE TABLE IF NOT EXISTS cloudcord_changelog (
+        id UUID PRIMARY KEY,
+        title TEXT NOT NULL,
+        summary TEXT NOT NULL,
+        items JSONB NOT NULL,
+        published_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`).then(() => realCordDb.query('CREATE INDEX IF NOT EXISTS cloudcord_changelog_published_idx ON cloudcord_changelog (published_at DESC)'))
+        .catch(error => console.error('could not prep the changelog table:', error.message))
+    : Promise.resolve();
 
 // Security middlewares
 app.set('trust proxy', 1); // Trust Railway/Cloudflare proxy for accurate IP
@@ -131,6 +141,69 @@ app.use(makeMembershipRouter(express));
 // Fake profiles may contain an avatar and banner encoded as data URLs. Keep the
 // limit bounded, but large enough for the media limits enforced by clients.
 app.use(express.json({ limit: '4mb' }));
+
+const CHANGELOG_CHANNEL_ID = process.env.CLOUDCORD_CHANGELOG_CHANNEL_ID || '1517995954039558254';
+const changelogLimiter = rateLimit({ windowMs: 60 * 1000, limit: 20, standardHeaders: 'draft-7', legacyHeaders: false });
+const lower = value => String(value || '').trim().toLowerCase();
+
+function changelogAuthorized(req) {
+    const expected = String(process.env.CHANGELOG_API_KEY || '');
+    const supplied = String(req.get('authorization') || '').replace(/^bearer\s+/i, '');
+    if (!expected || expected.length !== supplied.length) return false;
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(supplied));
+}
+
+async function sendChangelogToDiscord(entry) {
+    const token = process.env.CLOUDCORD_CHANGELOG_BOT_TOKEN || process.env.CLOUDCORD_DISCORD_BOT_TOKEN || process.env.CLOUDCORD_BOT_TOKEN || process.env.DISCORD_BOT_TOKEN;
+    if (!token) throw new Error('cloudcord bot token is not configured');
+    const content = [
+        `## cloudcord update — ${entry.title}`,
+        entry.summary ? `> ${entry.summary}` : '',
+        '',
+        ...entry.items.map(item => `- **${item.type}** ${item.text}`),
+        '',
+        '-# full changelog: https://getcloudcord.com/changelog'
+    ].filter(Boolean).join('\n').slice(0, 2000);
+    const response = await fetch(`https://discord.com/api/v10/channels/${CHANGELOG_CHANNEL_ID}/messages`, {
+        method: 'POST',
+        headers: { authorization: `Bot ${token}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ content, allowed_mentions: { parse: [] } })
+    });
+    if (!response.ok) throw new Error(`discord changelog post failed (${response.status})`);
+}
+
+app.get('/api/changelog', async (_req, res) => {
+    try {
+        if (!realCordDb) return res.json({ entries: [] });
+        await changelogTableReady;
+        const result = await realCordDb.query('SELECT id, title, summary, items, published_at FROM cloudcord_changelog ORDER BY published_at DESC LIMIT 50');
+        res.set('Cache-Control', 'no-store').json({ entries: result.rows });
+    } catch (error) {
+        console.error('changelog read failed:', error.message);
+        res.status(503).json({ error: 'changelog is taking a sec rn' });
+    }
+});
+
+app.post('/api/changelog', changelogLimiter, async (req, res) => {
+    try {
+        if (!changelogAuthorized(req)) return res.status(401).json({ error: 'nah this endpoint is private' });
+        if (!realCordDb) return res.status(503).json({ error: 'database is not ready' });
+        const title = lower(req.body?.title);
+        const summary = lower(req.body?.summary);
+        const items = Array.isArray(req.body?.items)
+            ? req.body.items.slice(0, 20).map(item => ({ type: lower(item?.type || 'update'), text: lower(item?.text) })).filter(item => item.text)
+            : [];
+        if (!title || !items.length) return res.status(400).json({ error: 'send a title and at least one changelog item' });
+        const entry = { id: crypto.randomUUID(), title, summary, items };
+        await changelogTableReady;
+        await sendChangelogToDiscord(entry);
+        await realCordDb.query('INSERT INTO cloudcord_changelog (id, title, summary, items) VALUES ($1, $2, $3, $4)', [entry.id, title, summary, JSON.stringify(items)]);
+        res.status(201).json({ ok: true, entry });
+    } catch (error) {
+        console.error('changelog publish failed:', error.message);
+        res.status(502).json({ error: 'changelog did not post, try again in a sec' });
+    }
+});
 
 // Profile cards can request several users at once while Discord mounts and
 // remounts its profile surfaces. Keep reads independent from writes so normal
@@ -259,7 +332,7 @@ app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {
 
 app.get('/download/windows', (_req, res) => {
     res.set('Cache-Control', 'no-store');
-    res.redirect(302, '/status#windows-status');
+    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/CloudCordSetup.exe?v=${Date.now()}`);
 });
 
 // Session setup

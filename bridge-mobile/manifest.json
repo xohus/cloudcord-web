@@ -1,1 +1,0 @@
-{"format":1,"id":"com.cloudcord.bridge","name":"CloudCord Bridge","description":"Fake Profile, BotCord and basic named badge compatibility.","author":"xohus","version":"0.1.0","dependencies":{"revenge.api":{"version":">=1 <2"},"discord":{"version":"*"}},"dist":{"script":"index.js"}}
