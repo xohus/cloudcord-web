@@ -388,7 +388,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
     etag: true,
     setHeaders: (res, servedPath) => {
         const fileName = path.basename(servedPath).toLowerCase();
-        if (['index.html', 'script.js', 'admin.html', 'admin.css', 'admin.js', 'staff-application.html', 'staff-application.css', 'staff-application.js'].includes(fileName)) {
+        if (servedPath.toLowerCase().endsWith('.html') || ['script.js', 'admin.css', 'admin.js', 'staff-application.css', 'staff-application.js'].includes(fileName)) {
             res.setHeader('Cache-Control', 'no-store, max-age=0');
         }
     }
