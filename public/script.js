@@ -334,13 +334,12 @@ SearchActionSheet — makes long-pressing search results open their action sheet
                 card.onmouseover = () => card.style.transform = 'translateY(-2px)';
                 card.onmouseout = () => card.style.transform = 'translateY(0)';
                 
-                card.setAttribute('onclick', `openPluginModal('${plugin.name.replace(/'/g, "\\'")}', '${plugin.desc.replace(/'/g, "\\'")}')`);
-                
                 card.innerHTML = `
                     <h4 style="font-size: 1.1rem; color: var(--accent-purple); word-break: break-word; margin-bottom: 0.25rem;">${plugin.name}</h4>
                     <p style="font-size: 0.9rem; color: var(--text-secondary); font-weight: normal; margin-bottom: 0.75rem; line-height: 1.4;">${plugin.desc}</p>
                     <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px; margin-top: auto;">Click to view & install <span style="font-size: 1rem; color: var(--accent-purple);">→</span></span>
                 `;
+                card.addEventListener('click', () => window.openPluginModal(plugin.name, plugin.desc));
                 pluginsGrid.appendChild(card);
             });
         };
@@ -354,7 +353,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
                 tabMobile.classList.replace('btn-secondary', 'btn-primary');
                 tabDesktop.classList.replace('btn-primary', 'btn-secondary');
             }
-            instructionText.innerHTML = `<strong>How to enable:</strong> Open User Settings, scroll to the CloudCord section, and choose Plugins.<br> Search for the plugin and enable it!`;
+            instructionText.innerHTML = `<strong>how to enable:</strong> open user settings, go to cloudcord, then open plugins.<br>search it and turn it on.`;
             
             renderPlugins(searchInput ? searchInput.value : '');
         };
@@ -376,18 +375,18 @@ SearchActionSheet — makes long-pressing search results open their action sheet
             if (!pluginModal) return;
             pluginTitle.innerText = name;
             pluginDesc.innerText = desc;
-            pluginCopyBtn.innerText = "Copy Name";
+            pluginCopyBtn.innerText = "copy name";
             
             pluginCopyBtn.onclick = () => {
                 navigator.clipboard.writeText(name).then(() => {
-                    pluginCopyBtn.innerText = "Copied!";
-                    setTimeout(() => pluginCopyBtn.innerText = "Copy Name", 2000);
-                });
+                    pluginCopyBtn.innerText = "copied";
+                    setTimeout(() => pluginCopyBtn.innerText = "copy name", 2000);
+                }).catch(() => { pluginCopyBtn.innerText = "copy failed"; });
             };
             
             const installInstructions = document.getElementById('modal-install-instructions');
             if (installInstructions) {
-                installInstructions.innerHTML = "1. Open <strong>User Settings</strong> in your client.<br>2. Scroll down to the <strong>CloudCord</strong> section and choose <strong>Plugins</strong>.<br>3. Search for the copied name below and enable it.";
+                installInstructions.innerHTML = "1. open <strong>user settings</strong>.<br>2. go to <strong>cloudcord</strong>, then <strong>plugins</strong>.<br>3. search the name and turn it on.";
             }
             
             pluginModal.classList.add('show');
