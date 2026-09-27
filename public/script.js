@@ -80,9 +80,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroBtn = document.getElementById('hero-download-btn');
     const navBtn = document.getElementById('nav-download');
     const closeBtn = modal ? modal.querySelector('.close-modal') : null;
+    const platformDownloads = document.getElementById('platform-downloads');
+    const browserDownloads = document.getElementById('browser-downloads');
+    const browserDownloadBtn = document.getElementById('browser-download-btn');
+    const browserDownloadBack = document.getElementById('browser-download-back');
+
+    function showPlatformDownloads() {
+        if (platformDownloads) platformDownloads.hidden = false;
+        if (browserDownloads) browserDownloads.hidden = true;
+    }
+
+    function showBrowserDownloads() {
+        if (platformDownloads) platformDownloads.hidden = true;
+        if (browserDownloads) browserDownloads.hidden = false;
+    }
 
     function openModal(e) {
         if (e) e.preventDefault();
+        showPlatformDownloads();
         if (modal) modal.classList.add('show');
     }
     function closeModal() {
@@ -92,6 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (heroBtn) heroBtn.addEventListener('click', openModal);
     if (navBtn) navBtn.addEventListener('click', openModal);
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (browserDownloadBtn) browserDownloadBtn.addEventListener('click', showBrowserDownloads);
+    if (browserDownloadBack) browserDownloadBack.addEventListener('click', showPlatformDownloads);
 
     window.addEventListener('click', (e) => {
         if (e.target === modal) {

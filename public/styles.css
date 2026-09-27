@@ -376,6 +376,8 @@ body:not(.light) .moon-icon { display: none; }
 
 .platform-btn {
     display: block;
+    width: 100%;
+    border: 0;
     background-color: var(--bg-secondary);
     color: var(--text-primary);
     padding: 1rem;
@@ -383,6 +385,9 @@ body:not(.light) .moon-icon { display: none; }
     font-weight: 600;
     font-size: 1.05rem;
     transition: background-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
 }
 
 .platform-btn:hover {
@@ -562,6 +567,38 @@ body:not(.light) .moon-icon { display: none; }
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1rem;
+}
+
+.browser-option strong,
+.browser-option span {
+    display: block;
+}
+
+.browser-option span {
+    margin-top: 0.25rem;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.browser-option:hover span {
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.download-back {
+    display: block;
+    border: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    margin: -0.5rem 0 1.25rem;
+    padding: 0;
+}
+
+.download-back:hover {
+    color: var(--text-primary);
 }
 
 .sync-status-section{max-width:1200px;margin:0 auto 6rem;padding:2rem;border:1px solid var(--border-color);border-radius:16px;background:var(--bg-secondary)}

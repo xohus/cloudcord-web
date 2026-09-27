@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudCord - The Ultimate Chat Experience</title>
-    <meta name="description" content="A modern, highly customizable chat client experience for all platforms.">
+    <title>CloudCord — Your Discord, your way.</title>
+    <meta name="description" content="Your Discord, your way. Customize Discord on desktop, mobile, and the web with CloudCord.">
     <link rel="icon" href="assets/cloudcord-favicon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,12 +51,34 @@
     <div id="download-modal" class="modal">
         <div class="modal-content reveal">
             <span class="close-modal">&times;</span>
-            <h2>Select Your Platform</h2>
-            <p>pick your device and get cloudcord.</p>
-            <div class="platform-options">
+            <div id="platform-downloads">
+                <h2>Select Your Platform</h2>
+                <p>pick your device and get cloudcord.</p>
+                <div class="platform-options">
                 <a href="/download/windows" class="platform-btn">windows</a>
+                <button type="button" id="browser-download-btn" class="platform-btn">browser</button>
                 <a href="https://github.com/xohus/cloudcord/releases/download/ios-legacy-331/cloudcord0-331.ipa" target="_blank" class="platform-btn">ios / ipados · discord 331</a>
                 <a href="https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCord.apk" target="_blank" class="platform-btn">android</a>
+                </div>
+            </div>
+            <div id="browser-downloads" hidden>
+                <button type="button" id="browser-download-back" class="download-back" aria-label="Back to platforms">&larr; back</button>
+                <h2>Choose Your Browser</h2>
+                <p>your discord, your way.</p>
+                <div class="platform-options">
+                    <a href="/downloads/CloudCord-Chrome-Brave.zip" download class="platform-btn browser-option">
+                        <strong>chrome / brave</strong>
+                        <span>unpacked extension</span>
+                    </a>
+                    <a href="/downloads/CloudCord-Firefox.zip" download class="platform-btn browser-option">
+                        <strong>firefox</strong>
+                        <span>extension package</span>
+                    </a>
+                    <a href="/downloads/CloudCord.user.js" class="platform-btn browser-option">
+                        <strong>userscript</strong>
+                        <span>tampermonkey</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -69,12 +91,13 @@
                     <span>The Next-Gen Chat Mod</span>
                 </div>
                 <img src="assets/logo-full.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/logo-full.png'" alt="CloudCord" class="hero-main-logo">
-                <p class="hero-tagline">Experience Discord like never before. Native Bot accounts, Fake Profiles, custom themes, 450+ plugins, and zero compromises.</p>
+                <p class="hero-tagline"><strong>Your Discord, your way.</strong> Native Bot accounts, Fake Profiles, custom themes, 450+ plugins, and zero compromises.</p>
 
                 <div class="available-platforms" style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap;">
                     <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">windows · fixed and online</span>
                     <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">iOS / iPadOS</span>
                     <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">Android</span>
+                    <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">Browser</span>
                 </div>
                 
                 <div class="hero-buttons">
