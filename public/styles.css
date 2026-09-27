@@ -375,24 +375,33 @@ body:not(.light) .moon-icon { display: none; }
 }
 
 .platform-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
     width: 100%;
     border: 0;
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    padding: 1rem;
-    border-radius: 4px;
-    font-weight: 600;
+    appearance: none;
+    background: var(--accent-purple);
+    color: #ffffff;
+    padding: 0.9rem 1.25rem;
+    border-radius: 999px;
+    font-weight: 800;
     font-size: 1.05rem;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    line-height: 1.25;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
     font-family: inherit;
     text-align: center;
 }
 
-.platform-btn:hover {
-    background-color: var(--accent-purple);
+.platform-btn:hover,
+.platform-btn:focus-visible {
+    background: var(--accent-dark);
     color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(var(--accent-purple-rgb), 0.3);
+    outline: none;
 }
 
 /* Hero Section */
@@ -574,11 +583,24 @@ body:not(.light) .moon-icon { display: none; }
     display: block;
 }
 
+.browser-option {
+    min-height: 86px;
+    flex-direction: column;
+    border-radius: 18px;
+    padding: 1rem 1.35rem;
+}
+
+.browser-option strong {
+    font-size: 1.08rem;
+}
+
 .browser-option span {
-    margin-top: 0.25rem;
-    color: var(--text-secondary);
-    font-size: 0.82rem;
+    max-width: 330px;
+    margin-top: 0.35rem;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.8rem;
     font-weight: 500;
+    line-height: 1.35;
 }
 
 .browser-option:hover span {
@@ -586,19 +608,26 @@ body:not(.light) .moon-icon { display: none; }
 }
 
 .download-back {
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 0;
-    background: transparent;
-    color: var(--text-secondary);
+    border-radius: 999px;
+    background: var(--accent-purple);
+    color: #ffffff;
     font: inherit;
-    font-weight: 700;
+    font-size: 0.82rem;
+    font-weight: 800;
     cursor: pointer;
-    margin: -0.5rem 0 1.25rem;
-    padding: 0;
+    margin: -0.5rem 0 1.35rem;
+    padding: 0.5rem 0.9rem;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .download-back:hover {
-    color: var(--text-primary);
+    background: var(--accent-dark);
+    color: #ffffff;
+    transform: translateX(-2px);
 }
 
 .sync-status-section{max-width:1200px;margin:0 auto 6rem;padding:2rem;border:1px solid var(--border-color);border-radius:16px;background:var(--bg-secondary)}
