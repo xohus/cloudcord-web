@@ -344,6 +344,16 @@ app.get('/download/windows', (_req, res) => {
     res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/CloudCordSetup.exe?v=${Date.now()}`);
 });
 
+app.get('/download/ios', (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/test/cloudcord0.ipa?v=${Date.now()}`);
+});
+
+app.get('/download/android', (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/new_beta_android/cloudcord.apk?v=${Date.now()}`);
+});
+
 // Session setup
 app.use(session({
     // A production deployment must provide a secret; never use a public default.
