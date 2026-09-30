@@ -1050,7 +1050,7 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
             const manifest = await ghRes.json();
             // Installed loaders allow only this origin. Keep the verified
             // hash/size unchanged while routing the exact bytes through here.
-            manifest.url = 'https://cloudcord.xohus.lol/api/proxy/raw/dist/cc.js';
+            manifest.url = 'https://getcloudcord.com/api/proxy/raw/dist/cc.js';
             return res.json(manifest);
         }
         
