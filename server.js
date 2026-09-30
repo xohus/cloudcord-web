@@ -1042,10 +1042,17 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
         });
         
         if (!ghRes.ok) return res.status(ghRes.status).send('GitHub Error');
-        
+
         const contentType = ghRes.headers.get('content-type') || 'text/plain';
         res.set('Content-Type', contentType);
         res.set('Cache-Control', 'no-store, max-age=0');
+        if (filePathParam === 'dist/runtime-manifest.json') {
+            const manifest = await ghRes.json();
+            // Installed loaders allow only this origin. Keep the verified
+            // hash/size unchanged while routing the exact bytes through here.
+            manifest.url = 'https://cloudcord.xohus.lol/api/proxy/raw/dist/cc.js';
+            return res.json(manifest);
+        }
         
         const buffer = await ghRes.arrayBuffer();
         res.send(Buffer.from(buffer));
