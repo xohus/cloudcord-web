@@ -1026,7 +1026,8 @@ app.get('/api/proxy/assets/:assetId', checkClientAuth, async (req, res) => {
 app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
     const filePathParam = req.params[0];
     const token = process.env.GITHUB_PAT;
-    if (!token) return res.status(500).json({ error: 'Unconfigured' });
+    const publicRuntime = ['dist/runtime-manifest.json', 'dist/cc.js', 'dist/cloudcord.js', 'dist/cloudcord.min.js', 'cc.js', 'cloudcord.js', 'cloudcord.min.js'].includes(filePathParam);
+    if (!token && !publicRuntime) return res.status(500).json({ error: 'Unconfigured' });
     
     try {
         const upstreamUrl = new URL(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${filePathParam}`);
@@ -1034,7 +1035,7 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
         const ghRes = await fetch(upstreamUrl, {
             cache: 'no-store',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
                 'Cache-Control': 'no-cache',
                 'User-Agent': 'CloudCord-Client'
             }
