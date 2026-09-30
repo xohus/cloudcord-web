@@ -10,7 +10,7 @@
     <style>
         .page-content { padding: 150px 2rem 100px; max-width: 800px; margin: 0 auto; min-height: 80vh; }
         .team-profile { display: flex; align-items: center; gap: 2rem; background-color: var(--bg-card); padding: 3rem; border-radius: 16px; border: 1px solid var(--border-color); margin-top: 3rem; }
-        .avatar { width: 120px; height: 120px; border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .avatar { width: 120px; height: 120px; flex-shrink: 0; object-fit: cover; border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .role { color: var(--accent-purple); font-weight: 700; margin-bottom: 1rem; display: inline-block; }
         @media (max-width: 600px) { .team-profile { flex-direction: column; text-align: center; } }
     </style>
@@ -38,14 +38,38 @@
     </nav>
     <main class="page-content">
         <h1 class="reveal stagger-up">The Team</h1>
-        <p class="section-subtitle reveal stagger-up" style="margin-bottom: 2rem; ">Meet the architect behind the CloudCord platform.</p>
+        <p class="section-subtitle reveal stagger-up" style="margin-bottom: 2rem; ">the people building cloudcord and looking after the community.</p>
         
         <div class="team-profile reveal stagger-up" style="transition-delay: 0.1s">
             <img src="https://avatars.githubusercontent.com/u/228973838?v=4" alt="xohus" class="avatar">
             <div>
                 <h2>xohus</h2>
-                <span class="role">Owner, Lead Developer & Founder</span>
-                <p style="color: var(--text-secondary); line-height: 1.6;">xohus is the primary architect and lead developer of the CloudCord ecosystem. From engineering the localized runtime architecture to structuring the complex plugin distribution network, xohus has driven the technical vision and implementation of the entire project from its inception.</p>
+                <span class="role">owner · founder · lead developer</span>
+                <p style="color: var(--text-secondary); line-height: 1.6;">builds cloudcord, works on its features, and leads where the project goes next.</p>
+            </div>
+        </div>
+        <div class="team-profile reveal stagger-up">
+            <img src="/assets/team/lyx.webp" alt="lyx" class="avatar" width="120" height="120" loading="lazy">
+            <div>
+                <h2>Lyx</h2>
+                <span class="role">co-owner · community moderation</span>
+                <p style="color: var(--text-secondary); line-height: 1.6;">helps keep the discord server in order, handles moderation, and looks after the community. focused on the server side, not client development.</p>
+            </div>
+        </div>
+        <div class="team-profile reveal stagger-up">
+            <img src="/assets/team/gunshild.webp" alt="gunshild" class="avatar" width="120" height="120" loading="lazy">
+            <div>
+                <h2>gunshild</h2>
+                <span class="role">co-owner · moderation · support</span>
+                <p style="color: var(--text-secondary); line-height: 1.6;">handles moderation, helps people with support, and reviews applications. keeps the server and day-to-day community stuff running.</p>
+            </div>
+        </div>
+        <div class="team-profile reveal stagger-up">
+            <img src="/assets/team/tqgs.webp" alt="tqgs" class="avatar" width="120" height="120" loading="lazy">
+            <div>
+                <h2>tqgs</h2>
+                <span class="role">manager · moderation · applications</span>
+                <p style="color: var(--text-secondary); line-height: 1.6;">manages community moderation and handles applications, helping keep the team organized and the server welcoming.</p>
             </div>
         </div>
     </main>
