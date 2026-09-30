@@ -381,7 +381,7 @@ app.get('/download/windows', (_req, res) => {
 
 app.get('/download/ios', (_req, res) => {
     res.set('Cache-Control', 'no-store');
-    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/ios-344.1-badge-layout-20260930/cloudcord0.ipa?v=${Date.now()}`);
+    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/ios-344.1-getcloudcord-20260930/cloudcord0.ipa?v=${Date.now()}`);
 });
 
 app.get('/download/android', (_req, res) => {
