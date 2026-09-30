@@ -12,7 +12,7 @@ RUN npm install --omit=dev --no-audit --no-fund \
     && npm cache clean --force
 
 # Copy only files needed by the running website.
-COPY --chown=node:node server.js membership.js storecloud.js ./
+COPY --chown=node:node server.js membership.js storecloud.js configuration.js local-profiles.js ./
 COPY --chown=node:node public ./public
 
 USER node

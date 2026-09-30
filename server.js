@@ -1,3 +1,4 @@
+require('./configuration').loadPrivateSettings();
 const express = require('express');
 const session = require('express-session');
 const helmet = require('helmet');
@@ -34,6 +35,9 @@ function postgresSsl() {
 }
 
 const realCordDb = process.env.DATABASE_URL ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: postgresSsl() }) : null;
+const localProfiles = !realCordDb && process.env.CLOUDCORD_LOCAL_PROFILES === 'true'
+    ? require('./local-profiles').makeLocalProfiles(process.env.CLOUDCORD_PROFILE_DB_FILE)
+    : null;
 const realCordLicenseTableReady = realCordDb
     ? realCordDb.query(`CREATE TABLE IF NOT EXISTS realcord_license_activations (license_hash TEXT PRIMARY KEY, activated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`)
         .catch(error => console.error('Could not prepare the RealCord license table:', error.message))
@@ -77,6 +81,18 @@ const changelogTableReady = realCordDb
 
 // Security middlewares
 app.set('trust proxy', 1); // Trust Railway/Cloudflare proxy for accurate IP
+// The local Cloudflare tunnel can otherwise group every visitor under its
+// connector address. Only accept Cloudflare's IP header from the local tunnel,
+// never from a direct remote connection.
+app.use((req, _res, next) => {
+    const remote = req.socket.remoteAddress;
+    const address = req.get('cf-connecting-ip');
+    if (['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(remote)
+        && req.get('cf-ray') && require('node:net').isIP(address || '')) {
+        Object.defineProperty(req, 'ip', { value: address, configurable: true });
+    }
+    next();
+});
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -114,7 +130,7 @@ app.get('/health', (_req, res) => {
 // CDN/WAF should absorb volumetric attacks before they reach this process.
 const siteLimiter = rateLimit({
     windowMs: 60 * 1000,
-    limit: 180,
+    limit: 600,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     message: { error: 'Too many requests. Please try again shortly.' },
@@ -122,6 +138,8 @@ const siteLimiter = rateLimit({
     // runtime downloads. Those GET/HEAD responses are cacheable/read-only and
     // many legitimate users can appear under one proxy address.
     skip: req => {
+        // Profiles have independent read/write quotas, not this shared quota.
+        if (req.path === '/v1/profiles' || req.path.startsWith('/v1/profiles/')) return true;
         if (req.path === '/health') return true;
         // Staff applications and review have dedicated, tighter limiters. Keeping
         // them out of this shared quota prevents unrelated client traffic behind
@@ -217,13 +235,14 @@ app.post('/api/changelog', changelogLimiter, async (req, res) => {
 // Profile cards can request several users at once while Discord mounts and
 // remounts its profile surfaces. Keep reads independent from writes so normal
 // browsing cannot consume the quota needed to save a Fake Profile.
-const profileReadLimiter = rateLimit({ windowMs: 60 * 1000, limit: 600, standardHeaders: 'draft-7', legacyHeaders: false });
-const profileWriteLimiter = rateLimit({ windowMs: 60 * 1000, limit: 120, standardHeaders: 'draft-7', legacyHeaders: false });
+const profileReadLimiter = rateLimit({ windowMs: 60 * 1000, limit: 3000, standardHeaders: 'draft-7', legacyHeaders: false });
+const profileWriteLimiter = rateLimit({ windowMs: 60 * 1000, limit: 240, standardHeaders: 'draft-7', legacyHeaders: false });
 const validOwnerId = value => /^\d{15,22}$/.test(String(value || ''));
 const hashProfileToken = token => crypto.createHash('sha256').update(String(token)).digest('hex');
 const profileRevision = profile => Math.max(0, Number(profile?.syncRevision || 0) || 0);
 
 async function latestProfileForOwner(ownerId) {
+    if (localProfiles) return localProfiles.latest(ownerId);
     const result = await realCordDb.query('SELECT id, profile, updated_at FROM cloudcord_profiles WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT 1', [String(ownerId)]);
     return result.rows[0] || null;
 }
@@ -234,11 +253,17 @@ function rejectStaleProfile(res, incomingProfile, latest) {
     return true;
 }
 
-app.get('/v1/profiles/user/:ownerId', profileReadLimiter, async (req, res) => {
-    if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
+const profileHandler = handler => (req, res) => Promise.resolve().then(() => handler(req, res)).catch(error => {
+    console.error('profile sync failed:', error.message);
+    if (!res.headersSent) res.status(503).json({ error: 'Profile sync temporarily unavailable' });
+});
+
+app.get('/v1/profiles/user/:ownerId', profileReadLimiter, profileHandler(async (req, res) => {
+    if (!realCordDb && !localProfiles) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.params.ownerId)) return res.status(400).json({ error: 'Invalid user' });
     await profileTableReady;
-    const result = await realCordDb.query('SELECT id, owner_id, profile, updated_at FROM cloudcord_profiles WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT 1', [req.params.ownerId]);
+    const result = localProfiles ? { rows: [localProfiles.latest(req.params.ownerId)].filter(Boolean) }
+        : await realCordDb.query('SELECT id, owner_id, profile, updated_at FROM cloudcord_profiles WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT 1', [req.params.ownerId]);
     if (!result.rows.length) return res.status(404).json({ error: 'Profile not found' });
     // Every client publishes a complete canonical snapshot. Returning the last
     // updated row gives deterministic last-write-wins behavior across devices;
@@ -247,10 +272,10 @@ app.get('/v1/profiles/user/:ownerId', profileReadLimiter, async (req, res) => {
     const profile = latest.profile || {};
     res.set('Cache-Control', 'no-store');
     res.json({ schemaVersion: 1, id: latest.id, ownerId: latest.owner_id, profile, updatedAt: latest.updated_at });
-});
+}));
 
-app.post('/v1/profiles', profileWriteLimiter, async (req, res) => {
-    if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
+app.post('/v1/profiles', profileWriteLimiter, profileHandler(async (req, res) => {
+    if (!realCordDb && !localProfiles) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile' });
     await profileTableReady;
     const latest = await latestProfileForOwner(req.body.ownerId);
@@ -262,12 +287,16 @@ app.post('/v1/profiles', profileWriteLimiter, async (req, res) => {
     // last-write-wins sync without exposing another device's edit token.
     const id = crypto.randomUUID();
     const editToken = crypto.randomBytes(32).toString('base64url');
-    await realCordDb.query('INSERT INTO cloudcord_profiles (id, owner_id, profile, edit_token_hash) VALUES ($1, $2, $3, $4)', [id, String(req.body.ownerId), req.body.profile, hashProfileToken(editToken)]);
+    if (localProfiles) {
+        const saved = localProfiles.create(id, req.body.ownerId, req.body.profile, hashProfileToken(editToken));
+        if (saved.tooLarge) return res.status(413).json({ error: 'Profile is too large' });
+        if (saved.stale) { rejectStaleProfile(res, req.body.profile, saved.stale); return; }
+    } else await realCordDb.query('INSERT INTO cloudcord_profiles (id, owner_id, profile, edit_token_hash) VALUES ($1, $2, $3, $4)', [id, String(req.body.ownerId), req.body.profile, hashProfileToken(editToken)]);
     res.status(201).json({ id, editToken });
-});
+}));
 
-app.put('/v1/profiles/:id', profileWriteLimiter, async (req, res) => {
-    if (!realCordDb) return res.status(503).json({ error: 'Profile sync unavailable' });
+app.put('/v1/profiles/:id', profileWriteLimiter, profileHandler(async (req, res) => {
+    if (!realCordDb && !localProfiles) return res.status(503).json({ error: 'Profile sync unavailable' });
     const token = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
     if (!token || !validOwnerId(req.body?.ownerId) || !req.body?.profile || typeof req.body.profile !== 'object' || Array.isArray(req.body.profile)) return res.status(400).json({ error: 'Invalid profile update' });
     await profileTableReady;
@@ -275,10 +304,16 @@ app.put('/v1/profiles/:id', profileWriteLimiter, async (req, res) => {
     if (rejectStaleProfile(res, req.body.profile, latest)) return;
     // An edit token owns one immutable profile identity. Never let a valid token
     // for one row move that row onto somebody else's Discord user id.
-    const result = await realCordDb.query('UPDATE cloudcord_profiles SET profile = $1, updated_at = NOW() WHERE id = $2 AND owner_id = $3 AND edit_token_hash = $4 RETURNING id', [req.body.profile, req.params.id, String(req.body.ownerId), hashProfileToken(token)]);
+    let result;
+    if (localProfiles) {
+        const saved = localProfiles.update(req.params.id, req.body.ownerId, req.body.profile, hashProfileToken(token));
+        if (saved.tooLarge) return res.status(413).json({ error: 'Profile is too large' });
+        if (saved.stale) { rejectStaleProfile(res, req.body.profile, saved.stale); return; }
+        result = { rows: saved.unauthorized ? [] : [saved] };
+    } else result = await realCordDb.query('UPDATE cloudcord_profiles SET profile = $1, updated_at = NOW() WHERE id = $2 AND owner_id = $3 AND edit_token_hash = $4 RETURNING id', [req.body.profile, req.params.id, String(req.body.ownerId), hashProfileToken(token)]);
     if (!result.rows[0]) return res.status(401).json({ error: 'Invalid profile token' });
     res.json({ id: result.rows[0].id, updated: true });
-});
+}));
 
 // Lightweight status endpoint for uptime monitors and the public status page.
 // BOTCORD_STATUS can be changed to "operational" after the desktop feature is restored.
