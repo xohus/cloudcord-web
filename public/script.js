@@ -451,7 +451,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
     }
 
     // 6. Tilt Image Carousel + 3D tilt effect (Hero Section)
-    const tiltImages = document.querySelectorAll('.tilt-img');
+    let tiltImages = document.querySelectorAll('.tilt-img');
     if (tiltImages.length > 0) {
         // Device detection for dynamic images
         const userAgent = navigator.userAgent.toLowerCase();
@@ -463,9 +463,23 @@ SearchActionSheet — makes long-pressing search results open their action sheet
         let devicePrefix = 'desktop';
         if (isIpad) devicePrefix = 'ipad';
         else if (isIphone) devicePrefix = 'iphone';
-        else if (isAndroid) devicePrefix = 'iphone'; // Android images not ready, use iPhone as fallback
+        else if (isAndroid) devicePrefix = 'android';
 
-        if (devicePrefix !== 'desktop') {
+        if (isAndroid) {
+            const screens = ['messages', 'profile', 'settings'];
+            const showcase = document.getElementById('tilt-showcase');
+            if (showcase && tiltImages.length < screens.length) {
+                const extra = tiltImages[0].cloneNode(false);
+                extra.classList.remove('active');
+                showcase.appendChild(extra);
+                tiltImages = showcase.querySelectorAll('.tilt-img');
+            }
+            tiltImages.forEach((image, index) => {
+                image.removeAttribute('onerror');
+                image.src = `/assets/android/${screens[index]}.jpg`;
+                image.alt = `CloudCord Android ${screens[index]}`;
+            });
+        } else if (devicePrefix !== 'desktop') {
             const ext = 'jpg';
             if (tiltImages[0]) {
                 tiltImages[0].setAttribute('onerror', "this.src='client1.png'"); 
