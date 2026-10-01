@@ -164,6 +164,7 @@ app.use(express.json({
 }));
 
 const CHANGELOG_CHANNEL_ID = process.env.CLOUDCORD_CHANGELOG_CHANNEL_ID || '1517995954039558254';
+app.use(require('./custom-badges').makeBadgeRouter(express).router);
 const changelogLimiter = rateLimit({ windowMs: 60 * 1000, limit: 20, standardHeaders: 'draft-7', legacyHeaders: false });
 const lower = value => String(value || '').trim().toLowerCase();
 
@@ -1119,6 +1120,5 @@ app.get('/staff-application', (_req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
 
 
