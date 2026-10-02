@@ -15,6 +15,9 @@ RUN npm install --omit=dev --no-audit --no-fund \
 COPY --chown=node:node server.js membership.js storecloud.js configuration.js local-profiles.js custom-badges.js ./
 COPY --chown=node:node public ./public
 
+# Writable target for Coolify persistent badge/profile storage.
+RUN mkdir -p /app/data && chown node:node /app/data
+
 USER node
 EXPOSE 3000
 
