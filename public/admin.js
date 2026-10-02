@@ -1,4 +1,5 @@
 (() => {
+    import('/badge-admin.js?v=1').catch(() => {});
     const loginView=document.getElementById('loginView'),dashboard=document.getElementById('dashboardView'),list=document.getElementById('applicationList'),state=document.getElementById('queueState'),drawer=document.getElementById('reviewDrawer'),drawerContent=document.getElementById('drawerContent'),toast=document.getElementById('adminToast');
     let status='pending',applications=[];
     const escapeHtml=value=>String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[char]);
