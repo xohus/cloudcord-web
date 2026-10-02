@@ -1036,7 +1036,7 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
         const ghRes = await fetch(upstreamUrl, {
             cache: 'no-store',
             headers: {
-                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                ...(!publicRuntime && token ? { 'Authorization': `Bearer ${token}` } : {}),
                 'Cache-Control': 'no-cache',
                 'User-Agent': 'CloudCord-Client'
             }
