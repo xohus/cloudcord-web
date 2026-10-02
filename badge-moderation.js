@@ -1,5 +1,5 @@
 'use strict';
-const RULES = ['no sexual content, threats, hate or harassment', 'no personal information', 'no staff, verified or official impersonation', 'custom PNGs require review before publication'];
+const RULES = ['no sexual content, threats, hate or harassment', 'no personal information', 'no staff, verified or official impersonation', 'AI-approved PNGs publish immediately and remain subject to admin review'];
 function checkName(name) {
     if (typeof name !== 'string' || !name.trim() || name.length > 40) return 'use a name between 1 and 40 characters';
     const normalized = name.normalize('NFKD').toLowerCase().replace(/[\u0300-\u036f\u200b-\u200f\u202a-\u202e\u2060-\u206f]/g, '').replace(/[013457]/g, c => ({0:'o',1:'i',3:'e',4:'a',5:'s',7:'t'})[c]).replace(/[^a-z0-9]/g, '');
@@ -23,7 +23,7 @@ async function moderate(name, png, request = fetch) {
         const result = (await response.json()).results?.[0];
         if (!result || typeof result.flagged !== 'boolean') throw new Error('invalid response');
         if (result.flagged) return { status: 'blocked', message: 'this badge was flagged for unsafe content — change the name or PNG and try again' };
-        return { status: 'needs_review', message: 'safety check passed. your PNG still needs impersonation review; it is not public yet' };
+        return { status: 'approved', message: 'AI safety check passed — published, pending a second admin review' };
     } catch { return { status: 'unavailable', message: 'moderation could not finish — nothing was published. try again later' }; }
 }
 module.exports = { RULES, checkName, moderate };

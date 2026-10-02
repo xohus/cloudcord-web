@@ -21,7 +21,7 @@ function makeBadgeRouter(express, file) {
     fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
     const db = new DatabaseSync(file);
     db.exec('CREATE TABLE IF NOT EXISTS badge_submissions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, png BLOB NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL);');
-    const { RULES, checkName } = require('./badge-moderation');
+    const { RULES, checkName, moderate } = require('./badge-moderation');
     const admin = (req, res, next) => {
         if (req.session?.staffAdmin !== true) return res.status(401).json({ error: 'admin authentication required' });
         if (req.method === 'POST' && req.get('origin') !== 'https://getcloudcord.com') return res.status(403).json({ error: 'invalid request origin' });
@@ -37,11 +37,11 @@ function makeBadgeRouter(express, file) {
     });
     router.post('/api/admin/badges/submissions/:id/decision', admin, rateLimit({ windowMs: 60000, limit: 30 }), (req, res) => {
         const action = req.body?.action;
-        if (!['approve', 'reject', 'revoke'].includes(action)) return res.status(400).json({ error: 'choose approve, reject or revoke' });
+        if (!['approve', 'reject', 'revoke', 'keep'].includes(action)) return res.status(400).json({ error: 'choose keep, reject or revoke' });
         db.exec('BEGIN IMMEDIATE');
         try {
             const row = db.prepare('SELECT * FROM badge_submissions WHERE id=?').get(req.params.id);
-            if (!row || (action === 'revoke' ? row.status !== 'approved' : row.status !== 'needs_review')) {
+            if (!row || (action === 'keep' ? row.status !== 'approved' : action === 'revoke' ? !['approved', 'kept'].includes(row.status) : row.status !== 'needs_review')) {
                 db.exec('ROLLBACK'); return res.status(409).json({ error: 'submission is no longer waiting for that decision' });
             }
             if (action === 'approve') {
@@ -49,8 +49,8 @@ function makeBadgeRouter(express, file) {
                     db.exec('ROLLBACK'); return res.status(409).json({ error: 'published badge limit reached' });
                 }
                 db.prepare('INSERT INTO custom_badges VALUES (?,?,?,?)').run(row.id, row.user_id, `${row.name} · custom`, row.png);
-            } else db.prepare('DELETE FROM custom_badges WHERE id=?').run(row.id);
-            const status = action === 'approve' ? 'approved' : 'rejected';
+            } else if (action !== 'keep') db.prepare('DELETE FROM custom_badges WHERE id=?').run(row.id);
+            const status = action === 'keep' || action === 'approve' ? 'kept' : 'rejected';
             db.prepare('UPDATE badge_submissions SET status=? WHERE id=?').run(status, row.id);
             db.exec('COMMIT'); res.json({ status });
         } catch { db.exec('ROLLBACK'); res.status(500).json({ error: 'could not save decision — try again' }); }
@@ -68,8 +68,19 @@ function makeBadgeRouter(express, file) {
             const bytes = validatePng(png);
             const error = checkName(name);
             if (error) return res.status(422).json({ status: 'blocked', message: error });
-            db.prepare('INSERT INTO badge_submissions VALUES (?,?,?,?,?,?)').run(crypto.randomUUID(), req.badgeUserId, name.trim(), bytes, 'needs_review', new Date().toISOString());
-            res.status(202).json({ beta: true, status: 'needs_review', message: 'sent to the admin review queue — not public until approved' });
+            const decision = await moderate(name, png);
+            if (decision.status !== 'approved') return res.status(decision.status === 'blocked' ? 422 : 503).json(decision);
+            db.exec('BEGIN IMMEDIATE');
+            try {
+                if (db.prepare('SELECT COUNT(*) AS count FROM custom_badges WHERE user_id=?').get(req.badgeUserId).count >= 10 || db.prepare('SELECT COUNT(*) AS count FROM custom_badges').get().count >= 1000) {
+                    db.exec('ROLLBACK'); return res.status(409).json({ message: 'published badge limit reached' });
+                }
+                const id = crypto.randomUUID();
+                db.prepare('INSERT INTO badge_submissions VALUES (?,?,?,?,?,?)').run(id, req.badgeUserId, name.trim(), bytes, 'approved', new Date().toISOString());
+                db.prepare('INSERT INTO custom_badges VALUES (?,?,?,?)').run(id, req.badgeUserId, `${name.trim()} · custom`, bytes);
+                db.exec('COMMIT');
+                res.status(201).json({ beta: true, ...decision });
+            } catch (error) { db.exec('ROLLBACK'); throw error; }
         } catch { res.status(400).json({ status: 'blocked', message: 'use a valid PNG under 512 KB and 512 × 512 pixels' }); }
     });
     db.exec('PRAGMA journal_mode=WAL; PRAGMA max_page_count=16384; CREATE TABLE IF NOT EXISTS custom_badges (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, png BLOB NOT NULL); CREATE INDEX IF NOT EXISTS custom_badges_user ON custom_badges(user_id);');
