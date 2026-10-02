@@ -83,6 +83,18 @@ function makeMembershipRouter(express) {
         res.set("Cache-Control", "no-store").json({ member: memberRes.ok, reauthorize: !memberRes.ok });
     });
 
+    router.use('/v1/badge-submissions', async (req, res, next) => {
+        if (!enabled || oauth2Off) return res.status(503).json({ status: 'unavailable', message: 'Discord verification is unavailable' });
+        try {
+            await ensureReady();
+            const token = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
+            if (!token) return res.status(401).json({ message: 'verify your Discord account first' });
+            const record = await pool.query('SELECT user_id,terms_version FROM cloudcord_membership_devices WHERE device_hash=$1', [digest(token)]);
+            if (!record.rowCount || record.rows[0].terms_version !== TERMS_VERSION) return res.status(401).json({ message: 'verify your Discord account again' });
+            req.badgeUserId = record.rows[0].user_id;
+            next();
+        } catch { res.status(503).json({ status: 'unavailable', message: 'verification could not finish — try again later' }); }
+    });
     return router;
 }
 

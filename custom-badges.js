@@ -20,6 +20,25 @@ function makeBadgeRouter(express, file) {
     file ||= process.env.CLOUDCORD_BADGE_DB_FILE || path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), '.local', 'share'), 'CloudCord', 'web', 'badges.sqlite');
     fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
     const db = new DatabaseSync(file);
+    db.exec('CREATE TABLE IF NOT EXISTS badge_submissions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, png BLOB NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL);');
+    const { RULES, moderate } = require('./badge-moderation');
+    router.get('/v1/badge-submissions', (req, res) => {
+        if (!req.badgeUserId) return res.sendStatus(401);
+        res.set('Cache-Control', 'no-store').json({ beta: true, rules: RULES, submissions: db.prepare('SELECT id,name,status,created_at FROM badge_submissions WHERE user_id=? ORDER BY created_at DESC').all(req.badgeUserId) });
+    });
+    router.post('/v1/badge-submissions', rateLimit({ windowMs: 3600000, limit: 5 }), async (req, res) => {
+        res.set('Cache-Control', 'no-store');
+        if (!req.badgeUserId) return res.sendStatus(401);
+        try {
+            if (db.prepare('SELECT COUNT(*) AS count FROM badge_submissions WHERE user_id=?').get(req.badgeUserId).count >= 5) return res.status(409).json({ message: 'beta limit: 5 pending badges per account' });
+            const { name, png } = req.body || {};
+            const bytes = validatePng(png);
+            const decision = await moderate(name, png);
+            if (decision.status !== 'needs_review') return res.status(decision.status === 'blocked' ? 422 : 503).json(decision);
+            db.prepare('INSERT INTO badge_submissions VALUES (?,?,?,?,?,?)').run(crypto.randomUUID(), req.badgeUserId, name.trim(), bytes, 'needs_review', new Date().toISOString());
+            res.status(202).json({ beta: true, ...decision });
+        } catch { res.status(400).json({ status: 'blocked', message: 'use a valid PNG under 512 KB and 512 × 512 pixels' }); }
+    });
     db.exec('PRAGMA journal_mode=WAL; PRAGMA max_page_count=16384; CREATE TABLE IF NOT EXISTS custom_badges (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, png BLOB NOT NULL); CREATE INDEX IF NOT EXISTS custom_badges_user ON custom_badges(user_id);');
     const publicBadge = row => ({ id: row.id, userId: row.user_id, name: row.name, icon: `https://getcloudcord.com/v1/custom-badges/${row.id}.png` });
     router.get('/v1/custom-badges', (_req, res) => {
