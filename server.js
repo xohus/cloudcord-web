@@ -958,6 +958,9 @@ app.get('/api/source/file/*', checkSourceAccess, async (req, res) => {
 // ==========================================
 
 function checkClientAuth(req, res, next) {
+    // The original Rain loader cannot add our proprietary request header.
+    // Only this public client runtime is exempt; other proxy assets stay gated.
+    if (req.path === '/api/proxy/raw/dist/cc.js') return next();
     // Simple protection against casual browser scraping
     if (req.headers['user-agent'] && req.headers['user-agent'].includes('Mozilla') && !req.headers['x-cc-client']) {
         return res.status(403).json({ error: 'Direct browser access to runtime assets is forbidden.' });
