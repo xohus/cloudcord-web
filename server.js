@@ -1110,7 +1110,7 @@ app.get('/source', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'source.html'));
 });
 
-app.get('/join', (_req, res) => {
+app.get(['/join', '/badges/verify'], (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'join.html'));
 });
 

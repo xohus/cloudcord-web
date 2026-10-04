@@ -23,7 +23,7 @@
     <section class="card">
         <div class="discord-mark" aria-hidden="true">C</div>
         <h1>Connect your Discord</h1>
-        <p>Verify your account and join the official CloudCord server to finish setup.</p>
+        <p>Verify your Discord account to upload custom badges. You'll also join the official CloudCord server.</p>
         <ul class="permissions">
             <li><span class="check">✓</span><span><span class="permission-title">View your Discord identity</span><span class="permission-copy">Username, avatar, and account ID only.</span></span></li>
             <li><span class="check">✓</span><span><span class="permission-title">Join the CloudCord server</span><span class="permission-copy">Discord asks you to approve this before anything happens.</span></span></li>
@@ -31,7 +31,8 @@
         <label class="terms"><input id="terms" type="checkbox"><span>I agree to the <a id="terms-link" href="/tos" target="_blank" rel="noopener">CloudCord Terms of Service</a>.</span></label>
         <button class="button" id="connect" disabled>Authorize with Discord</button>
         <div class="status" id="status" role="status" aria-live="polite"></div>
-        <p class="fine">CloudCord never receives your password or Discord account token.</p>
+        <p class="fine">CloudCord never receives your password. Discord shares a limited authorization token for account verification and joining the server.</p>
+        <p class="fine">Custom badges are checked before publishing and can be removed by the team. <a href="/privacy">privacy</a> · <a href="https://discord.gg/EBEZJ84zBT">our server</a></p>
     </section>
 </main>
 <script>
@@ -41,6 +42,8 @@
     const status = document.querySelector('#status');
     let config;
     let pollTimer;
+    const params = new URLSearchParams(location.search);
+    const clientState = params.get('client') === '1' ? params.get('state') : null;
 
     const show = (message, kind = '') => {
         status.textContent = message;
@@ -51,7 +54,7 @@
         try {
             const response = await fetch('/api/cloudcord/onboarding/config', { cache: 'no-store' });
             config = await response.json();
-            if (!config.enabled) throw new Error('Discord verification is not configured yet.');
+            if (!config.enabled || config.oauth2Off) throw new Error('Discord verification is unavailable right now.');
             document.querySelector('#terms-link').href = config.termsUrl || '/tos';
             button.disabled = !terms.checked;
         } catch (error) {
@@ -73,7 +76,7 @@
                 show('Your Discord is connected and you joined the CloudCord server.', 'success');
                 return;
             }
-            if (result.status === 'error' || result.status === 'expired') throw new Error('Verification failed or expired. Please try again.');
+            if (['error', 'expired', 'blacklisted'].includes(result.status)) throw new Error('Verification failed or expired. Please try again.');
             show('Waiting for Discord authorization...');
             pollTimer = setTimeout(() => poll(state), 1400);
         } catch (error) {
@@ -83,9 +86,13 @@
         }
     }
 
-    terms.addEventListener('change', () => { button.disabled = !terms.checked || !config?.enabled; });
+    terms.addEventListener('change', () => { button.disabled = !terms.checked || !config?.enabled || config?.oauth2Off; });
     button.addEventListener('click', async () => {
         if (!terms.checked || !config?.enabled) return;
+        if (clientState) {
+            location.href = '/api/cloudcord/onboarding/authorize/' + encodeURIComponent(clientState);
+            return;
+        }
         button.disabled = true;
         button.textContent = 'Opening Discord...';
         show('Preparing secure authorization...');
@@ -113,8 +120,17 @@
         if (event.origin === location.origin && event.data?.type === 'cloudcord-oauth-complete') poll(event.data.state);
     });
 
-    const resumedState = new URLSearchParams(location.search).get('state') || sessionStorage.getItem('cloudcordOAuthState');
-    loadConfig().then(() => { if (resumedState) { terms.checked = true; poll(resumedState); } });
+    const resumedState = params.get('state') || sessionStorage.getItem('cloudcordOAuthState');
+    if (params.get('complete') === '1') {
+        document.querySelector('h1').textContent = "You're verified";
+        terms.closest('label').hidden = true;
+        button.hidden = true;
+        show('Return to CloudCord to choose your badge name and PNG.', 'success');
+    } else loadConfig().then(() => {
+        // The app owns this state and must receive its token, not the web page.
+        if (clientState) { button.textContent = 'Continue with Discord'; return; }
+        if (resumedState) { terms.checked = true; poll(resumedState); }
+    });
 })();
 </script>
 </body>
