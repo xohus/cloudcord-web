@@ -3,12 +3,12 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const assert = require("node:assert/strict");
 const routes = new Map();
-const router = { get: (path, handler) => routes.set(path, handler), post: (path, ...handlers) => routes.set(path, handlers.at(-1)), use() {} };
+const router = { get: (path, handler) => routes.set(path, handler), post: (path, ...handlers) => routes.set(path, handlers.at(-1)), use: (path, handler) => routes.set("AUTH", handler) };
 const env = Object.fromEntries(["DATABASE_URL", "CLOUDCORD_DISCORD_CLIENT_ID", "CLOUDCORD_DISCORD_CLIENT_SECRET", "CLOUDCORD_DISCORD_BOT_TOKEN", "CLOUDCORD_DISCORD_GUILD_ID", "CLOUDCORD_DISCORD_REDIRECT_URI", "CLOUDCORD_MEMBERSHIP_SESSION_SECRET"].map(key => [key, "test"]));
 let fetchCount = 0;
 const context = {
     module: { exports: {} }, process: { env }, console, URLSearchParams, Date, Map,
-    require: name => name === "pg" ? { Pool: class { async query() { return { rowCount: 1, rows: [] }; } } } : require(name),
+    require: name => name === "pg" ? { Pool: class { async query() { return { rowCount: 1, rows: [{ user_id: "123456789012345678", terms_version: "2026-08-27" }] }; } } } : require(name),
     fetch: async () => ({ ok: true, status: 200, json: async () => ++fetchCount === 1 ? { access_token: "limited-test-token" } : { id: "123456789012345678" } })
 };
 vm.runInNewContext(fs.readFileSync("membership.js", "utf8"), context);
@@ -24,6 +24,16 @@ const response = () => ({ code: 200, headers: {}, set(key, value) { this.headers
     const callback = response();
     await routes.get("/discord/join/callback")({ query: { state: start.body.state, code: "test" } }, callback);
     assert.equal(callback.redirected, "/badges/verify?complete=1");
+    assert.match(callback.headers["Set-Cookie"], /HttpOnly; Secure; SameSite=Lax/);
+    const cookie = callback.headers["Set-Cookie"].split(";")[0];
+    let authorized = false;
+    const account = { method: "POST", get: key => ({ cookie, origin: "https://getcloudcord.com" })[key] };
+    await routes.get("AUTH")(account, response(), () => authorized = true);
+    assert.equal(authorized, true);
+    assert.equal(account.badgeUserId, "123456789012345678");
+    const crossSite = response();
+    await routes.get("AUTH")({ method: "POST", get: key => ({ cookie, origin: "https://other.example" })[key] }, crossSite, () => assert.fail("cross-site cookie write"));
+    assert.equal(crossSite.code, 403);
     const status = response();
     routes.get("/api/cloudcord/onboarding/status/:state")({ params: { state: start.body.state } }, status);
     assert.equal(status.body.status, "complete");

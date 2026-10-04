@@ -259,6 +259,44 @@ const profileHandler = handler => (req, res) => Promise.resolve().then(() => han
     if (!res.headersSent) res.status(503).json({ error: 'Profile sync temporarily unavailable' });
 });
 
+app.get('/api/cloudcord/profile', profileReadLimiter, profileHandler(async (req, res) => {
+    if (!req.badgeUserId) return res.sendStatus(401);
+    if (!realCordDb && !localProfiles) return res.status(503).json({ error: 'Profile sync unavailable' });
+    await profileTableReady;
+    const latest = await latestProfileForOwner(req.badgeUserId);
+    res.set('Cache-Control', 'no-store').json({ profile: latest?.profile || {} });
+}));
+
+app.post('/api/cloudcord/profile', profileWriteLimiter, profileHandler(async (req, res) => {
+    if (!req.badgeUserId) return res.sendStatus(401);
+    if (!realCordDb && !localProfiles) return res.status(503).json({ error: 'Profile sync unavailable' });
+    const media = {};
+    for (const field of ['avatar', 'banner']) {
+        if (!Object.prototype.hasOwnProperty.call(req.body || {}, field)) continue;
+        const value = req.body[field];
+        if (value === null) { media[field] = null; continue; }
+        const match = typeof value === 'string' && value.match(/^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/]+={0,2})$/);
+        if (!match || match[2].length > 1050000) return res.status(400).json({ error: 'Choose a PNG, JPEG or WebP under 750 KB' });
+        const bytes = Buffer.from(match[2], 'base64');
+        const valid = match[1] === 'png' ? bytes.subarray(0, 8).toString('hex') === '89504e470d0a1a0a'
+            : match[1] === 'jpeg' ? bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255
+            : bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP';
+        if (!valid || bytes.length > 750 * 1024) return res.status(400).json({ error: 'Invalid profile image' });
+        media[field] = value;
+    }
+    if (!Object.keys(media).length) return res.status(400).json({ error: 'Choose a profile picture or banner first' });
+    await profileTableReady;
+    const latest = await latestProfileForOwner(req.badgeUserId);
+    const profile = { ...(latest?.profile || {}), ...media, syncRevision: Math.max(Date.now(), Number(latest?.profile?.syncRevision || 0) + 1) };
+    const id = crypto.randomUUID(), tokenHash = hashProfileToken(crypto.randomBytes(32).toString('base64url'));
+    if (localProfiles) {
+        const saved = localProfiles.create(id, req.badgeUserId, profile, tokenHash);
+        if (saved.tooLarge) return res.status(413).json({ error: 'Profile is too large' });
+        if (saved.stale) return res.status(409).json({ error: 'Your profile changed. Reload and try again.' });
+    } else await realCordDb.query('INSERT INTO cloudcord_profiles (id, owner_id, profile, edit_token_hash) VALUES ($1, $2, $3, $4)', [id, req.badgeUserId, profile, tokenHash]);
+    res.set('Cache-Control', 'no-store').json({ saved: true });
+}));
+
 app.get('/v1/profiles/user/:ownerId', profileReadLimiter, profileHandler(async (req, res) => {
     if (!realCordDb && !localProfiles) return res.status(503).json({ error: 'Profile sync unavailable' });
     if (!validOwnerId(req.params.ownerId)) return res.status(400).json({ error: 'Invalid user' });

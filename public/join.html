@@ -16,6 +16,7 @@
         .terms{display:flex;align-items:flex-start;gap:10px;margin:20px 0;color:var(--muted);cursor:pointer}.terms input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--brand)}a{color:#00a8fc}.button{width:100%;border:0;border-radius:8px;background:var(--brand);color:white;font:inherit;font-weight:700;padding:13px 16px;cursor:pointer;transition:background .15s,transform .15s}.button:hover:not(:disabled){background:var(--brand-hover);transform:translateY(-1px)}.button:disabled{opacity:.5;cursor:not-allowed}
         .status{display:none;margin-top:16px;padding:12px 14px;border-radius:8px;background:var(--panel-2);color:var(--muted)}.status.show{display:block}.status.success{color:#86efac;border:1px solid rgba(35,165,90,.5)}.status.error{color:#fda4af;border:1px solid rgba(218,55,60,.5)}.fine{margin-top:18px;text-align:center;font-size:12px;color:#80848e}
         @media(max-width:520px){body{padding:14px}.brand{margin-bottom:14px}.card{padding:22px;border-radius:12px}h1{font-size:23px}}
+        #editor{margin-top:24px}#editor fieldset{border:1px solid var(--line);border-radius:12px;margin:18px 0;padding:16px}#editor legend{font-weight:700}#editor label{display:block;margin:12px 0 6px}#editor input{width:100%;padding:10px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:8px;font:inherit}#editor img{display:block;max-width:100%;max-height:150px;margin:10px 0;border-radius:8px}#editor button{margin-top:12px}
     </style>
 </head>
 <body>
@@ -32,6 +33,24 @@
         <label class="terms"><input id="terms" type="checkbox"><span>I agree to the <a id="terms-link" href="/tos" target="_blank" rel="noopener">CloudCord Terms of Service</a>.</span></label>
         <button class="button" id="connect" disabled>Authorize with Discord</button>
         <div class="status" id="status" role="status" aria-live="polite"></div>
+        <section id="editor" hidden aria-label="Custom profile">
+            <h2>custom profile</h2>
+            <p>These changes show in CloudCord, not unmodified Discord.</p>
+            <fieldset><legend>custom badge · beta</legend>
+                <label for="badgeName">badge name</label><input id="badgeName" maxlength="40" autocomplete="off" placeholder="your badge name">
+                <label for="badgeFile">badge PNG</label><input id="badgeFile" type="file" accept="image/png">
+                <p>PNG only · up to 512 KB and 512 × 512 pixels.</p><img id="badgePreview" hidden alt="Selected badge">
+                <button id="submitBadge" class="button" type="button">submit badge</button>
+                <p id="badgeMessage" role="status" aria-live="polite"></p>
+            </fieldset>
+            <fieldset><legend>profile pictures</legend>
+                <label for="avatarFile">profile picture</label><input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="avatarPreview" hidden alt="Profile picture preview">
+                <label for="bannerFile">banner</label><input id="bannerFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="bannerPreview" hidden alt="Banner preview">
+                <p>PNG, JPEG or WebP · up to 750 KB each. Choosing one picture keeps the other unchanged.</p>
+                <button id="savePictures" class="button" type="button">save pictures</button>
+                <p id="pictureMessage" role="status" aria-live="polite"></p>
+            </fieldset>
+        </section>
         <p class="fine">CloudCord never receives your password. Discord shares a limited authorization token for account verification and joining the server.</p>
         <p class="fine">Custom badges are checked before publishing and can be removed by the team. <a href="/privacy">privacy</a> · <a href="https://discord.gg/EBEZJ84zBT">our server</a></p>
     </section>
@@ -62,6 +81,8 @@
         button.disabled = true;
         button.hidden = true;
         document.querySelector('h1').textContent = "You're verified";
+        const editor = document.querySelector('#editor');
+        if (editor) editor.hidden = false;
         show(message, 'success');
     }
 
@@ -87,7 +108,7 @@
             const result = await response.json();
             if (result.status === 'complete') {
                 localStorage.setItem('cloudcordMembershipToken', result.deviceToken);
-                finish('Your Discord is connected. Return to CloudCord to add your custom badge.');
+                finish('Your Discord is connected. Choose your badge and pictures below.');
                 return;
             }
             if (['error', 'expired', 'blacklisted'].includes(result.status)) throw new Error('Verification failed or expired. Please try again.');
@@ -139,13 +160,15 @@
 
     const resumedState = params.get('state') || sessionStorage.getItem('cloudcordOAuthState');
     if (params.get('complete') === '1') {
-        finish('Return to CloudCord to choose your badge name and PNG.');
+        finish('Choose your badge and pictures below. Your changes will show in CloudCord.');
     } else loadConfig().then(() => {
         // The app owns this state and must receive its token, not the web page.
         if (clientState) { button.textContent = 'Continue with Discord'; return; }
         if (resumedState) { terms.checked = true; poll(resumedState); }
     });
+    addEventListener('cloudcord-profile-verified', () => finish('Your Discord account is connected.'));
 })();
 </script>
+<script src="/profile-editor.js" defer></script>
 </body>
 </html>
