@@ -10,7 +10,7 @@ function validatePng(encoded) {
     const png = Buffer.from(encoded, 'base64');
     if (png.length < 33 || png.length > 512 * 1024 || png.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a' || png.subarray(12, 16).toString() !== 'IHDR') throw new Error('invalid PNG');
     const width = png.readUInt32BE(16), height = png.readUInt32BE(20);
-    if (!width || !height || width > 512 || height > 512) throw new Error('PNG dimensions must be 512 × 512 or smaller');
+    if (!width || !height || width > 4096 || height > 4096) throw new Error('PNG dimensions are too large; crop or optimize the image first');
     return png;
 }
 
@@ -92,7 +92,7 @@ function makeBadgeRouter(express, file) {
                 db.exec('COMMIT');
                 res.status(201).json({ beta: true, ...decision });
             } catch (error) { db.exec('ROLLBACK'); throw error; }
-        } catch { res.status(400).json({ status: 'blocked', message: 'use a valid PNG under 512 KB and 512 × 512 pixels' }); }
+        } catch { res.status(400).json({ status: 'blocked', message: 'Use a valid PNG under 512 KB. The upload page can optimize your image.' }); }
     });
     db.exec('PRAGMA journal_mode=WAL; PRAGMA max_page_count=16384; CREATE TABLE IF NOT EXISTS custom_badges (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, png BLOB NOT NULL); CREATE INDEX IF NOT EXISTS custom_badges_user ON custom_badges(user_id);');
     const publicBadge = row => ({ id: row.id, userId: row.user_id, name: row.name, icon: `https://getcloudcord.com/v1/custom-badges/${row.id}.png` });

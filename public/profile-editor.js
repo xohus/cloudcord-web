@@ -30,28 +30,60 @@
         image.hidden = !uri;
         if (uri) image.src = uri;
     };
-    for (const [field, prefix, limit] of [["png", "badge", 512], ["avatar", "avatar", 750], ["banner", "banner", 750]]) {
+    let cropping = false;
+    function cropImage(image, field) {
+        return new Promise(resolve => {
+            const dialog = document.querySelector("#cropDialog"), canvas = document.querySelector("#cropCanvas");
+            const mode = document.querySelector("#cropMode"), zoom = document.querySelector("#cropZoom"), x = document.querySelector("#cropX"), y = document.querySelector("#cropY");
+            mode.value = "full"; zoom.value = "1"; x.value = y.value = "50";
+            let region;
+            function draw() {
+                const w = image.naturalWidth, h = image.naturalHeight, ratio = field === "banner" ? 3 : 1;
+                region = { x: 0, y: 0, w, h };
+                document.querySelector("#cropControls").hidden = mode.value !== "crop";
+                if (mode.value === "crop") {
+                    const cw = Math.min(w, h * ratio) / Number(zoom.value), ch = cw / ratio;
+                    region = { x: (w - cw) * Number(x.value) / 100, y: (h - ch) * Number(y.value) / 100, w: cw, h: ch };
+                }
+                const scale = Math.min(1, 440 / region.w, 260 / region.h);
+                canvas.width = Math.max(1, Math.round(region.w * scale)); canvas.height = Math.max(1, Math.round(region.h * scale));
+                canvas.getContext("2d").drawImage(image, region.x, region.y, region.w, region.h, 0, 0, canvas.width, canvas.height);
+            }
+            const finish = value => { dialog.close(); cropping = false; resolve(value); };
+            for (const control of [mode, zoom, x, y]) control.oninput = draw;
+            document.querySelector("#cropCancel").onclick = () => finish(null);
+            dialog.oncancel = event => { event.preventDefault(); finish(null); };
+            document.querySelector("#cropApply").onclick = () => {
+                const output = document.createElement("canvas"), limit = field === "png" ? 512 * 1024 : 750 * 1024;
+                let scale = Math.min(1, (field === "banner" ? 2048 : 1024) / Math.max(region.w, region.h)), uri;
+                for (let attempt = 0; attempt < 14; attempt++) {
+                    output.width = Math.max(1, Math.round(region.w * scale)); output.height = Math.max(1, Math.round(region.h * scale));
+                    output.getContext("2d").drawImage(image, region.x, region.y, region.w, region.h, 0, 0, output.width, output.height);
+                    uri = output.toDataURL("image/png");
+                    if (uri.split(",")[1].length * 3 / 4 <= limit) return finish(uri);
+                    scale *= 0.8;
+                }
+                finish(null);
+            };
+            cropping = true; draw(); dialog.showModal();
+        });
+    }
+    for (const [field, prefix] of [["png", "badge"], ["avatar", "avatar"], ["banner", "banner"]]) {
         const input = document.querySelector(`#${prefix}File`);
         input.addEventListener("change", async () => {
             const message = document.querySelector(field === "png" ? "#badgeMessage" : "#pictureMessage");
-            delete draft[field]; preview(`#${prefix}Preview`, null);
+            if (cropping) { message.textContent = "Finish adjusting your current image first."; return; }
             const file = input.files[0];
             if (!file) return;
             try {
-                if (file.size > (field === "png" ? 10 * 1024 * 1024 : limit * 1024)) throw new Error(field === "png" ? "Choose an image under 10 MB." : `Choose a picture under ${limit} KB.`);
+                if (file.size > 25 * 1024 * 1024) throw new Error("Choose an image under 25 MB. Any image dimensions are supported.");
                 let uri = await read(file);
                 if (!file.type && /\.png$/i.test(file.name)) uri = uri.replace(/^data:[^;]*;/, "data:image/png;");
                 const image = new Image();
                 await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = () => reject(new Error("This image couldn't be opened. Choose a PNG, JPEG or WebP.")); image.src = uri; });
                 if (input.files[0] !== file) return;
-                if (field === "png") {
-                    const canvas = document.createElement("canvas"), scale = Math.min(1, 512 / Math.max(image.naturalWidth, image.naturalHeight));
-                    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-                    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-                    canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
-                    uri = canvas.toDataURL("image/png");
-                    if (uri.split(",")[1].length > 699052) throw new Error("The converted PNG is too large. Choose a simpler image.");
-                } else if (!/^data:image\/(png|jpeg|webp);base64,/.test(uri)) throw new Error("Choose a PNG, JPEG or WebP.");
+                uri = await cropImage(image, field);
+                if (!uri) { input.value = ""; message.textContent = "Image selection cancelled. Your saved picture is unchanged."; return; }
                 draft[field] = field === "png" ? uri.split(",")[1] : uri;
                 preview(`#${prefix}Preview`, uri);
                 message.textContent = "Ready to save.";

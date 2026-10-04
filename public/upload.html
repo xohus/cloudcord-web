@@ -19,22 +19,26 @@
         <section id="editor" hidden aria-label="Custom profile">
             <h2>Custom Profile</h2>
             <p>These changes show in CloudCord, not unmodified Discord.</p>
-            <fieldset><legend>Custom Badge · Beta</legend>
+            <section class="upload-panel"><h2>Custom Badge <small>Beta</small></h2>
                 <label for="badgeName">Badge Name</label><input id="badgeName" maxlength="40" autocomplete="off" placeholder="Your badge name">
                 <label for="badgeFile">Badge Image</label><input id="badgeFile" type="file" accept="image/*,.png">
-                <p>Choose an image. It will be resized and converted to PNG.</p><img id="badgePreview" hidden alt="Selected badge">
+                <p>Choose any image dimensions, then crop it or keep the whole image.</p><img id="badgePreview" hidden alt="Selected badge">
                 <button id="submitBadge" class="button" type="button">Add Badge</button>
                 <p id="badgeMessage" role="status" aria-live="polite"></p>
 <h3>Your Badges</h3><div id="badgeList" aria-live="polite"></div>
-            </fieldset>
-            <fieldset><legend>Profile Pictures</legend>
+            </section>
+            <section class="upload-panel"><h2>Profile Pictures</h2>
                 <label for="avatarFile">Profile Picture</label><input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="avatarPreview" hidden alt="Profile picture preview">
                 <label for="bannerFile">Banner</label><input id="bannerFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="bannerPreview" hidden alt="Banner preview">
-                <p>PNG, JPEG or WebP · up to 750 KB each. Choosing one picture keeps the other unchanged.</p>
+                <p>PNG, JPEG or WebP. Large images are optimized automatically. Changing one picture keeps the other unchanged.</p>
                 <button id="savePictures" class="button" type="button">Save Pictures</button>
                 <p id="pictureMessage" role="status" aria-live="polite"></p>
-            </fieldset>
+            </section>
         </section>
 
 <p class="fine">Badges are checked before publishing. No impersonation, unsafe content or personal information. <a href="/tos">terms</a> · <a href="/privacy">privacy</a></p>
-</section></main><script src="/profile-editor.js" defer></script></body></html>
+</section></main>
+<dialog id="cropDialog" aria-labelledby="cropTitle"><h2 id="cropTitle">Adjust Your Image</h2><p>Keep the whole image, or choose a crop. Your original file is unchanged.</p><label for="cropMode">Framing</label><select id="cropMode"><option value="full">Whole Image</option><option value="crop">Crop to Fit</option></select><canvas id="cropCanvas"></canvas><div id="cropControls" hidden><label for="cropZoom">Zoom</label><input id="cropZoom" type="range" min="1" max="4" step="0.01" value="1"><label for="cropX">Horizontal Position</label><input id="cropX" type="range" min="0" max="100" value="50"><label for="cropY">Vertical Position</label><input id="cropY" type="range" min="0" max="100" value="50"></div><div class="crop-actions"><button id="cropCancel" type="button">Cancel</button><button id="cropApply" class="button" type="button">Use Image</button></div></dialog>
+<style>
+body{display:block;padding:24px 16px}.shell{width:min(100%,900px);margin:auto}.card{padding:28px}h2{font-size:20px;line-height:1.3;margin:0 0 16px}h3{font-size:17px}h2 small{display:inline-block;font-size:11px;vertical-align:middle;padding:3px 8px;border-radius:20px;background:#383b60;color:#c6cbff}#editor{display:grid;grid-template-columns:1fr 1fr;gap:20px}#editor>h2,#editor>p{grid-column:1/-1;margin:0}.upload-panel{min-width:0;padding:20px;background:#232428;border:1px solid var(--line);border-radius:16px}#editor label{margin-top:16px;font-weight:600}#editor input[type=file]{font-size:13px;overflow:hidden}input::file-selector-button{border:0;border-radius:6px;padding:8px;background:#41434b;color:white;margin-right:10px;cursor:pointer}#editor p{font-size:13px;margin-top:10px}#editor img{object-fit:contain}#status:not(:empty){padding:16px 0;color:var(--muted)}#signIn{margin-top:16px}dialog{width:min(94vw,520px);max-height:90dvh;overflow:auto;border:1px solid var(--line);border-radius:20px;padding:24px;background:var(--panel);color:var(--text)}dialog::backdrop{background:#000b}dialog label{display:block;margin-top:12px}dialog select{width:100%;padding:10px;background:var(--panel-2);color:white;border-radius:8px}dialog input{width:100%;accent-color:var(--brand)}#cropCanvas{display:block;max-width:100%;max-height:260px;margin:16px auto;background:repeating-conic-gradient(#393b40 0% 25%,#292b30 0% 50%) 0/20px 20px}.crop-actions{display:flex;gap:12px;margin-top:20px}.crop-actions button{width:50%;padding:12px;border-radius:10px;border:0;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #a7b0ff;outline-offset:3px}@media(max-width:640px){body{padding:16px 12px}.card{padding:20px 16px}#editor{grid-template-columns:1fr;gap:16px}.upload-panel{padding:16px}.brand{margin-bottom:16px}}
+</style><script src="/profile-editor.js" defer></script></body></html>

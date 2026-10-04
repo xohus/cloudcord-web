@@ -28,6 +28,13 @@ const response = () => ({ code: 200, headers: {}, set(key, value) { this.headers
     await routes.get("/discord/join/callback")({ query: { state: start.body.state, code: "test" } }, callback);
     assert.equal(callback.redirected, "/upload");
     assert.match(callback.headers["Set-Cookie"], /HttpOnly; Secure; SameSite=Lax/);
+    const standalone = response();
+    await routes.get("/api/cloudcord/onboarding/start")({ body: { accepted: true, termsVersion: "2026-08-27" } }, standalone);
+    fetchCount = 0;
+    const mobileCallback = response();
+    await routes.get("/discord/join/callback")({ query: { state: standalone.body.state, code: "mobile-test" } }, mobileCallback);
+    assert.equal(mobileCallback.redirected, "/upload");
+    assert.match(mobileCallback.headers["Set-Cookie"], /HttpOnly; Secure; SameSite=Lax/);
     const cookie = callback.headers["Set-Cookie"].split(";")[0];
     let authorized = false;
     const account = { method: "POST", get: key => ({ cookie, origin: "https://getcloudcord.com" })[key] };
