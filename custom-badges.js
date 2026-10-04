@@ -48,7 +48,7 @@ function makeBadgeRouter(express, file) {
                 if (db.prepare('SELECT COUNT(*) AS count FROM custom_badges WHERE user_id=?').get(row.user_id).count >= 10 || db.prepare('SELECT COUNT(*) AS count FROM custom_badges').get().count >= 1000) {
                     db.exec('ROLLBACK'); return res.status(409).json({ error: 'published badge limit reached' });
                 }
-                db.prepare('INSERT INTO custom_badges VALUES (?,?,?,?)').run(row.id, row.user_id, `${row.name} · custom`, row.png);
+                db.prepare('INSERT INTO custom_badges VALUES (?,?,?,?)').run(row.id, row.user_id, row.name, row.png);
             } else if (action !== 'keep') db.prepare('DELETE FROM custom_badges WHERE id=?').run(row.id);
             const status = action === 'keep' || action === 'approve' ? 'kept' : 'rejected';
             db.prepare('UPDATE badge_submissions SET status=? WHERE id=?').run(status, row.id);
@@ -88,13 +88,16 @@ function makeBadgeRouter(express, file) {
                 }
                 const id = crypto.randomUUID();
                 db.prepare('INSERT INTO badge_submissions VALUES (?,?,?,?,?,?)').run(id, req.badgeUserId, name.trim(), bytes, 'approved', new Date().toISOString());
-                db.prepare('INSERT INTO custom_badges VALUES (?,?,?,?)').run(id, req.badgeUserId, `${name.trim()} · custom`, bytes);
+                db.prepare('INSERT INTO custom_badges VALUES (?,?,?,?)').run(id, req.badgeUserId, name.trim(), bytes);
                 db.exec('COMMIT');
                 res.status(201).json({ beta: true, ...decision });
             } catch (error) { db.exec('ROLLBACK'); throw error; }
         } catch { res.status(400).json({ status: 'blocked', message: 'Use a valid PNG under 512 KB. The upload page can optimize your image.' }); }
     });
     db.exec('PRAGMA journal_mode=WAL; PRAGMA max_page_count=16384; CREATE TABLE IF NOT EXISTS custom_badges (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, png BLOB NOT NULL); CREATE INDEX IF NOT EXISTS custom_badges_user ON custom_badges(user_id);');
+    // Restore the submitted name only where the old publisher appended its label.
+    // Keep manually edited names and user-chosen suffixes unchanged.
+    db.exec("UPDATE custom_badges SET name=(SELECT name FROM badge_submissions WHERE badge_submissions.id=custom_badges.id) WHERE EXISTS (SELECT 1 FROM badge_submissions WHERE badge_submissions.id=custom_badges.id AND custom_badges.name=badge_submissions.name || ' · custom');");
     const publicBadge = row => ({ id: row.id, userId: row.user_id, name: row.name, icon: `https://getcloudcord.com/v1/custom-badges/${row.id}.png` });
     router.get('/v1/custom-badges', (_req, res) => {
         res.set('Cache-Control', 'no-store').json({ badges: db.prepare('SELECT id, user_id, name FROM custom_badges ORDER BY rowid').all().map(publicBadge) });

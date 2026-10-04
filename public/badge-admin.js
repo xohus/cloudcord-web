@@ -4,7 +4,7 @@
     const section = document.createElement('section');
     section.className = 'admin-heading';
     section.style.cssText = 'display:block;margin-top:40px;padding-top:24px;border-top:1px solid #36373d';
-    section.innerHTML = '<h2>custom badge review · beta</h2><p>AI-approved badges are already live. check for copied staff logos, impersonation, unsafe content and personal information; keep or delete them. all user badges are labeled custom.</p><button type="button" id="badgeRefresh">refresh badges</button><p id="badgeReviewMessage" role="status"></p><div id="badgeReviewList"></div>';
+    section.innerHTML = '<h2>custom badge review · beta</h2><p>AI-approved badges are already live. check for copied staff logos, impersonation, unsafe content and personal information; keep or delete them.</p><button type="button" id="badgeRefresh">refresh badges</button><p id="badgeReviewMessage" role="status"></p><div id="badgeReviewList"></div>';
     dashboard.querySelector('main').append(section);
     const list = section.querySelector('#badgeReviewList'), message = section.querySelector('#badgeReviewMessage');
     let loading = false;
