@@ -41,6 +41,7 @@
                 const uri = await read(file);
                 const image = new Image(); image.src = uri;
                 await image.decode();
+                if (input.files[0] !== file) return;
                 if (field === "png" && (image.naturalWidth > 512 || image.naturalHeight > 512)) throw new Error("Badge dimensions must be 512 × 512 or smaller.");
                 draft[field] = field === "png" ? uri.split(",")[1] : uri;
                 preview(`#${prefix}Preview`, uri);
@@ -76,15 +77,14 @@
     // Restore a verified browser session, including a separate app-handoff cookie.
     request("/api/cloudcord/profile").then(result => {
         editor.hidden = false;
+        document.querySelector("#signIn").hidden = true;
         for (const field of ["avatar", "banner"]) {
             const uri = result.profile?.[field];
             if (typeof uri === "string" && /^(https:\/\/|data:image\/(png|jpeg|webp);base64,)/.test(uri)) preview(`#${field}Preview`, uri);
         }
         dispatchEvent(new Event("cloudcord-profile-verified"));
     }).catch(() => {
-        if (new URLSearchParams(location.search).get("complete") === "1") {
-            editor.hidden = true;
-            document.querySelector("#status").textContent = "Couldn't load your verified account. Open /badges/verify to sign in again.";
-        }
+        editor.hidden = true;
+        document.querySelector("#status").textContent = "Verify your Discord account to continue. If you're already verified, try signing in again.";
     });
 })();

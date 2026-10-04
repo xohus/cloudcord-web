@@ -1148,6 +1148,9 @@ app.get('/source', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'source.html'));
 });
 
+app.get('/upload', (_req, res) => {
+    res.set('Cache-Control', 'no-store').sendFile(path.join(__dirname, 'public', 'upload.html'));
+});
 app.get(['/join', '/badges/verify'], (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'join.html'));
 });

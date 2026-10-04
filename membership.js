@@ -70,7 +70,7 @@ function makeMembershipRouter(express) {
                 const browserToken = crypto.randomBytes(32).toString("base64url");
                 await pool.query("INSERT INTO cloudcord_membership_devices (device_hash,user_id,terms_version) VALUES ($1,$2,$3)", [digest(browserToken), user.id, TERMS_VERSION]);
                 res.set("Set-Cookie", `cc_badge_session=${browserToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`);
-                return res.set("Cache-Control", "no-store").redirect("/badges/verify?complete=1");
+                return res.set("Cache-Control", "no-store").redirect("/upload");
             }
             const state = JSON.stringify(String(req.query.state));
             res.set("Cache-Control", "no-store").type("html").send(`<!doctype html><meta name="viewport" content="width=device-width"><title>CloudCord verified</title><style>body{margin:0;background:#111214;color:#f2f3f5;font:16px system-ui;display:grid;place-items:center;min-height:100vh;text-align:center}.card{padding:32px;border:1px solid #2b2d31;border-radius:16px;background:#1e1f22;max-width:380px}h1{margin:0 0 10px;font-size:24px}p{color:#b5bac1}</style><div class="card"><h1>You're verified</h1><p>You joined the CloudCord server. This window can close now.</p></div><script>const state=${state};if(window.opener){window.opener.postMessage({type:"cloudcord-oauth-complete",state},location.origin);setTimeout(()=>window.close(),700)}else{location.replace("/join?state="+encodeURIComponent(state))}</script>`);

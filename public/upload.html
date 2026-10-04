@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Uploads | CloudCord</title><link rel="icon" href="/assets/cloudcord-favicon.png"><style>
+        :root{color-scheme:dark;--bg:#111214;--panel:#1e1f22;--panel-2:#2b2d31;--line:#3f4147;--text:#f2f3f5;--muted:#b5bac1;--brand:#5865f2;--brand-hover:#4752c4;--green:#23a55a;--red:#da373c}
+        [hidden]{display:none!important}
+        *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;padding:24px}
+        .shell{width:min(100%,480px)}.brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px;color:var(--text);text-decoration:none;font-size:20px;font-weight:800}.brand img{width:34px;height:34px;object-fit:contain}
+        .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;box-shadow:0 20px 55px rgba(0,0,0,.35)}.discord-mark{width:48px;height:48px;border-radius:14px;background:var(--brand);display:grid;place-items:center;margin-bottom:20px;font-size:26px;font-weight:900}
+        h1{font-size:26px;line-height:1.2;margin:0 0 8px}p{color:var(--muted);margin:0}.permissions{margin:24px 0;padding:0;list-style:none;border:1px solid var(--line);border-radius:12px;overflow:hidden}.permissions li{display:flex;gap:12px;padding:14px 16px;background:var(--panel-2)}.permissions li+li{border-top:1px solid var(--line)}.check{color:var(--green);font-weight:900}.permission-title{display:block;color:var(--text);font-weight:650}.permission-copy{display:block;color:var(--muted);font-size:13px}
+        .terms{display:flex;align-items:flex-start;gap:10px;margin:20px 0;color:var(--muted);cursor:pointer}.terms input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--brand)}a{color:#00a8fc}.button{width:100%;border:0;border-radius:8px;background:var(--brand);color:white;font:inherit;font-weight:700;padding:13px 16px;cursor:pointer;transition:background .15s,transform .15s}.button:hover:not(:disabled){background:var(--brand-hover);transform:translateY(-1px)}.button:disabled{opacity:.5;cursor:not-allowed}
+        .status{display:none;margin-top:16px;padding:12px 14px;border-radius:8px;background:var(--panel-2);color:var(--muted)}.status.show{display:block}.status.success{color:#86efac;border:1px solid rgba(35,165,90,.5)}.status.error{color:#fda4af;border:1px solid rgba(218,55,60,.5)}.fine{margin-top:18px;text-align:center;font-size:12px;color:#80848e}
+        @media(max-width:520px){body{padding:14px}.brand{margin-bottom:14px}.card{padding:22px;border-radius:12px}h1{font-size:23px}}
+        #editor{margin-top:24px}#editor fieldset{border:1px solid var(--line);border-radius:12px;margin:18px 0;padding:16px}#editor legend{font-weight:700}#editor label{display:block;margin:12px 0 6px}#editor input{width:100%;padding:10px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:8px;font:inherit}#editor img{display:block;max-width:100%;max-height:150px;margin:10px 0;border-radius:8px}#editor button{margin-top:12px}
+    </style></head>
+<body><main class="shell"><a class="brand" href="/"><img src="/assets/cloudcord-favicon.png" alt="">CloudCord</a><section class="card">
+<h1>uploads</h1><p>add your custom badge, profile picture or banner.</p>
+<div id="status" role="status" aria-live="polite"></div>
+<p id="signIn"><a href="/badges/verify?next=upload">verify your discord account</a> to upload.</p>
+        <section id="editor" hidden aria-label="Custom profile">
+            <h2>custom profile</h2>
+            <p>These changes show in CloudCord, not unmodified Discord.</p>
+            <fieldset><legend>custom badge · beta</legend>
+                <label for="badgeName">badge name</label><input id="badgeName" maxlength="40" autocomplete="off" placeholder="your badge name">
+                <label for="badgeFile">badge PNG</label><input id="badgeFile" type="file" accept="image/png">
+                <p>PNG only · up to 512 KB and 512 × 512 pixels.</p><img id="badgePreview" hidden alt="Selected badge">
+                <button id="submitBadge" class="button" type="button">submit badge</button>
+                <p id="badgeMessage" role="status" aria-live="polite"></p>
+            </fieldset>
+            <fieldset><legend>profile pictures</legend>
+                <label for="avatarFile">profile picture</label><input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="avatarPreview" hidden alt="Profile picture preview">
+                <label for="bannerFile">banner</label><input id="bannerFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="bannerPreview" hidden alt="Banner preview">
+                <p>PNG, JPEG or WebP · up to 750 KB each. Choosing one picture keeps the other unchanged.</p>
+                <button id="savePictures" class="button" type="button">save pictures</button>
+                <p id="pictureMessage" role="status" aria-live="polite"></p>
+            </fieldset>
+        </section>
+
+<p class="fine">Badges are checked before publishing. No impersonation, unsafe content or personal information. <a href="/tos">terms</a> · <a href="/privacy">privacy</a></p>
+</section></main><script src="/profile-editor.js" defer></script></body></html>

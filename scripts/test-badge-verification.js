@@ -23,7 +23,7 @@ const response = () => ({ code: 200, headers: {}, set(key, value) { this.headers
     assert.equal(new URL(auth.redirected).searchParams.get("state"), start.body.state);
     const callback = response();
     await routes.get("/discord/join/callback")({ query: { state: start.body.state, code: "test" } }, callback);
-    assert.equal(callback.redirected, "/badges/verify?complete=1");
+    assert.equal(callback.redirected, "/upload");
     assert.match(callback.headers["Set-Cookie"], /HttpOnly; Secure; SameSite=Lax/);
     const cookie = callback.headers["Set-Cookie"].split(";")[0];
     let authorized = false;
