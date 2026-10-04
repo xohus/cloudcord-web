@@ -10,26 +10,28 @@
         .status{display:none;margin-top:16px;padding:12px 14px;border-radius:8px;background:var(--panel-2);color:var(--muted)}.status.show{display:block}.status.success{color:#86efac;border:1px solid rgba(35,165,90,.5)}.status.error{color:#fda4af;border:1px solid rgba(218,55,60,.5)}.fine{margin-top:18px;text-align:center;font-size:12px;color:#80848e}
         @media(max-width:520px){body{padding:14px}.brand{margin-bottom:14px}.card{padding:22px;border-radius:12px}h1{font-size:23px}}
         #editor{margin-top:24px}#editor fieldset{border:1px solid var(--line);border-radius:12px;margin:18px 0;padding:16px}#editor legend{font-weight:700}#editor label{display:block;margin:12px 0 6px}#editor input{width:100%;padding:10px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:8px;font:inherit}#editor img{display:block;max-width:100%;max-height:150px;margin:10px 0;border-radius:8px}#editor button{margin-top:12px}
-    </style></head>
+    .shell,.card,#editor{min-width:0;max-width:100%}#editor fieldset{min-inline-size:0;width:100%;margin-inline:0}#editor legend{max-width:100%;white-space:normal}#editor input{min-width:0;max-width:100%}p,legend,label{overflow-wrap:anywhere}#badgeList>div{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}#badgeList span{flex:1;min-width:0;overflow-wrap:anywhere}#badgeList button{width:auto;flex-shrink:0}.status:empty{display:none}
+</style></head>
 <body><main class="shell"><a class="brand" href="/"><img src="/assets/cloudcord-favicon.png" alt="">CloudCord</a><section class="card">
-<h1>uploads</h1><p>add your custom badge, profile picture or banner.</p>
+<h1>Uploads</h1><p>Add your custom badge, profile picture or banner.</p>
 <div id="status" role="status" aria-live="polite"></div>
-<p id="signIn"><a href="/badges/verify?next=upload">verify your discord account</a> to upload.</p>
+<p id="signIn"><a href="/badges/verify?next=upload">Verify your Discord account</a> to upload.</p>
         <section id="editor" hidden aria-label="Custom profile">
-            <h2>custom profile</h2>
+            <h2>Custom Profile</h2>
             <p>These changes show in CloudCord, not unmodified Discord.</p>
-            <fieldset><legend>custom badge · beta</legend>
-                <label for="badgeName">badge name</label><input id="badgeName" maxlength="40" autocomplete="off" placeholder="your badge name">
-                <label for="badgeFile">badge PNG</label><input id="badgeFile" type="file" accept="image/png">
-                <p>PNG only · up to 512 KB and 512 × 512 pixels.</p><img id="badgePreview" hidden alt="Selected badge">
-                <button id="submitBadge" class="button" type="button">submit badge</button>
+            <fieldset><legend>Custom Badge · Beta</legend>
+                <label for="badgeName">Badge Name</label><input id="badgeName" maxlength="40" autocomplete="off" placeholder="Your badge name">
+                <label for="badgeFile">Badge Image</label><input id="badgeFile" type="file" accept="image/*,.png">
+                <p>Choose an image. It will be resized and converted to PNG.</p><img id="badgePreview" hidden alt="Selected badge">
+                <button id="submitBadge" class="button" type="button">Add Badge</button>
                 <p id="badgeMessage" role="status" aria-live="polite"></p>
+<h3>Your Badges</h3><div id="badgeList" aria-live="polite"></div>
             </fieldset>
-            <fieldset><legend>profile pictures</legend>
-                <label for="avatarFile">profile picture</label><input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="avatarPreview" hidden alt="Profile picture preview">
-                <label for="bannerFile">banner</label><input id="bannerFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="bannerPreview" hidden alt="Banner preview">
+            <fieldset><legend>Profile Pictures</legend>
+                <label for="avatarFile">Profile Picture</label><input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="avatarPreview" hidden alt="Profile picture preview">
+                <label for="bannerFile">Banner</label><input id="bannerFile" type="file" accept="image/png,image/jpeg,image/webp"><img id="bannerPreview" hidden alt="Banner preview">
                 <p>PNG, JPEG or WebP · up to 750 KB each. Choosing one picture keeps the other unchanged.</p>
-                <button id="savePictures" class="button" type="button">save pictures</button>
+                <button id="savePictures" class="button" type="button">Save Pictures</button>
                 <p id="pictureMessage" role="status" aria-live="polite"></p>
             </fieldset>
         </section>

@@ -106,7 +106,8 @@ function makeMembershipRouter(express) {
             const bearer = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
             const cookie = String(req.get('cookie') || '').match(/(?:^|;\s*)cc_badge_session=([A-Za-z0-9_-]{43})(?:;|$)/)?.[1];
             if (!bearer && cookie && !['GET', 'HEAD'].includes(req.method) && req.get('origin') !== 'https://getcloudcord.com') return res.status(403).json({ message: 'invalid request origin' });
-            const token = bearer || cookie;
+            const token = cookie || bearer;
+            if (cookie && !['GET', 'HEAD'].includes(req.method) && req.get('origin') !== 'https://getcloudcord.com') return res.status(403).json({ message: 'invalid request origin' });
             if (!token) return res.status(401).json({ message: 'verify your Discord account first' });
             const record = await pool.query('SELECT user_id,terms_version FROM cloudcord_membership_devices WHERE device_hash=$1', [digest(token)]);
             if (!record.rowCount || record.rows[0].terms_version !== TERMS_VERSION) return res.status(401).json({ message: 'verify your Discord account again' });

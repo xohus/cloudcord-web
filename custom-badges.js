@@ -57,13 +57,24 @@ function makeBadgeRouter(express, file) {
     });
     router.get('/v1/badge-submissions', (req, res) => {
         if (!req.badgeUserId) return res.sendStatus(401);
-        res.set('Cache-Control', 'no-store').json({ beta: true, rules: RULES, submissions: db.prepare('SELECT id,name,status,created_at FROM badge_submissions WHERE user_id=? ORDER BY created_at DESC').all(req.badgeUserId) });
+        res.set('Cache-Control', 'no-store').json({ beta: true, rules: RULES, submissions: db.prepare('SELECT id,name,status,created_at FROM badge_submissions WHERE user_id=? ORDER BY created_at DESC').all(req.badgeUserId), badges: db.prepare('SELECT id,name FROM custom_badges WHERE user_id=? ORDER BY rowid DESC').all(req.badgeUserId) });
+    });
+    router.post('/v1/badge-submissions/:id/remove', rateLimit({ windowMs: 60000, limit: 20 }), (req, res) => {
+        if (!req.badgeUserId) return res.sendStatus(401);
+        db.exec('BEGIN IMMEDIATE');
+        try {
+            const owned = db.prepare('SELECT id FROM custom_badges WHERE id=? AND user_id=?').get(req.params.id, req.badgeUserId);
+            if (!owned) { db.exec('ROLLBACK'); return res.status(404).json({ message: 'Badge not found on your account' }); }
+            db.prepare('DELETE FROM custom_badges WHERE id=? AND user_id=?').run(req.params.id, req.badgeUserId);
+            db.prepare("UPDATE badge_submissions SET status='removed' WHERE id=? AND user_id=?").run(req.params.id, req.badgeUserId);
+            db.exec('COMMIT'); res.set('Cache-Control', 'no-store').json({ removed: true });
+        } catch { db.exec('ROLLBACK'); res.status(503).json({ message: 'Could not remove badge. Try again.' }); }
     });
     router.post('/v1/badge-submissions', rateLimit({ windowMs: 3600000, limit: 5 }), async (req, res) => {
         res.set('Cache-Control', 'no-store');
         if (!req.badgeUserId) return res.sendStatus(401);
         try {
-            if (db.prepare('SELECT COUNT(*) AS count FROM badge_submissions WHERE user_id=?').get(req.badgeUserId).count >= 5) return res.status(409).json({ message: 'beta limit: 5 pending badges per account' });
+            if (db.prepare("SELECT COUNT(*) AS count FROM badge_submissions WHERE user_id=? AND status='needs_review'").get(req.badgeUserId).count >= 5) return res.status(409).json({ message: 'Beta limit: 5 pending badges per account' });
             const { name, png } = req.body || {};
             const bytes = validatePng(png);
             const error = checkName(name);
