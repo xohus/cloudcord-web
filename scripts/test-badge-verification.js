@@ -5,6 +5,8 @@ const assert = require("node:assert/strict");
 const routes = new Map();
 const router = { get: (path, handler) => routes.set(path, handler), post: (path, ...handlers) => routes.set(path, handlers.at(-1)), use: (path, handler) => routes.set("AUTH", handler) };
 const env = Object.fromEntries(["DATABASE_URL", "CLOUDCORD_DISCORD_CLIENT_ID", "CLOUDCORD_DISCORD_CLIENT_SECRET", "CLOUDCORD_DISCORD_BOT_TOKEN", "CLOUDCORD_DISCORD_GUILD_ID", "CLOUDCORD_DISCORD_REDIRECT_URI", "CLOUDCORD_MEMBERSHIP_SESSION_SECRET"].map(key => [key, "test"]));
+delete env.CLOUDCORD_DISCORD_BOT_TOKEN;
+delete env.CLOUDCORD_DISCORD_GUILD_ID;
 let fetchCount = 0;
 const context = {
     module: { exports: {} }, process: { env }, console, URLSearchParams, Date, Map,
@@ -18,6 +20,7 @@ const response = () => ({ code: 200, headers: {}, set(key, value) { this.headers
     const start = response();
     await routes.get("/api/cloudcord/onboarding/start")({ body: { accepted: true, termsVersion: "2026-08-27", returnToClient: true } }, start);
     assert.ok(start.body.state);
+    assert.equal(new URL(start.body.authorizeUrl).searchParams.get("scope"), "identify");
     const auth = response();
     routes.get("/api/cloudcord/onboarding/authorize/:state")({ params: { state: start.body.state } }, auth);
     assert.equal(new URL(auth.redirected).searchParams.get("state"), start.body.state);
