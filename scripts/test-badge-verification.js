@@ -35,5 +35,30 @@ const response = () => ({ code: 200, headers: {}, set(key, value) { this.headers
     const page = fs.readFileSync("public/join.html", "utf8");
     new vm.Script(page.match(/<script>([\s\S]*?)<\/script>/)[1]);
     assert.match(page, /if \(clientState\).*return;/);
+    const script = page.match(/<script>([\s\S]*?)<\/script>/)[1];
+    for (const search of ["?complete=1", "?state=test-state"]) {
+        const label = {}, listeners = {}, heading = {};
+        const terms = { checked: true, closest: () => label, addEventListener: (name, fn) => listeners["terms-" + name] = fn };
+        const button = { addEventListener: (name, fn) => listeners["button-" + name] = fn };
+        const nodes = { "#terms": terms, "#connect": button, "#status": {}, "#terms-link": {}, h1: heading };
+        let requests = 0;
+        vm.runInNewContext(script, {
+            document: { querySelector: selector => nodes[selector] },
+            location: { search, origin: "https://getcloudcord.com" }, URLSearchParams,
+            sessionStorage: { getItem: () => null, removeItem() {} }, localStorage: { setItem() {} },
+            addEventListener() {}, clearTimeout() {}, setTimeout() {},
+            fetch: async url => { requests++; return { json: async () => url.includes("/config") ? { enabled: true, termsVersion: "test" } : { status: "complete", deviceToken: "test" } }; }
+        });
+        for (let tick = 0; tick < 10; tick++) await Promise.resolve();
+        assert.equal(label.hidden, true);
+        assert.equal(terms.disabled, true);
+        assert.equal(button.hidden, true);
+        assert.equal(button.disabled, true);
+        const before = requests;
+        listeners["terms-change"]();
+        await listeners["button-click"]();
+        assert.equal(button.disabled, true);
+        assert.equal(requests, before);
+    }
     console.log("badge verification handoff passed: valid state, Discord redirect, app-only token, expiry, page syntax");
 })().catch(error => { console.error(error); process.exitCode = 1; });
