@@ -164,7 +164,6 @@ app.use(express.json({
 }));
 
 const CHANGELOG_CHANNEL_ID = process.env.CLOUDCORD_CHANGELOG_CHANNEL_ID || '1517995954039558254';
-app.use(require('./custom-badges').makeBadgeRouter(express).router);
 const changelogLimiter = rateLimit({ windowMs: 60 * 1000, limit: 20, standardHeaders: 'draft-7', legacyHeaders: false });
 const lower = value => String(value || '').trim().toLowerCase();
 
@@ -437,6 +436,10 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: process.env.NODE_ENV === 'production', httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 }
 }));
+
+// Badge review shares the existing admin login. Load its routes only after
+// express-session has restored the authenticated session for this request.
+app.use(require('./custom-badges').makeBadgeRouter(express).router);
 
 // Audit logger
 function logAudit(event, req, additionalInfo = {}) {
