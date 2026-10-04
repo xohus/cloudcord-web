@@ -4,7 +4,8 @@
     const draft = {};
     const headers = () => {
         if (new URLSearchParams(location.search).get("complete") === "1") return {};
-        const token = localStorage.getItem("cloudcordMembershipToken");
+        let token;
+        try { token = localStorage.getItem("cloudcordMembershipToken"); } catch { /* Cookie verification still works when browser storage is blocked. */ }
         return token ? { Authorization: `Bearer ${token}` } : {};
     };
     const request = async (url, body) => {
@@ -39,6 +40,7 @@
             try {
                 if (file.size > (field === "png" ? 10 * 1024 * 1024 : limit * 1024)) throw new Error(field === "png" ? "Choose an image under 10 MB." : `Choose a picture under ${limit} KB.`);
                 let uri = await read(file);
+                if (!file.type && /\.png$/i.test(file.name)) uri = uri.replace(/^data:[^;]*;/, "data:image/png;");
                 const image = new Image();
                 await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = () => reject(new Error("This image couldn't be opened. Choose a PNG, JPEG or WebP.")); image.src = uri; });
                 if (input.files[0] !== file) return;
