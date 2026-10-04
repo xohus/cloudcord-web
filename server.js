@@ -164,6 +164,28 @@ app.use(express.json({
 }));
 
 const CHANGELOG_CHANNEL_ID = process.env.CLOUDCORD_CHANGELOG_CHANNEL_ID || '1517995954039558254';
+let browserReleaseCache = null;
+let browserReleaseFetchedAt = 0;
+for (const [browser, asset] of Object.entries({ chrome: 'extension-chrome.zip', firefox: 'extension-firefox.zip', userscript: 'CloudCord.user.js' })) {
+    app.get(`/download/browser/${browser}`, (_req, res) => {
+        res.set('Cache-Control', 'no-store').redirect(302, `https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/${asset}`);
+    });
+}
+app.get('/api/browser/release', async (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        if (!browserReleaseCache || Date.now() - browserReleaseFetchedAt > 60000) {
+            const response = await fetch('https://api.github.com/repos/xohus/cloudcord/releases/tags/new_beta_t_desktop', { headers: { Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(10000) });
+            if (!response.ok) throw new Error('Browser release is unavailable');
+            const release = await response.json();
+            const hash = String(release.name || '').match(/\b[a-f0-9]{40}\b/)?.[0];
+            if (!hash) throw new Error('Browser release has no build identifier');
+            browserReleaseCache = { hash, publishedAt: release.published_at, downloads: { chrome: '/download/browser/chrome', firefox: '/download/browser/firefox', userscript: '/download/browser/userscript' } };
+            browserReleaseFetchedAt = Date.now();
+        }
+        res.json(browserReleaseCache);
+    } catch { res.status(503).json({ error: 'Could not check browser updates. Try again shortly.' }); }
+});
 const changelogLimiter = rateLimit({ windowMs: 60 * 1000, limit: 20, standardHeaders: 'draft-7', legacyHeaders: false });
 const lower = value => String(value || '').trim().toLowerCase();
 
