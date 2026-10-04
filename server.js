@@ -419,7 +419,7 @@ app.get('/download/windows', (_req, res) => {
 
 app.get('/download/ios', (_req, res) => {
     res.set('Cache-Control', 'no-store');
-    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/ios-legacy-331/cloudcord0-331.ipa?v=${Date.now()}`);
+    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/test/cloudcord0.ipa?v=${Date.now()}`);
 });
 
 app.get('/download/android', (_req, res) => {
