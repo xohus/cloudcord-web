@@ -97,7 +97,7 @@ function makeBadgeRouter(express, file) {
     db.exec('PRAGMA journal_mode=WAL; PRAGMA max_page_count=16384; CREATE TABLE IF NOT EXISTS custom_badges (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, png BLOB NOT NULL); CREATE INDEX IF NOT EXISTS custom_badges_user ON custom_badges(user_id);');
     const publicBadge = row => ({ id: row.id, userId: row.user_id, name: row.name, icon: `https://getcloudcord.com/v1/custom-badges/${row.id}.png` });
     router.get('/v1/custom-badges', (_req, res) => {
-        res.set('Cache-Control', 'public, max-age=30').json({ badges: db.prepare('SELECT id, user_id, name FROM custom_badges ORDER BY rowid').all().map(publicBadge) });
+        res.set('Cache-Control', 'no-store').json({ badges: db.prepare('SELECT id, user_id, name FROM custom_badges ORDER BY rowid').all().map(publicBadge) });
     });
     router.get('/v1/custom-badges/:image', (req, res) => {
         const id = req.params.image.replace(/\.png$/, '');
