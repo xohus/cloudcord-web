@@ -1065,6 +1065,7 @@ app.get('/api/proxy/assets/:assetId', checkClientAuth, async (req, res) => {
     }
 });
 
+let runtimeCommit = '', runtimeCommitCheckedAt = 0;
 app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
     const filePathParam = req.params[0];
     const token = process.env.GITHUB_PAT;
@@ -1072,7 +1073,19 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
     if (!token && !publicRuntime) return res.status(500).json({ error: 'Unconfigured' });
     
     try {
-        const upstreamUrl = new URL(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${filePathParam}`);
+        // Raw GitHub's moving main URL can serve stale runtime bytes. Resolve
+        // the branch, then fetch immutable commit bytes instead.
+        if (publicRuntime && Date.now() - runtimeCommitCheckedAt > 120000) {
+            const head = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits/main`, {
+                headers: { 'User-Agent': 'CloudCord-Client', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+            });
+            if (head.ok) {
+                const commit = await head.json();
+                if (/^[a-f0-9]{40}$/.test(commit.sha)) { runtimeCommit = commit.sha; runtimeCommitCheckedAt = Date.now(); }
+            }
+        }
+        const ref = publicRuntime && runtimeCommit ? runtimeCommit : 'main';
+        const upstreamUrl = new URL(`https://raw.githubusercontent.com/${GITHUB_REPO}/${ref}/${filePathParam}`);
         upstreamUrl.searchParams.set('cloudcord_version', Date.now().toString());
         const ghRes = await fetch(upstreamUrl, {
             cache: 'no-store',
