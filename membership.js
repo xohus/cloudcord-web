@@ -13,7 +13,8 @@ const databaseSsl = () => ["require", "required", "true", "1"].includes(String(p
 function makeMembershipRouter(express) {
     const router = express.Router();
     const enabled = REQUIRED.every(name => Boolean(process.env[name]));
-    const oauth2Off = ["true", "1", "yes", "on"].includes(String(process.env.OAUTH2_OFF || process.env["oauth2-off"] || "").toLowerCase());
+    // Membership verification has its own switch, independent of legacy login.
+    const oauth2Off = ["true", "1", "yes", "on"].includes(String(process.env.CLOUDCORD_MEMBERSHIP_OAUTH_OFF || "").toLowerCase());
     const pool = enabled ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: databaseSsl() }) : null;
     const pending = new Map();
     const schema = `CREATE TABLE IF NOT EXISTS cloudcord_membership_devices (
