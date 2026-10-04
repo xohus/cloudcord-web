@@ -167,8 +167,9 @@ const CHANGELOG_CHANNEL_ID = process.env.CLOUDCORD_CHANGELOG_CHANNEL_ID || '1517
 let browserReleaseCache = null;
 let browserReleaseFetchedAt = 0;
 for (const [browser, asset] of Object.entries({ chrome: 'extension-chrome.zip', firefox: 'extension-firefox.zip', userscript: 'CloudCord.user.js' })) {
-    app.get(`/download/browser/${browser}`, (_req, res) => {
-        res.set('Cache-Control', 'no-store').redirect(302, `https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/${asset}`);
+    const legacy = { chrome: 'CloudCord-Chrome-Brave.zip', firefox: 'CloudCord-Firefox.zip', userscript: 'CloudCord.user.js' }[browser];
+    app.get([`/download/browser/${browser}`, `/downloads/${legacy}`], (_req, res) => {
+        res.set('Cache-Control', 'no-store').redirect(302, `https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/${asset}?v=${Date.now()}`);
     });
 }
 app.get('/api/browser/release', async (_req, res) => {
