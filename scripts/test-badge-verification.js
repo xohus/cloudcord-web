@@ -49,7 +49,7 @@ const response = () => ({ code: 200, headers: {}, set(key, value) { this.headers
             addEventListener() {}, clearTimeout() {}, setTimeout() {},
             fetch: async url => { requests++; return { json: async () => url.includes("/config") ? { enabled: true, termsVersion: "test" } : { status: "complete", deviceToken: "test" } }; }
         });
-        for (let tick = 0; tick < 10; tick++) await Promise.resolve();
+        await new Promise(resolve => setImmediate(resolve));
         assert.equal(label.hidden, true);
         assert.equal(terms.disabled, true);
         assert.equal(button.hidden, true);
