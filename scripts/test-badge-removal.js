@@ -3,7 +3,12 @@ const fs = require("node:fs"), os = require("node:os"), path = require("node:pat
 const { DatabaseSync } = require("node:sqlite");
 const routes = new Map(), router = { get: (url, ...handlers) => routes.set("GET " + url, handlers.at(-1)), post: (url, ...handlers) => routes.set("POST " + url, handlers.at(-1)) };
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cloudcord-badge-test-")), file = path.join(dir, "badges.sqlite");
-const service = require("../custom-badges").makeBadgeRouter({ Router: () => router }, file);
+const moduleObject = { exports: {} };
+require("node:vm").runInNewContext(fs.readFileSync(path.join(__dirname, "../custom-badges.js"), "utf8"), {
+    module: moduleObject, Buffer, process, fetch,
+    require: name => name === "express-rate-limit" ? () => () => {} : name === "./badge-moderation" ? require("../badge-moderation") : require(name)
+});
+const service = moduleObject.exports.makeBadgeRouter({ Router: () => router }, file);
 const db = new DatabaseSync(file);
 db.prepare("INSERT INTO custom_badges VALUES (?,?,?,?)").run("test-badge", "owner", "My Badge", Buffer.from("test"));
 const response = () => ({ code: 200, status(value) { this.code = value; return this; }, sendStatus(value) { this.code = value; return this; }, set() { return this; }, json(value) { this.body = value; return this; } });
