@@ -10,8 +10,8 @@ for (const page of ['index', 'features', 'faq', 'team', 'plugins', 'changelog', 
     const text = fs.readFileSync(`public/${page}.html`, 'utf8');
     assert.doesNotMatch(text, /class="(?:announcement-bar|has-announcement)"/);
 }
-assert.match(html, /assets\/cloudcord-wordmark\.png/);
+assert.match(html, /assets\/logo-full\.png/);
 const css = fs.readFileSync('public/styles.css', 'utf8');
 assert.match(css, /mask-mode: luminance/);
-assert.ok(fs.existsSync('public/assets/cloudcord-wordmark.png'));
+assert.ok(fs.existsSync('public/assets/logo-full.png'));
 console.log('header icon, transparent logo references, Windows label and announcement removal passed');

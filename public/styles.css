@@ -242,7 +242,7 @@ body.has-announcement {
     object-fit: contain;
     /* Use the original artwork as a luminance mask: black canvas becomes
        transparent without recreating the logo or depending on page color. */
-    mask-image: url("assets/cloudcord-wordmark.png");
+    mask-image: url("assets/logo-full.png?v=20261005");
     mask-mode: luminance;
     mask-size: 100% 100%;
     mask-repeat: no-repeat;
