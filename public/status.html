@@ -17,18 +17,11 @@
         .status-offline { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
     </style>
 </head>
-<body class="has-announcement">
+<body>
     <script>
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
     </script>
-    <div class="announcement-bar">
-        <div class="announcement-content">
-            <span class="announcement-badge">windows fixed</span>
-            <span class="announcement-text">windows installer and updater are fixed and back online.</span>
-            <a href="#windows-status" class="announcement-link">view details &rarr;</a>
-        </div>
-    </div>
     <nav class="navbar">
         <div class="nav-content">
             <a href="/" class="logo-link"><img src="assets/cloudcord-favicon.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="nav-logo"></a>

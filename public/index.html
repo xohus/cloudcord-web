@@ -9,26 +9,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=tutorial1">
+    <link rel="stylesheet" href="styles.css?v=branding20261005">
 </head>
-<body class="has-announcement">
+<body>
     <script>
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
             document.body.classList.add('light');
         }
     </script>
-    <div class="announcement-bar">
-        <div class="announcement-content">
-            <span class="announcement-badge">ios notice</span>
-            <span class="announcement-text">ios 344.1 is back — download the updated build.</span>
-            <a href="/status" class="announcement-link">view status &rarr;</a>
-        </div>
-    </div>
     <nav class="navbar">
         <div class="nav-content">
-            <a href="/" class="logo-link wordmark-link">
-                <img src="assets/cloudcord-wordmark.png" alt="CloudCord" class="nav-logo">
+            <a href="/" class="logo-link">
+                <img src="assets/cloudcord-favicon.png?v=20261005" alt="CloudCord" class="nav-logo">
             </a>
             <div class="nav-links" id="primary-navigation">
                 <a href="#download" id="nav-download" class="nav-link">Download</a>
@@ -95,11 +88,11 @@
                 <div class="hexcheats-badge">
                     <span>The Next-Gen Chat Mod</span>
                 </div>
-                <img src="assets/logo-full.png" onerror="this.src='https://raw.githubusercontent.com/xohus/cloudcord/main/assets/logo-full.png'" alt="CloudCord" class="hero-main-logo">
+                <img src="assets/cloudcord-wordmark.png" alt="CloudCord" class="hero-main-logo">
                 <p class="hero-tagline"><strong>Your Discord, your way.</strong> Native Bot accounts, Fake Profiles, custom themes, 450+ plugins, and zero compromises.</p>
 
                 <div class="available-platforms" style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap;">
-                    <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">windows · fixed and online</span>
+                    <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">Windows</span>
                     <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">iOS / iPadOS</span>
                     <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">Android</span>
                     <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; background: var(--bg-tertiary); border-radius: 20px; border: 1px solid var(--border-color);">Browser</span>
@@ -185,7 +178,7 @@
         <div class="footer-content reveal stagger-up">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <img src="assets/logo-full.png" onerror="this.src='assets/cloudcord-favicon.png'" alt="CloudCord Logo" class="footer-logo">
+                    <img src="assets/cloudcord-wordmark.png" alt="CloudCord" class="footer-logo">
                     <p>The ultimate chat experience, customized exactly for you.</p>
                 </div>
                 <div class="footer-links">

@@ -238,32 +238,17 @@ body.has-announcement {
     filter: invert(1);
 }
 
-/* Preserve the supplied artwork; screen blending hides its black canvas. */
-.wordmark-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 180px;
-    height: 58px;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-.wordmark-link .nav-logo {
-    width: 230px;
-    height: auto;
-    max-width: none;
-    flex-shrink: 0;
-    mix-blend-mode: screen;
-    filter: none;
-}
 .hero-main-logo, .footer-logo {
-    mix-blend-mode: screen;
     object-fit: contain;
+    /* Use the original artwork as a luminance mask: black canvas becomes
+       transparent without recreating the logo or depending on page color. */
+    mask-image: url("assets/cloudcord-wordmark.png");
+    mask-mode: luminance;
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
 }
-@media (max-width: 600px) {
-    .wordmark-link { width: 142px; height: 48px; }
-    .wordmark-link .nav-logo { width: 182px; height: auto; }
-}
+.light .nav-logo { filter: none; }
+.light .hero-main-logo, .light .footer-logo { filter: brightness(0); }
 
 .nav-links {
     display: flex;
