@@ -242,7 +242,7 @@ body.has-announcement {
     object-fit: contain;
     /* Use the original artwork as a luminance mask: black canvas becomes
        transparent without recreating the logo or depending on page color. */
-    mask-image: url("assets/logo-full.png?v=20261005");
+    mask-image: url("assets/logo-full.png?v=longlogo2");
     mask-mode: luminance;
     mask-size: 100% 100%;
     mask-repeat: no-repeat;
@@ -458,6 +458,28 @@ body:not(.light) .moon-icon { display: none; }
     height: auto;
     margin-bottom: 1.5rem;
     display: block;
+}
+
+.hero-logo-frame {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 2.2;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.hero-logo-frame .hero-main-logo {
+    position: absolute;
+    width: 150%;
+    max-width: none;
+    height: auto;
+    left: -25%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+}
+@media (max-width: 700px) {
+    .hero-logo-frame { max-width: 400px; margin: 0 auto 1.25rem; }
 }
 
 .hero-tagline {

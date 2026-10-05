@@ -5,6 +5,8 @@ const nav = html.match(/<nav\b[\s\S]*?<\/nav>/)[0];
 assert.match(nav, /assets\/cloudcord-favicon\.png/);
 assert.doesNotMatch(nav, /wordmark|logo-full/);
 assert.doesNotMatch(html, /fixed and online/);
+assert.doesNotMatch(html, /next-gen|zero compromises|ultimate chat experience/i);
+assert.match(html, /hero-logo-frame/);
 assert.match(html, />Windows<\/span>/);
 for (const page of ['index', 'features', 'faq', 'team', 'plugins', 'changelog', 'status']) {
     const text = fs.readFileSync(`public/${page}.html`, 'utf8');
