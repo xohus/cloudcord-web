@@ -9,9 +9,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=branding20261005">
+    <link rel="stylesheet" href="styles.css?v=logo-render3">
 </head>
 <body>
+    <svg aria-hidden="true" width="0" height="0" style="position:absolute;pointer-events:none">
+        <defs>
+            <filter id="cloudcord-remove-black" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+                <!-- Only near-black canvas becomes transparent. Preserve the
+                     gray letters and white outlines, without a second image. -->
+                <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  10 10 10 0 -1" />
+            </filter>
+        </defs>
+    </svg>
     <script>
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {

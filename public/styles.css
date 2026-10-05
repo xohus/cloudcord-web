@@ -240,15 +240,9 @@ body.has-announcement {
 
 .hero-main-logo, .footer-logo {
     object-fit: contain;
-    /* Use the original artwork as a luminance mask: black canvas becomes
-       transparent without recreating the logo or depending on page color. */
-    mask-image: url("assets/logo-full.png?v=longlogo2");
-    mask-mode: luminance;
-    mask-size: 100% 100%;
-    mask-repeat: no-repeat;
+    filter: url("#cloudcord-remove-black");
 }
 .light .nav-logo { filter: none; }
-.light .hero-main-logo, .light .footer-logo { filter: brightness(0); }
 
 .nav-links {
     display: flex;

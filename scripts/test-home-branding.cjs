@@ -14,6 +14,8 @@ for (const page of ['index', 'features', 'faq', 'team', 'plugins', 'changelog', 
 }
 assert.match(html, /assets\/logo-full\.png/);
 const css = fs.readFileSync('public/styles.css', 'utf8');
-assert.match(css, /mask-mode: luminance/);
+assert.doesNotMatch(css, /mask-image:/);
+assert.match(css, /filter: url\("#cloudcord-remove-black"\)/);
+assert.match(html, /id="cloudcord-remove-black"/);
 assert.ok(fs.existsSync('public/assets/logo-full.png'));
 console.log('header icon, transparent logo references, Windows label and announcement removal passed');
