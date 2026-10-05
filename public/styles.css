@@ -456,11 +456,11 @@ body:not(.light) .moon-icon { display: none; }
 
 .hero-logo-frame {
     position: relative;
-    width: 100%;
-    max-width: 560px;
+    width: 90%;
+    max-width: 500px;
     aspect-ratio: 2.2;
     overflow: hidden;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 .hero-logo-frame .hero-main-logo {
     position: absolute;
@@ -473,7 +473,7 @@ body:not(.light) .moon-icon { display: none; }
     margin: 0;
 }
 @media (max-width: 700px) {
-    .hero-logo-frame { max-width: 400px; margin: 0 auto 1.25rem; }
+    .hero-logo-frame { max-width: 360px; margin: 0 auto 1rem; }
 }
 
 .hero-tagline {
