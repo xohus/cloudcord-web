@@ -2,6 +2,10 @@
   "name": "CloudCordPopupBlocker",
   "description": "pick which discord promos to block",
   "version": "1.0.0",
-  "platform": "desktop",
-  "sha256": "50ae69e5317796d456f86343fab139cc88db71608192ef4eac9a7fbf0b3df5e8"
+  "platform": "all",
+  "sha256": "50ae69e5317796d456f86343fab139cc88db71608192ef4eac9a7fbf0b3df5e8",
+  "browser": {
+    "entry": "browser.js",
+    "sha256": "d746c1bfb882848ca13429319a644829a2f9e964d9d9e30788e2dcae24cc94aa"
+  }
 }

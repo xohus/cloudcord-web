@@ -1,0 +1,11 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const esbuild = require(process.env.CLOUDCORD_ESBUILD || 'esbuild');
+const root = path.resolve(__dirname, '../public/desktop-plugins/popup-blocker');
+esbuild.buildSync({ entryPoints: [path.join(root, 'index.ts')], outfile: path.join(root, 'browser.js'), bundle: true, format: 'cjs', platform: 'browser', external: ['@api/Settings', '@utils/types', '@utils/constants'], minify: false });
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+manifest.platform = 'all';
+manifest.browser = { entry: 'browser.js', sha256: crypto.createHash('sha256').update(fs.readFileSync(path.join(root, 'browser.js'))).digest('hex') };
+fs.writeFileSync(path.join(root, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+console.log('Browser plugin and integrity manifest built.');
