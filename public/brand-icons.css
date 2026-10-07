@@ -1,0 +1,11 @@
+/* The monochrome cloud follows the page theme without changing its shape. */
+body img[src*="cloudcord-favicon.png"],
+body img[src$="/favicon.png"] {
+    filter: brightness(0) invert(1);
+    object-fit: contain;
+}
+
+body.light img[src*="cloudcord-favicon.png"],
+body.light img[src$="/favicon.png"] {
+    filter: brightness(0);
+}
