@@ -1110,9 +1110,15 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
         // Raw GitHub's moving main URL can serve stale runtime bytes. Resolve
         // the branch, then fetch immutable commit bytes instead.
         if (publicRuntime && !pinnedRef && Date.now() - runtimeCommitCheckedAt > 120000) {
-            const head = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits/main`, {
+            let head = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits/main`, {
                 headers: { 'User-Agent': 'CloudCord-Client', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
             });
+            // Public runtime updates must not depend on a stale private token.
+            if (!head.ok && token) {
+                head = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits/main`, {
+                    headers: { 'User-Agent': 'CloudCord-Client' }
+                });
+            }
             if (head.ok) {
                 const commit = await head.json();
                 if (/^[a-f0-9]{40}$/.test(commit.sha)) { runtimeCommit = commit.sha; runtimeCommitCheckedAt = Date.now(); }
