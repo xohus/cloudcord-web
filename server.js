@@ -440,6 +440,13 @@ app.get('/download/windows', (_req, res) => {
     res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/CloudCordSetup.exe?v=${Date.now()}`);
 });
 
+app.get('/download/mac/:architecture', (req, res) => {
+    const architecture = req.params.architecture;
+    if (!['arm64', 'x64'].includes(architecture)) return res.status(404).send('Mac build not found.');
+    res.set('Cache-Control', 'no-store');
+    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/mac-public-beta/CloudCord-mac-${architecture}-preview.dmg`);
+});
+
 app.get('/download/ios', (_req, res) => {
     res.set('Cache-Control', 'no-store');
     res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/test/cloudcord0.ipa?v=${Date.now()}`);

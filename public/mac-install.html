@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Install CloudCord on Mac</title>
+  <link rel="icon" href="/assets/cloudcord-favicon.png">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    main{max-width:760px;margin:0 auto;padding:48px 20px;line-height:1.7;color:var(--text-primary)}
+    section{background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:24px;margin:24px 0}
+    h1,h2{line-height:1.25;margin-bottom:16px}li{margin:12px 0}a{color:var(--text-primary);text-decoration:underline}p{margin:12px 0}
+    @media(max-width:480px){section{padding:18px}main{padding-top:24px}}
+  </style>
+</head>
+<body>
+<main>
+  <a href="/">← CloudCord</a>
+  <h1>CloudCord for Mac</h1>
+  <p>Your Discord, your way. Install CloudCord into your existing Discord app.</p>
+  <section aria-labelledby="download">
+    <h2 id="download">Download for Mac</h2>
+    <p><a href="/download/mac/arm64">Apple Silicon download</a> · <a href="/download/mac/x64">Intel download</a></p>
+    <p>Public beta. This installer is not notarized by Apple. Read the installation and security notes before opening it.</p>
+  </section>
+  <section aria-labelledby="install">
+    <h2 id="install">Installation</h2>
+    <ol>
+      <li>Download the Mac build directly on this Mac using Safari. Avoid transferring the installer through WhatsApp.</li>
+      <li>Choose Apple Silicon for an M-series Mac. Choose Intel for an Intel Mac. Check Apple menu → About This Mac if unsure.</li>
+      <li>Open the downloaded disk image. If you received a ZIP, extract it first.</li>
+      <li>Drag <strong>CloudCord</strong> onto <strong>Applications</strong>, then eject the disk image.</li>
+      <li>Quit Discord completely with Command–Q. Open CloudCord from Applications.</li>
+      <li>Select your installed Discord app, then choose <strong>Install / Reinstall</strong>.</li>
+      <li>Open Discord. To remove CloudCord later, quit Discord, reopen the installer and choose <strong>Uninstall</strong>.</li>
+    </ol>
+  </section>
+  <section aria-labelledby="warning">
+    <h2 id="warning">If Apple cannot verify the app</h2>
+    <p>This build is not notarized by Apple. The verification warning is not itself a malware detection, but it is not proof of safety either.</p>
+    <p>If you trust the download and the Mac’s owner agrees, try opening CloudCord once, then use <strong>System Settings → Privacy &amp; Security → Open Anyway</strong> and confirm.</p>
+    <p>Do not disable Gatekeeper. If macOS explicitly reports malware, stop rather than bypassing that warning.</p>
+    <a href="https://support.apple.com/102445">Apple’s instructions</a>
+  </section>
+  <section aria-labelledby="help">
+    <h2 id="help">Troubleshooting</h2>
+    <p><strong>“Cannot be opened” after a WhatsApp transfer:</strong> download a fresh copy directly in Safari. Open the copy in Applications, not an older mounted disk image.</p>
+    <p><strong>Discord not found:</strong> install Discord first, or choose your existing Discord.app with the installer’s file picker.</p>
+    <p><strong>Installation failed:</strong> quit Discord and confirm your account can modify the selected app. CloudCord keeps the original Discord archive as a backup.</p>
+    <p><strong>Security scans:</strong> scan results apply to one exact file hash. Zero detections do not guarantee safety; engines unable to scan the file give no verdict. A scan does not replace Apple notarization.</p>
+    <p>For the public beta scanned on October 8, 2026: <a href="https://www.virustotal.com/gui/file/638dbdb47587db571aab1825a9e69f9249d9a033219306f7525f0bf89e519a68">Apple Silicon: 0/61 detections</a>; <a href="https://www.virustotal.com/gui/file/cd7e6e217668f4bb969858b05069a7e0ff0f4f876590540679d948f354a6251f">Intel: 0/60 detections</a> (one timeout and one failed scan). Unsupported engines are excluded.</p>
+    <a href="https://discord.gg/EBEZJ84zBT">Get help from CloudCord</a><span> — joining is optional.</span>
+  </section>
+</main>
+</body>
+</html>
