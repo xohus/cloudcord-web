@@ -9,9 +9,10 @@ let handler;
 const requests = [];
 vm.runInNewContext(source.slice(start, end), {
     app: { get: (_path, _auth, fn) => { handler = fn; } },
-    checkClientAuth: () => {}, process: { env: {} }, GITHUB_REPO: 'xohus/cloudcord', URL, Buffer,
-    fetch: async url => {
+    checkClientAuth: () => {}, process: { env: { GITHUB_PAT: 'expired-test-token' } }, GITHUB_REPO: 'xohus/cloudcord', URL, Buffer,
+    fetch: async (url, options) => {
         requests.push(String(url));
+        if (String(url).includes('api.github.com') && options.headers.Authorization) return { ok: false, status: 401 };
         return { ok: true, headers: { get: () => 'application/json' },
             json: async () => String(url).includes('api.github.com') ? { sha: commit } : { sha256: 'hash', size: 123 },
             arrayBuffer: async () => Buffer.from('runtime') };
@@ -21,6 +22,7 @@ vm.runInNewContext(source.slice(start, end), {
     let manifest;
     const response = { set: () => {}, json: value => { manifest = value; }, send: () => {}, status: () => response };
     await handler({ params: { 0: 'dist/runtime-manifest.json' }, query: {} }, response);
+    assert.equal(requests.filter(url => url.includes('api.github.com')).length, 2);
     assert.equal(manifest.url, `https://getcloudcord.com/api/proxy/raw/dist/cc.js?ref=${commit}`);
     const pinned = 'b'.repeat(40);
     requests.length = 0;
