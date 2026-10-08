@@ -1103,12 +1103,13 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
     const filePathParam = req.params[0];
     const token = process.env.GITHUB_PAT;
     const publicRuntime = ['dist/runtime-manifest.json', 'dist/cc.js', 'dist/cloudcord.js', 'dist/cloudcord.min.js', 'cc.js', 'cloudcord.js', 'cloudcord.min.js'].includes(filePathParam);
+    const pinnedRef = publicRuntime && typeof req.query.ref === 'string' && /^[a-f0-9]{40}$/.test(req.query.ref) ? req.query.ref : '';
     if (!token && !publicRuntime) return res.status(500).json({ error: 'Unconfigured' });
     
     try {
         // Raw GitHub's moving main URL can serve stale runtime bytes. Resolve
         // the branch, then fetch immutable commit bytes instead.
-        if (publicRuntime && Date.now() - runtimeCommitCheckedAt > 120000) {
+        if (publicRuntime && !pinnedRef && Date.now() - runtimeCommitCheckedAt > 120000) {
             const head = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits/main`, {
                 headers: { 'User-Agent': 'CloudCord-Client', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
             });
@@ -1117,7 +1118,7 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
                 if (/^[a-f0-9]{40}$/.test(commit.sha)) { runtimeCommit = commit.sha; runtimeCommitCheckedAt = Date.now(); }
             }
         }
-        const ref = publicRuntime && runtimeCommit ? runtimeCommit : 'main';
+        const ref = pinnedRef || (publicRuntime && runtimeCommit ? runtimeCommit : 'main');
         const upstreamUrl = new URL(`https://raw.githubusercontent.com/${GITHUB_REPO}/${ref}/${filePathParam}`);
         upstreamUrl.searchParams.set('cloudcord_version', Date.now().toString());
         const ghRes = await fetch(upstreamUrl, {
@@ -1138,7 +1139,8 @@ app.get('/api/proxy/raw/*', checkClientAuth, async (req, res) => {
             const manifest = await ghRes.json();
             // Installed loaders allow only this origin. Keep the verified
             // hash/size unchanged while routing the exact bytes through here.
-            manifest.url = 'https://getcloudcord.com/api/proxy/raw/dist/cc.js';
+            if (!/^[a-f0-9]{40}$/.test(ref)) return res.status(503).json({ error: 'Runtime version unavailable' });
+            manifest.url = `https://getcloudcord.com/api/proxy/raw/dist/cc.js?ref=${ref}`;
             return res.json(manifest);
         }
         
