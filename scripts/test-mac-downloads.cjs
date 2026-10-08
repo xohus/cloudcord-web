@@ -16,7 +16,7 @@ for (const architecture of ['arm64', 'x64']) {
     });
     assert.equal(output.status, 302);
     assert.equal(output['Cache-Control'], 'no-store');
-    assert.equal(output.url, `https://github.com/xohus/cloudcord/releases/download/mac-public-beta/CloudCord-mac-${architecture}-preview.dmg`);
+    assert.equal(output.url, `https://github.com/xohus/cloudcord/releases/download/mac-public-beta/CloudCord-mac-${architecture}-56f21964c.dmg`);
     assert(home.includes(`/download/mac/${architecture}`));
 }
 let rejected = false;

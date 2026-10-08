@@ -444,7 +444,7 @@ app.get('/download/mac/:architecture', (req, res) => {
     const architecture = req.params.architecture;
     if (!['arm64', 'x64'].includes(architecture)) return res.status(404).send('Mac build not found.');
     res.set('Cache-Control', 'no-store');
-    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/mac-public-beta/CloudCord-mac-${architecture}-preview.dmg`);
+    res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/mac-public-beta/CloudCord-mac-${architecture}-56f21964c.dmg`);
 });
 
 app.get('/download/ios', (_req, res) => {
