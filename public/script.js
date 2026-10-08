@@ -468,17 +468,18 @@ SearchActionSheet — makes long-pressing search results open their action sheet
     if (tiltImages.length > 0) {
         // Device detection for dynamic images
         const userAgent = navigator.userAgent.toLowerCase();
-        const isIpad = /ipad|macintosh/.test(userAgent) && 'ontouchend' in document;
+        const isIpad = /ipad/.test(userAgent) || (/macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
         const isIphone = /iphone|ipod/.test(userAgent);
         const isAndroid = /android/.test(userAgent);
         const isMobile = isIpad || isIphone || isAndroid;
+        const isMac = /macintosh|mac os x/.test(userAgent) && !isMobile;
         
         let devicePrefix = 'desktop';
         if (isIpad) devicePrefix = 'ipad';
         else if (isIphone) devicePrefix = 'iphone';
         else if (isAndroid) devicePrefix = 'android';
 
-        if (isAndroid) {
+        if (isMac || isAndroid) {
             const screens = ['messages', 'profile', 'settings'];
             const showcase = document.getElementById('tilt-showcase');
             if (showcase && tiltImages.length < screens.length) {
@@ -489,8 +490,9 @@ SearchActionSheet — makes long-pressing search results open their action sheet
             }
             tiltImages.forEach((image, index) => {
                 image.removeAttribute('onerror');
-                image.src = `/assets/android/${screens[index]}.jpg`;
-                image.alt = `CloudCord Android ${screens[index]}`;
+                const platform = isMac ? 'mac' : 'android';
+                image.src = `/assets/${platform}/${screens[index]}.jpg`;
+                image.alt = `CloudCord ${isMac ? 'macOS' : 'Android'} ${screens[index]}`;
             });
         } else if (devicePrefix !== 'desktop') {
             const ext = 'jpg';
