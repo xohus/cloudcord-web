@@ -18,6 +18,20 @@ StoreCloud requires Railway PostgreSQL via `DATABASE_URL`, a Discord OAuth appli
 
 Copy the variable names from `.env.example`. Never commit their values. The service creates its PostgreSQL tables on startup, encrypts every synced value with AES-256-GCM, stores only hashes of device credentials, rate-limits the API, validates sync keys and checksums, and enforces a per-user storage quota.
 
+## Custom connection previews
+
+`/v1/custom-connections/lookup` fetches public Steam, YouTube, Roblox and GitHub
+account information. `/v1/custom-connections/search` supports Steam game search,
+YouTube search/video links, Roblox game links/universe IDs and GitHub repository
+links. These are custom previews, not verified account ownership or OAuth links.
+Other services can currently be customized manually in the client.
+
+Optional server-only `STEAM_API_KEY` enables automatic public Steam game-library
+import. Without it, Steam profile importing and manual game selection still work.
+Never include the key in a client bundle or public response. Requests are limited
+to fixed provider hosts, bounded responses and timeouts; successful results use a
+short bounded cache, and the public routes have a separate rate limit.
+
 ## laptop configuration
 
 Private settings load automatically from `%LOCALAPPDATA%/CloudCord/web/settings.json`

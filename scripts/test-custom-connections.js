@@ -1,5 +1,8 @@
 'use strict';
 const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const dockerfile=fs.readFileSync(path.resolve(__dirname,'../Dockerfile'),'utf8');
+assert.match(dockerfile,/^COPY[^\n]*\bcustom-connections\.js\b[^\n]*\.\/$/m,'deployment image must include the server connection module');
 const {makeConnectionService,makeCustomConnectionsRouter,accountIdentity,youtubeData}=require('../custom-connections');
 for(const bad of ['https://evil.example/user','https://steamcommunity.com.evil.example/id/foo','https://password:secret@steamcommunity.com/id/foo','http://steamcommunity.com/id/foo','https://steamcommunity.com:444/id/foo','https://steamcommunity.com/id/foo/../../secret']) assert.throws(()=>accountIdentity('steam',bad));
 assert.equal(accountIdentity('steam','https://steamcommunity.com/profiles/76561198000000000').id,'76561198000000000');
