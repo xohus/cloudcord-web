@@ -58,7 +58,15 @@ const service=makeConnectionService({fetchImpl:async(url,options)=>{calls.push({
     assert.equal((await service.search('youtube','https://www.youtube.com/shorts/abcdefghijk'))[0].id,video[0].id,'same video deduplicates across link formats');
     await assert.rejects(()=>service.search('youtube','https://youtube.com/@channel'),/video link/);
     await assert.rejects(()=>service.search('roblox','https://evil.example/games/3'),/game link/);
-    assert.ok(calls.every(call=>call.options.redirect==='error'),'redirects cannot bypass fixed provider URLs');
+    assert.ok(calls.every(call=>call.options.redirect==='manual'),'redirects are validated explicitly instead of followed automatically');
+    const redirectCalls=[];
+    const redirected=makeConnectionService({fetchImpl:async url=>{redirectCalls.push(url);return redirectCalls.length===1?new Response(null,{status:302,headers:{location:'/profiles/76561198000000000/?xml=1'}}):new Response('<profile><steamID64>76561198000000000</steamID64><steamID>Public user</steamID></profile>');}});
+    assert.equal((await redirected.lookup('steam','test')).displayName,'Public user');
+    assert.equal(redirectCalls.length,2,'same-provider canonical redirects are supported');
+    let unsafeCalls=0;
+    const unsafeRedirect=makeConnectionService({fetchImpl:async()=>{unsafeCalls++;return new Response(null,{status:302,headers:{location:'https://evil.example/profile'}});}});
+    await assert.rejects(()=>unsafeRedirect.lookup('steam','test'),/not a trusted/);
+    assert.equal(unsafeCalls,1,'untrusted redirect destinations are never fetched');
     await assert.rejects(()=>service.lookup('x','test'),/not available/);
     const failed=makeConnectionService({fetchImpl:async()=>new Response('not found',{status:404})});await assert.rejects(()=>failed.lookup('steam','missing'),/not found/);
     const app=require('express')();

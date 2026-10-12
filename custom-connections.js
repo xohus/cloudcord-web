@@ -36,7 +36,18 @@ function youtubeData(html) {
 function makeConnectionService({fetchImpl=fetch,steamKey=process.env.STEAM_API_KEY||''}={}) {
     async function read(url,options={}) {
         // URLs are constructed below from validated identifiers, never fetched verbatim from a user.
-        const response=await fetchImpl(url,{...options,redirect:'error',signal:AbortSignal.timeout(10000),headers:{'User-Agent':'CloudCord-Public-Preview/1.0',...options.headers}});
+        const original=new URL(url),signal=AbortSignal.timeout(10000);
+        let current=original,response;
+        for(let redirects=0;;redirects++){
+            response=await fetchImpl(current.href,{...options,redirect:'manual',signal,headers:{'User-Agent':'CloudCord-Public-Preview/1.0',...options.headers}});
+            if(![301,302,303,307,308].includes(response.status))break;
+            const location=response.headers.get('location');
+            if(!location||redirects>=3||options.method&&options.method!=='GET')throw new Error('This service could not provide public information. Try its direct profile link or customize manually.');
+            const next=new URL(location,current);
+            if(next.protocol!=='https:'||next.hostname!==original.hostname||next.username||next.password||next.port)throw new Error('This service could not provide public information. Its redirect was not a trusted public profile URL.');
+            await response.body?.cancel();
+            current=next;
+        }
         if(!response.ok)throw new Error(response.status===404?'Public account was not found.':'This service could not provide public information. Try again later or customize manually.');
         const length=Number(response.headers.get('content-length')||0);if(length>3*1024*1024)throw new Error('Public response is too large.');
         const chunks=[];let bytes=0;
