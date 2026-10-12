@@ -52,6 +52,8 @@ const service=makeConnectionService({fetchImpl:async(url,options)=>{calls.push({
     assert.equal(concurrentCalls,2,'concurrent viewers share the profile and repository provider requests');
     const youtube=await service.lookup('youtube','@YouTube');assert.equal(youtube.displayName,'Test channel');assert.equal(youtube.items[0].title,'Video title');
     assert.equal(youtube.username,'@YouTube');
+    assert.ok(calls.filter(call=>new URL(call.url).hostname==='www.youtube.com').every(call=>call.options.headers.Cookie==='SOCS=CAI'),'YouTube public requests use a fixed logged-out consent preference');
+    assert.ok(calls.filter(call=>!new URL(call.url).hostname.endsWith('youtube.com')).every(call=>!call.options.headers.Cookie),'provider preferences never leak to other services');
     const experience=await service.search('roblox','https://www.roblox.com/games/3/Experience');assert.equal(experience[0].title,'Experience');assert.equal(experience[0].image,'https://example.com/roblox');
     const video=await service.search('youtube','https://youtu.be/abcdefghijk?t=3');assert.equal(video[0].url,'https://www.youtube.com/watch?v=abcdefghijk');
     assert.equal((await service.search('youtube','Video search'))[0].title,'Video title');

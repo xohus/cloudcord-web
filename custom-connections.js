@@ -39,12 +39,16 @@ function makeConnectionService({fetchImpl=fetch,steamKey=process.env.STEAM_API_K
         const original=new URL(url),signal=AbortSignal.timeout(10000);
         let current=original,response;
         for(let redirects=0;;redirects++){
-            response=await fetchImpl(current.href,{...options,redirect:'manual',signal,headers:{'User-Agent':'CloudCord-Public-Preview/1.0',...options.headers}});
+            // Public, logged-out YouTube requests must not be redirected to its
+            // regional consent UI. This fixed preference contains no account data.
+            const youtube=['www.youtube.com','youtube.com'].includes(current.hostname);
+            response=await fetchImpl(current.href,{...options,redirect:'manual',signal,headers:{'User-Agent':'CloudCord-Public-Preview/1.0',...(youtube?{'Cookie':'SOCS=CAI','Accept-Language':'en-US,en;q=0.9'}:{}),...options.headers}});
             if(![301,302,303,307,308].includes(response.status))break;
             const location=response.headers.get('location');
             if(!location||redirects>=3||options.method&&options.method!=='GET')throw new Error('This service could not provide public information. Try its direct profile link or customize manually.');
             const next=new URL(location,current);
-            if(next.protocol!=='https:'||next.hostname!==original.hostname||next.username||next.password||next.port)throw new Error('This service could not provide public information. Its redirect was not a trusted public profile URL.');
+            const sameProvider=next.hostname===original.hostname||(['www.youtube.com','youtube.com'].includes(original.hostname)&&['www.youtube.com','youtube.com'].includes(next.hostname));
+            if(next.protocol!=='https:'||!sameProvider||next.username||next.password||next.port)throw new Error('This service could not provide public information. Its redirect was not a trusted public profile URL.');
             await response.body?.cancel();
             current=next;
         }
