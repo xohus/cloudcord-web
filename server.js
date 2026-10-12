@@ -11,6 +11,7 @@ const crypto = require('crypto');
 const { Pool } = require('pg');
 const { makeStoreCloudRouter } = require('./storecloud');
 const { makeMembershipRouter } = require('./membership');
+const { makeCustomConnectionsRouter } = require('./custom-connections');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -263,6 +264,7 @@ const profileWriteLimiter = rateLimit({ windowMs: 60 * 1000, limit: 240, standar
 const validOwnerId = value => /^\d{15,22}$/.test(String(value || ''));
 const hashProfileToken = token => crypto.createHash('sha256').update(String(token)).digest('hex');
 const profileRevision = profile => Math.max(0, Number(profile?.syncRevision || 0) || 0);
+app.use('/v1/custom-connections', rateLimit({ windowMs: 60000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false }), makeCustomConnectionsRouter());
 
 async function latestProfileForOwner(ownerId) {
     if (localProfiles) return localProfiles.latest(ownerId);
