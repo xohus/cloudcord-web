@@ -392,9 +392,9 @@ app.get(['/api/status', '/v1/status'], (req, res) => {
             web: { status: 'operational', label: 'Operational' },
             ios: { status: 'operational', label: 'Operational' },
             android_manager: {
-                status: 'degraded',
-                label: 'Partially down',
-                message: 'Some users cannot install or launch the modified client. APK signature verification and installation failures are under investigation. Existing working installations are not necessarily affected.'
+                status: 'operational',
+                label: 'Operational',
+                message: 'The replacement Test 2 Manager is available and a tester reports successful operation. It installs separately from older Managers; device compatibility can vary.'
             },
             botcord: {
                 status: botCordOperational ? 'operational' : 'maintenance',
@@ -464,20 +464,21 @@ app.get('/download/android', (_req, res) => {
     res.set('Cache-Control', 'no-store');
     res.type('html').send(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CloudCord Android</title>
 <body style="background:#202127;color:#f4f4f5;font:16px system-ui;max-width:620px;margin:10vh auto;padding:24px">
-<h1>CloudCord Android Manager</h1><p>Android repair build · b97f560fb · October 16, 2026</p>
-<p>This installer passed its automated build and tests. Installation on users’ phones is still being verified.</p>
-<p>Fetches the latest Discord version for your selected channel instead of staying pinned to an older version. Compatibility with every new Discord release is not guaranteed.</p>
-<p>Includes installation-confirmation fixes, refreshed Start buttons, Shizuku split installation, and longer download time for slower connections while retaining stalled-connection timeouts.</p>
+<h1>CloudCord Android Manager</h1><p>Manager Test 2 · 7829c8f · October 16, 2026</p>
+<p>Tester-reported working. The build and both metadata-version regression tests passed. Device compatibility can vary.</p>
+<p>Fetches the latest Discord version from the stable channel instead of staying pinned to an older version. Compatibility with every new Discord release is not guaranteed.</p>
+<p>Replaces the earlier installer with a CloudCord-branded Raincord/Aliucord Manager fork, bundled CloudCord injection module, and a fix for the Store metadata failure.</p>
 <h2>Existing users: read before installing</h2>
-<p>This preview has a different signing key from earlier public Manager builds, including the earlier repair preview. Android may refuse to install it over an older Manager. Uninstalling the old Manager can delete settings and the signing key it uses for your modified Discord.</p>
-<p>Do not uninstall your existing Manager or Discord just to resolve an update error. Keep your existing installation unless you have backed up what you need. This release is best suited to fresh installations.</p>
-<p><a style="color:#b3b5ff" href="/download/android/apk">Download Android repair installer</a></p>
+<p>This Manager installs separately as CloudCord Manager Test 2 and creates a separate CloudCord Test client. It is not an in-place update or an automatic migration of your existing settings.</p>
+<p>Do not uninstall your existing Manager or Discord, or clear their data. You can keep them while using this separate installer.</p>
+<p><a style="color:#b3b5ff" href="/download/android/apk">Download CloudCord Manager Test 2</a></p>
+<p>Based on Raincord/Aliucord Manager, distributed under OSL-3.0; not endorsed by upstream. <a style="color:#b3b5ff" href="https://github.com/xohus/cloudcord/tree/7829c8faf90de0e30dde771e3b49b447bed8ac55/android-manager-test">Source, license and modification notices</a>.</p>
 <p><a style="color:#b3b5ff" href="/">Back to CloudCord</a></p></body></html>`);
 });
 
 app.get('/download/android/apk', (_req, res) => {
     res.set('Cache-Control', 'no-store');
-    res.redirect(302, 'https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCordManager-repair-b97f560fb.apk');
+    res.redirect(302, 'https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCordManager-Test2-7829c8f.apk');
 });
 
 // Session setup

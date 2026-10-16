@@ -17,10 +17,11 @@ const response = {
 };
 routes['/download/android']({}, response);
 routes['/download/android/apk']({}, response);
-assert(html.includes('different signing key'));
+assert(html.includes('installs separately'));
 assert(html.includes('Do not uninstall'));
 assert(html.includes('Fetches the latest Discord version'));
 assert(!html.includes('currently targets Discord 344.13'));
 assert(html.includes('Compatibility with every new Discord release is not guaranteed'));
-assert.equal(url, 'https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCordManager-repair-b97f560fb.apk');
+assert(html.includes('OSL-3.0'));
+assert.equal(url, 'https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCordManager-Test2-7829c8f.apk');
 console.log('PASS Android warning page and pinned repair download route');
