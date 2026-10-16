@@ -390,6 +390,11 @@ app.get(['/api/status', '/v1/status'], (req, res) => {
         uptimeSeconds: Math.floor(process.uptime()),
         services: {
             web: { status: 'operational', label: 'Operational' },
+            android_manager: {
+                status: 'degraded',
+                label: 'Partially down',
+                message: 'Some users cannot install or launch the modified client. APK signature verification and installation failures are under investigation. Existing working installations are not necessarily affected.'
+            },
             botcord: {
                 status: botCordOperational ? 'operational' : 'maintenance',
                 label: botCordOperational ? 'Operational' : 'Temporarily unavailable'

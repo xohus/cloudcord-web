@@ -66,16 +66,19 @@
 
         <div class="status-card reveal stagger-up" style="transition-delay: 0.2s" onclick="toggleChangelog('android')">
             <div>
-                <div class="status-platform">Android</div>
+                <div class="status-platform">Android Manager</div>
+                <p style="margin:.4rem 0 0;color:var(--text-secondary)">Some installations fail. Existing working clients are not necessarily affected.</p>
                 
             </div>
-            <div class="status-badge status-online">Operational</div>
+            <div class="status-badge" data-service="android_manager" style="color:#faa61a;">Partially down</div>
         </div>
         <div id="changelog-android" class="changelog-details">
             <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Latest Updates</h3>
             <ul>
-                <li><span class="tag-new">NEW</span> Added support for animated profile themes.</li>
-                <li><span class="tag-fix">FIX</span> Resolved issue with plugin list not scrolling.</li>
+                <li>Investigating APK signature verification failures, including a report from a fresh installation on Android 16.</li>
+                <li>Other reports include invalid APK archives, installation or injection failures, and the installed app not opening.</li>
+                <li>Repair builds are available, but successful builds do not confirm that all phones work. <a href="/download/android">Read the download warnings</a>.</li>
+                <li>Do not uninstall an existing working Manager or Discord, or clear app data, just to bypass a signing error.</li>
             </ul>
         </div>
 
