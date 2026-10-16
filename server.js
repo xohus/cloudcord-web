@@ -390,6 +390,7 @@ app.get(['/api/status', '/v1/status'], (req, res) => {
         uptimeSeconds: Math.floor(process.uptime()),
         services: {
             web: { status: 'operational', label: 'Operational' },
+            ios: { status: 'operational', label: 'Operational' },
             android_manager: {
                 status: 'degraded',
                 label: 'Partially down',
