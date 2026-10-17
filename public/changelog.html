@@ -114,5 +114,5 @@
             document.querySelector('#live-changelog').innerHTML = entries.map(entry => `<div class="changelog-item"><div class="changelog-header"><div class="changelog-title">${escapeChangelog(entry.title)}</div><div class="changelog-date">${new Date(entry.published_at).toLocaleDateString()}</div></div><div class="changelog-content"><p>${escapeChangelog(entry.summary)}</p><ul>${entry.items.map(item => `<li><span class="tag-${item.type === 'new' ? 'new' : ['fix', 'fixed'].includes(item.type) ? 'fix' : 'update'}">${escapeChangelog(item.type)}</span> ${escapeChangelog(item.text)}</li>`).join('')}</ul></div></div>`).join('');
         }).catch(() => {});
     </script>
-</body>
+<script src="https://aiticketbot.com/widget/w.js" data-key="wgt_f8a4967ee881eb480be1cd3d851ad4f1" async></script></body>
 </html>
