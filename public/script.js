@@ -87,11 +87,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const macDownloads = document.getElementById('mac-downloads');
     const macDownloadBtn = document.getElementById('mac-download-btn');
     const macDownloadBack = document.getElementById('mac-download-back');
+    const iosDownloads = document.getElementById('ios-downloads');
+    const iosDownloadBtn = document.getElementById('ios-download-btn');
+    const iosDownloadBack = document.getElementById('ios-download-back');
 
     function showPlatformDownloads() {
         if (platformDownloads) platformDownloads.hidden = false;
         if (browserDownloads) browserDownloads.hidden = true;
         if (macDownloads) macDownloads.hidden = true;
+        if (iosDownloads) iosDownloads.hidden = true;
+    }
+
+    function showIosDownloads() {
+        if (platformDownloads) platformDownloads.hidden = true;
+        if (browserDownloads) browserDownloads.hidden = true;
+        if (macDownloads) macDownloads.hidden = true;
+        if (iosDownloads) iosDownloads.hidden = false;
     }
 
     function showBrowserDownloads() {
@@ -122,6 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (browserDownloadBack) browserDownloadBack.addEventListener('click', showPlatformDownloads);
     if (macDownloadBtn) macDownloadBtn.addEventListener('click', showMacDownloads);
     if (macDownloadBack) macDownloadBack.addEventListener('click', showPlatformDownloads);
+    if (iosDownloadBtn) iosDownloadBtn.addEventListener('click', showIosDownloads);
+    if (iosDownloadBack) iosDownloadBack.addEventListener('click', showPlatformDownloads);
 
     window.addEventListener('click', (e) => {
         if (e.target === modal) {

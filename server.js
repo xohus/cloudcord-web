@@ -461,6 +461,13 @@ app.get('/download/ios', (_req, res) => {
     res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/test/cloudcord0.ipa?v=${Date.now()}`);
 });
 
+// Signed build hosted by the iOS signing service. Override with
+// CLOUDCORD_IOS_DIRECT_INSTALL_URL when the link changes.
+app.get('/download/ios/direct', (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.redirect(302, process.env.CLOUDCORD_IOS_DIRECT_INSTALL_URL || 'itms-services://?action=download-manifest&url=https://ipa.ipasign.cc/manifest/07f164364346.plist');
+});
+
 app.get('/download/android', (_req, res) => {
     res.set('Cache-Control', 'no-store');
     res.type('html').send(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CloudCord Android</title>
