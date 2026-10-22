@@ -636,57 +636,54 @@ SearchActionSheet — makes long-pressing search results open their action sheet
     }
 
     
-    // 7. Legacy install baseline plus verified installs from the canonical usage service.
+    // 7. Show only the canonical lifetime download count, never an added baseline.
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
-        const legacyInstallBaseline = 500;
-        const cachedInstallCount = Number(localStorage.getItem('cloudcordVerifiedInstallCount'));
-        let lastVerifiedCount = Number.isSafeInteger(cachedInstallCount) && cachedInstallCount >= legacyInstallBaseline
-            ? cachedInstallCount
-            : legacyInstallBaseline;
-        installCounter.innerText = lastVerifiedCount.toLocaleString();
-        installCounter.title = cachedInstallCount ? 'Last verified lifetime install count' : 'Official install baseline';
+        const cacheKey = 'cloudcordVerifiedDownloadCountV2';
+        let lastVerifiedCount = null;
+        let pending = false;
+        try {
+            // The old key contains totals inflated by 500 and cannot be trusted.
+            localStorage.removeItem('cloudcordVerifiedInstallCount');
+            const cached = localStorage.getItem(cacheKey);
+            if (cached !== null && /^\d+$/.test(cached)) {
+                const count = Number(cached);
+                if (Number.isSafeInteger(count)) lastVerifiedCount = count;
+            }
+        } catch { /* Private browsing/storage restrictions must not block live data. */ }
+        installCounter.innerText = lastVerifiedCount === null ? '—' : lastVerifiedCount.toLocaleString();
+        installCounter.title = lastVerifiedCount === null ? 'Loading verified download count' : 'Last verified download count';
 
         async function fetchVerifiedInstalls() {
+            if (pending) return;
+            pending = true;
             try {
-                let response;
-                try {
-                    response = await fetch('/v1/usage/installs', {
-                        cache: 'no-store',
-                        signal: AbortSignal.timeout(5000),
-                        headers: { 'Accept': 'application/json' }
-                    });
-                } catch (e) {
-                    // Fallback directly to worker
-                    response = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
-                        cache: 'no-store',
-                        headers: { 'Accept': 'application/json' }
-                    });
+                let count = null;
+                for (const url of ['/v1/usage/installs', 'https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs']) {
+                    try {
+                        const response = await fetch(url, {
+                            cache: 'no-store', signal: AbortSignal.timeout(5000),
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (!response.ok) throw new Error(`Usage service ${response.status}`);
+                        const payload = await response.json();
+                        if (typeof payload?.count !== 'number' || !Number.isSafeInteger(payload.count) || payload.count < 0 || payload.metric !== 'lifetime_official_downloads') {
+                            throw new Error('Invalid verified download response');
+                        }
+                        count = payload.count;
+                        break;
+                    } catch { /* Try the canonical worker if the website proxy fails. */ }
                 }
-
-                if (!response || !response.ok) {
-                    response = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
-                        cache: 'no-store',
-                        headers: { 'Accept': 'application/json' }
-                    });
-                }
-
-                if (!response.ok) throw new Error(`CloudCord usage service ${response.status}`);
-                const payload = await response.json();
-                const count = Number(payload?.count);
-                if (!Number.isInteger(count) || count < 0) {
-                    throw new Error('Invalid verified install response');
-                }
-                const displayedCount = legacyInstallBaseline + count;
-                lastVerifiedCount = displayedCount;
-                localStorage.setItem('cloudcordVerifiedInstallCount', String(displayedCount));
-                installCounter.innerText = displayedCount.toLocaleString();
+                if (count === null) throw new Error('Verified download count unavailable');
+                lastVerifiedCount = count;
+                installCounter.innerText = count.toLocaleString();
                 installCounter.title = 'Lifetime official CloudCord downloads';
+                try { localStorage.setItem(cacheKey, String(count)); } catch {}
             } catch (err) {
-                console.error('Failed to fetch verified CloudCord installs', err);
-                installCounter.innerText = lastVerifiedCount.toLocaleString();
-                installCounter.title = 'Showing the last verified install count';
-            }
+                console.error('Failed to fetch verified CloudCord downloads', err);
+                installCounter.innerText = lastVerifiedCount === null ? '—' : lastVerifiedCount.toLocaleString();
+                installCounter.title = lastVerifiedCount === null ? 'Download count temporarily unavailable' : 'Showing the last verified download count';
+            } finally { pending = false; }
         }
 
         fetchVerifiedInstalls();
