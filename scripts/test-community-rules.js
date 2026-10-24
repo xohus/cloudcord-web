@@ -1,0 +1,10 @@
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const html = fs.readFileSync('public/rules.html', 'utf8');
+const headings = [...html.matchAll(/<h2 id="([^"]+)">(\d+)\. ([^<]+)<\/h2>/g)];
+assert.equal(headings.length, 35);
+assert.deepEqual(headings.map(x => Number(x[2])), Array.from({ length: 35 }, (_, i) => i + 1));
+assert.equal(new Set(headings.map(x => x[1])).size, 35);
+assert(!/10[–-]30|30 mins|24 hours|mod guide|MODERATION INSTRUCTIONS|VERBAL WARNING/i.test(html), 'Operational mod instructions must stay private');
+for (const text of ['Appeals are allowed', 'Frustration is not automatically misconduct', 'Protect account credentials', 'aiticketbot.com/widget/w.js', 'href="/privacy"']) assert(html.includes(text));
+console.log('PASS 35 public community rules, sequential headings, unique anchors, policy links and widget; no operational mod instructions');
