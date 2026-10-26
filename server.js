@@ -470,18 +470,17 @@ app.get('/download/ios/direct', (_req, res) => {
 
 app.get('/download/android', (_req, res) => {
     res.set('Cache-Control', 'no-store');
-    res.type('html').send(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CloudCord Android</title>
-<body style="background:#202127;color:#f4f4f5;font:16px system-ui;max-width:620px;margin:10vh auto;padding:24px">
-<h1>CloudCord Android Manager</h1><p>Manager Test 2 · 7829c8f · October 16, 2026</p>
-<p>Tester-reported working. The build and both metadata-version regression tests passed. Device compatibility can vary.</p>
-<p>Fetches the latest Discord version from the stable channel instead of staying pinned to an older version. Compatibility with every new Discord release is not guaranteed.</p>
-<p>Replaces the earlier installer with a CloudCord-branded Raincord/Aliucord Manager fork, bundled CloudCord injection module, and a fix for the Store metadata failure.</p>
-<h2>Existing users: read before installing</h2>
-<p>This Manager installs separately as CloudCord Manager Test 2 and creates a separate CloudCord Test client. It is not an in-place update or an automatic migration of your existing settings.</p>
-<p>Do not uninstall your existing Manager or Discord, or clear their data. You can keep them while using this separate installer.</p>
-<p><a style="color:#b3b5ff" href="/download/android/apk">Download CloudCord Manager Test 2</a></p>
-<p>Based on Raincord/Aliucord Manager, distributed under OSL-3.0; not endorsed by upstream. <a style="color:#b3b5ff" href="https://github.com/xohus/cloudcord/tree/7829c8faf90de0e30dde771e3b49b447bed8ac55/android-manager-test">Source, license and modification notices</a>.</p>
-<p><a style="color:#b3b5ff" href="/">Back to CloudCord</a></p></body></html>`);
+    // Starts the download straight away; the footer keeps the Manager's OSL-3.0 source notice.
+    res.type('html').send(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Download CloudCord for Android</title>
+<meta http-equiv="refresh" content="1;url=/download/android/apk"><link rel="icon" href="/favicon.png">
+<body style="margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#1e1f22;color:#f2f3f5;font:16px system-ui,sans-serif;text-align:center;padding:24px">
+<img src="/cloudcord-logo.png" alt="CloudCord" width="96" height="96" style="border-radius:24px">
+<h1 style="margin:0;font-size:26px">CloudCord for Android</h1>
+<p style="margin:0;color:#b5bac1">Your download is starting…</p>
+<a href="/download/android/apk" style="padding:12px 22px;border-radius:10px;background:#5865f2;color:#fff;font-weight:600;text-decoration:none">Download CloudCord Manager</a>
+<p style="margin:6px 0 0;display:flex;gap:16px;justify-content:center"><a style="color:#b3b5ff" href="https://discord.gg/cloudcord">Discord</a><a style="color:#b3b5ff" href="https://github.com/xohus/cloudcord">GitHub</a><a style="color:#b3b5ff" href="/">Website</a></p>
+<p style="margin:24px 0 0;font-size:12px;color:#80848e">Based on Aliucord/Raincord Manager, OSL-3.0. <a style="color:#80848e" href="https://github.com/xohus/cloudcord/tree/xohus/rain-manager-test/android-manager-test">Source and license</a></p>
+</body></html>`);
 });
 
 app.get('/download/android/apk', (_req, res) => {
