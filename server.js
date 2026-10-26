@@ -12,6 +12,7 @@ const { Pool } = require('pg');
 const { makeStoreCloudRouter } = require('./storecloud');
 const { makeMembershipRouter } = require('./membership');
 const { makeCustomConnectionsRouter } = require('./custom-connections');
+const { makeDownloadAlerts } = require('./download-alerts');
 const { makeProfileSharesRouter, renderSharePage } = require('./profile-shares');
 
 const app = express();
@@ -422,6 +423,9 @@ app.get(['/api/status', '/v1/status'], (req, res) => {
     });
 });
 
+// Discord webhook posts for new downloads (@here every 1,000, @everyone every 5,000).
+const downloadAlerts = makeDownloadAlerts({ db: realCordDb, webhookUrl: process.env.CLOUDCORD_DOWNLOADS_WEBHOOK_URL });
+
 // Direct live installs proxy to bypass any CORS/client network issues.
 // Never manufacture a count: retain the last verified upstream value during a
 // transient outage, or return an unavailable response if none has been verified.
@@ -462,6 +466,7 @@ app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {
 });
 
 app.get('/download/windows', (_req, res) => {
+    downloadAlerts.noteDownload('windows');
     res.set('Cache-Control', 'no-store');
     res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/new_beta_t_desktop/CloudCordSetup.exe?v=${Date.now()}`);
 });
@@ -469,11 +474,13 @@ app.get('/download/windows', (_req, res) => {
 app.get('/download/mac/:architecture', (req, res) => {
     const architecture = req.params.architecture;
     if (!['arm64', 'x64'].includes(architecture)) return res.status(404).send('Mac build not found.');
+    downloadAlerts.noteDownload('mac');
     res.set('Cache-Control', 'no-store');
     res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/mac-public-beta/CloudCord-mac-${architecture}-56f21964c.dmg`);
 });
 
 app.get('/download/ios', (_req, res) => {
+    downloadAlerts.noteDownload('ios');
     res.set('Cache-Control', 'no-store');
     res.redirect(302, `https://github.com/xohus/cloudcord/releases/download/test/cloudcord0.ipa?v=${Date.now()}`);
 });
@@ -481,6 +488,7 @@ app.get('/download/ios', (_req, res) => {
 // Signed build hosted by the iOS signing service. Override with
 // CLOUDCORD_IOS_DIRECT_INSTALL_URL when the link changes.
 app.get('/download/ios/direct', (_req, res) => {
+    downloadAlerts.noteDownload('ios');
     res.set('Cache-Control', 'no-store');
     res.redirect(302, process.env.CLOUDCORD_IOS_DIRECT_INSTALL_URL || 'itms-services://?action=download-manifest&url=https://ipa.ipasign.cc/manifest/07f164364346.plist');
 });
@@ -501,6 +509,7 @@ app.get('/download/android', (_req, res) => {
 });
 
 app.get('/download/android/apk', (_req, res) => {
+    downloadAlerts.noteDownload('android');
     res.set('Cache-Control', 'no-store');
     res.redirect(302, 'https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCordManager-Test2-7829c8f.apk');
 });
@@ -1264,5 +1273,6 @@ app.get('/staff-application', (_req, res) => {
 });
 
 app.listen(PORT, () => {
+    downloadAlerts.start();
     console.log(`Server is running on port ${PORT}`);
 });
