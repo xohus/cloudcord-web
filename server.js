@@ -694,6 +694,9 @@ async function sendStaffDecisionDm(application, decision, note) {
     return { channelId: dm.id };
 }
 
+// Staff reports: public /report-staff and staff-only /staff/reports.
+const staffReports = makeStaffReports({ db: realCordDb, botRequest: discordBotRequest, checkStaffAdmin, timingSafeTextEqual, logAudit });
+
 app.post('/api/staff/applications/start', staffApplicationLimiter, (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Applications are temporarily unavailable' });
     const answers = cleanStaffAnswers(req.body?.answers);
@@ -709,6 +712,7 @@ app.post('/api/staff/applications/start', staffApplicationLimiter, (req, res) =>
 });
 
 app.get('/staff-application/callback', staffApplicationLimiter, async (req, res) => {
+    if (req.session.staffReportLogin && !req.session.staffApplication) return staffReports.handleCallback(req, res);
     const pending = req.session.staffApplication;
     delete req.session.staffApplication;
     if (req.query.error) return res.redirect('/staff-application?error=oauth_denied');
@@ -1273,8 +1277,7 @@ app.get('/staff-application', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'staff-application.html'));
 });
 
-// Staff reports: public /report-staff and staff-only /staff/reports.
-app.use(makeStaffReports({ db: realCordDb, botRequest: discordBotRequest, checkStaffAdmin, timingSafeTextEqual, logAudit }));
+app.use(staffReports);
 app.get('/report-staff', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'report-staff.html')));
 app.get('/staff/reports', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'staff-reports.html')));
 

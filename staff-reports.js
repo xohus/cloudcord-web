@@ -41,7 +41,8 @@ function makeStaffReports({ db, botRequest, checkStaffAdmin, timingSafeTextEqual
     const router = express.Router();
     const submitLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: 'draft-7', legacyHeaders: false, message: { error: 'Too many reports. Try again later.' } });
     const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: 'draft-7', legacyHeaders: false });
-    const redirectUri = env.CLOUDCORD_STAFF_REPORTS_REDIRECT_URI || 'https://getcloudcord.com/staff-reports/callback';
+    // Reuses the staff application's Discord redirect, so no new redirect URL has to be registered.
+    const redirectUri = env.CLOUDCORD_STAFF_REDIRECT_URI || 'https://getcloudcord.com/staff-application/callback';
     const staffRoles = new Set(String(env.CLOUDCORD_STAFF_ROLE_IDS || '').split(/[\s,]+/).filter(Boolean));
     const webhookUrl = WEBHOOK_RE.test(String(env.CLOUDCORD_STAFF_REPORTS_WEBHOOK_URL || '')) ? env.CLOUDCORD_STAFF_REPORTS_WEBHOOK_URL : null;
 
@@ -109,7 +110,7 @@ function makeStaffReports({ db, botRequest, checkStaffAdmin, timingSafeTextEqual
         res.redirect(`https://discord.com/oauth2/authorize?${query}`);
     });
 
-    router.get('/staff-reports/callback', authLimiter, async (req, res) => {
+    async function handleCallback(req, res) {
         const pending = req.session.staffReportLogin;
         delete req.session.staffReportLogin;
         const back = PAGES[pending?.back] || PAGES.public;
@@ -132,7 +133,7 @@ function makeStaffReports({ db, botRequest, checkStaffAdmin, timingSafeTextEqual
             console.error('[STAFF REPORTS OAUTH]', error.message);
             res.redirect(`${back}?error=signin_failed`);
         }
-    });
+    }
 
     router.post('/api/staff-reports/logout', (req, res) => {
         delete req.session.reportUser;
@@ -188,6 +189,8 @@ function makeStaffReports({ db, botRequest, checkStaffAdmin, timingSafeTextEqual
         res.json({ updated: true });
     });
 
+    // server.js calls this from /staff-application/callback when a report sign-in is pending.
+    router.handleCallback = handleCallback;
     return router;
 }
 
