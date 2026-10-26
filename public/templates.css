@@ -1,0 +1,29 @@
+/* Profile template gallery; builds on staff-application.css. */
+.tpl-shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 140px 0 100px; position: relative; }
+.tpl-shell .application-hero { margin-bottom: 40px; }
+.tpl-shell .application-hero h1 { font-size: clamp(2.6rem, 6vw, 4.6rem); }
+.tpl-toolbar { display: flex; gap: 12px; align-items: center; }
+.tpl-toolbar input { flex: 1; min-width: 0; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); border-radius: 9px; padding: 13px 15px; font: 500 .95rem var(--font-primary); }
+.tpl-toolbar input:focus { outline: none; border-color: var(--accent-purple); }
+.tpl-sort { display: flex; padding: 4px; border: 1px solid var(--border-color); border-radius: 9px; background: var(--bg-card); }
+.tpl-sort button, .tpl-chips button { border: 0; background: transparent; color: var(--text-muted); font: 700 .84rem var(--font-primary); cursor: pointer; border-radius: 6px; padding: 8px 14px; }
+.tpl-sort button.active { background: var(--accent-purple); color: #fff; }
+.tpl-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 26px; }
+.tpl-chips button { border: 1px solid var(--border-color); background: var(--bg-card); border-radius: 999px; }
+.tpl-chips button.active, .tpl-chips button:hover { color: var(--text-primary); border-color: var(--accent-purple); background: rgba(var(--accent-purple-rgb), .12); }
+.tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+.tpl-card { border-radius: 14px; overflow: hidden; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; flex-direction: column; transition: transform .15s ease, border-color .15s ease; }
+.tpl-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.tpl-banner { height: 96px; background: var(--accent) center / cover no-repeat; }
+.tpl-avatar { width: 72px; height: 72px; margin: -38px 0 0 14px; border-radius: 50%; border: 5px solid var(--bg-card); background: var(--bg-tertiary); overflow: hidden; }
+.tpl-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.tpl-body { padding: 6px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.tpl-body h2 { font-size: 1.1rem; overflow-wrap: anywhere; }
+.tpl-meta { color: var(--text-muted); font-size: .76rem; font-weight: 700; }
+.tpl-desc { color: var(--text-secondary); font-size: .86rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tpl-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; }
+.tpl-actions > * { flex: 1; min-height: 38px; text-decoration: none; }
+.tpl-empty { text-align: center; color: var(--text-muted); padding: 40px 0; }
+.tpl-more { text-align: center; margin-top: 26px; }
+@media (max-width: 620px) { .tpl-shell { padding-top: 115px; } .tpl-toolbar { flex-direction: column; align-items: stretch; } }
+.tpl-shell [hidden] { display: none !important; }
