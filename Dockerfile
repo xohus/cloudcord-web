@@ -11,8 +11,9 @@ COPY --chown=node:node package*.json ./
 RUN npm install --omit=dev --no-audit --no-fund \
     && npm cache clean --force
 
-# Copy only files needed by the running website.
-COPY --chown=node:node server.js membership.js storecloud.js configuration.js local-profiles.js custom-badges.js badge-moderation.js custom-connections.js ./
+# Copy the server modules (every .js in the root) and the website files.
+# A fixed list here broke deploys whenever a new module was added.
+COPY --chown=node:node *.js ./
 COPY --chown=node:node public ./public
 
 # Writable target for Coolify persistent badge/profile storage.
