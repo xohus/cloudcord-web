@@ -1,6 +1,7 @@
 'use strict';
-// Shared Custom Profiles: someone publishes a copy of their CloudCord profile and
-// others import it into their own Saved profiles.
+// Profile templates: someone publishes a copy of their CloudCord profile and
+// others apply it or add it to their Saved profiles. Public ones form the
+// template gallery (getcloudcord.com/templates and the in-app Templates tab).
 //   public   - listed in /v1/shares and readable by anyone
 //   unlisted - readable by anyone with the link, never listed
 //   private  - readable only with the share's edit token (a personal cloud copy)
@@ -8,6 +9,8 @@ const crypto = require('node:crypto');
 const express = require('express');
 
 const VISIBILITIES = new Set(['public', 'unlisted', 'private']);
+const CATEGORIES = ['Aesthetic', 'Anime', 'Gaming', 'Minimal', 'Dark', 'Cute', 'Funny', 'Other'];
+const SORTS = new Set(['popular', 'new']);
 const MAX_PROFILE_BYTES = 1536 * 1024;
 const CODE_ALPHABET = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -52,13 +55,17 @@ function makeStore({ db, sqliteFile }) {
             edit_token_hash TEXT NOT NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )`).then(() => db.query('CREATE INDEX IF NOT EXISTS cloudcord_profile_shares_public_idx ON cloudcord_profile_shares (visibility, updated_at DESC)'));
+        )`).then(() => db.query('CREATE INDEX IF NOT EXISTS cloudcord_profile_shares_public_idx ON cloudcord_profile_shares (visibility, updated_at DESC)'))
+            .then(() => db.query("ALTER TABLE cloudcord_profile_shares ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'Other', ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '', ADD COLUMN IF NOT EXISTS uses INTEGER NOT NULL DEFAULT 0"));
         return {
             ready,
-            get: async id => (await db.query('SELECT id, owner_id, name, visibility, profile, edit_token_hash, updated_at FROM cloudcord_profile_shares WHERE id = $1', [id])).rows[0] || null,
-            listPublic: async limit => (await db.query("SELECT id, owner_id, name, profile, updated_at FROM cloudcord_profile_shares WHERE visibility = 'public' ORDER BY updated_at DESC LIMIT $1", [limit])).rows,
-            insert: (row) => db.query('INSERT INTO cloudcord_profile_shares (id, owner_id, name, visibility, profile, edit_token_hash) VALUES ($1, $2, $3, $4, $5, $6)', [row.id, row.owner_id, row.name, row.visibility, row.profile, row.edit_token_hash]),
-            update: (id, row) => db.query('UPDATE cloudcord_profile_shares SET name = $2, visibility = $3, profile = $4, updated_at = NOW() WHERE id = $1', [id, row.name, row.visibility, row.profile]),
+            get: async id => (await db.query('SELECT id, owner_id, name, visibility, profile, edit_token_hash, category, description, uses, updated_at FROM cloudcord_profile_shares WHERE id = $1', [id])).rows[0] || null,
+            listPublic: async ({ limit, offset, q, category, sort }) => (await db.query(`SELECT id, owner_id, name, profile, category, description, uses, updated_at FROM cloudcord_profile_shares
+                WHERE visibility = 'public' AND ($2::text IS NULL OR category = $2) AND ($3::text IS NULL OR name ILIKE $3 OR description ILIKE $3)
+                ORDER BY ${sort === 'popular' ? 'uses DESC, updated_at DESC' : 'updated_at DESC'} LIMIT $1 OFFSET $4`, [limit, category, q ? `%${q.replace(/[%_\\]/g, '\\$&')}%` : null, offset])).rows,
+            insert: (row) => db.query('INSERT INTO cloudcord_profile_shares (id, owner_id, name, visibility, profile, edit_token_hash, category, description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [row.id, row.owner_id, row.name, row.visibility, row.profile, row.edit_token_hash, row.category, row.description]),
+            update: (id, row) => db.query('UPDATE cloudcord_profile_shares SET name = $2, visibility = $3, profile = $4, category = $5, description = $6, updated_at = NOW() WHERE id = $1', [id, row.name, row.visibility, row.profile, row.category, row.description]),
+            use: id => db.query("UPDATE cloudcord_profile_shares SET uses = uses + 1 WHERE id = $1 AND visibility <> 'private'", [id]),
             remove: id => db.query('DELETE FROM cloudcord_profile_shares WHERE id = $1', [id])
         };
     }
@@ -67,13 +74,19 @@ function makeStore({ db, sqliteFile }) {
     const sqlite = new DatabaseSync(sqliteFile);
     sqlite.exec(`CREATE TABLE IF NOT EXISTS shares (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, name TEXT NOT NULL, visibility TEXT NOT NULL,
         profile TEXT NOT NULL, edit_token_hash TEXT NOT NULL, updated_at TEXT NOT NULL)`);
+    for (const column of ["category TEXT NOT NULL DEFAULT 'Other'", "description TEXT NOT NULL DEFAULT ''", 'uses INTEGER NOT NULL DEFAULT 0']) {
+        try { sqlite.exec(`ALTER TABLE shares ADD COLUMN ${column}`); } catch { /* column already exists */ }
+    }
     const decode = row => row ? { ...row, profile: JSON.parse(row.profile) } : null;
     return {
         ready: Promise.resolve(),
         get: async id => decode(sqlite.prepare('SELECT * FROM shares WHERE id = ?').get(id)),
-        listPublic: async limit => sqlite.prepare("SELECT id, owner_id, name, profile, updated_at FROM shares WHERE visibility = 'public' ORDER BY updated_at DESC LIMIT ?").all(limit).map(decode),
-        insert: async row => sqlite.prepare('INSERT INTO shares VALUES (?, ?, ?, ?, ?, ?, ?)').run(row.id, row.owner_id, row.name, row.visibility, JSON.stringify(row.profile), row.edit_token_hash, new Date().toISOString()),
-        update: async (id, row) => sqlite.prepare('UPDATE shares SET name = ?, visibility = ?, profile = ?, updated_at = ? WHERE id = ?').run(row.name, row.visibility, JSON.stringify(row.profile), new Date().toISOString(), id),
+        listPublic: async ({ limit, offset, q, category, sort }) => sqlite.prepare(`SELECT id, owner_id, name, profile, category, description, uses, updated_at FROM shares
+            WHERE visibility = 'public' AND (?1 IS NULL OR category = ?1) AND (?2 IS NULL OR name LIKE ?2 OR description LIKE ?2)
+            ORDER BY ${sort === 'popular' ? 'uses DESC, updated_at DESC' : 'updated_at DESC'} LIMIT ?3 OFFSET ?4`).all(category, q ? `%${q}%` : null, limit, offset).map(decode),
+        insert: async row => sqlite.prepare('INSERT INTO shares (id, owner_id, name, visibility, profile, edit_token_hash, updated_at, category, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(row.id, row.owner_id, row.name, row.visibility, JSON.stringify(row.profile), row.edit_token_hash, new Date().toISOString(), row.category, row.description),
+        update: async (id, row) => sqlite.prepare('UPDATE shares SET name = ?, visibility = ?, profile = ?, category = ?, description = ?, updated_at = ? WHERE id = ?').run(row.name, row.visibility, JSON.stringify(row.profile), row.category, row.description, new Date().toISOString(), id),
+        use: async id => sqlite.prepare("UPDATE shares SET uses = uses + 1 WHERE id = ? AND visibility <> 'private'").run(id),
         remove: async id => sqlite.prepare('DELETE FROM shares WHERE id = ?').run(id)
     };
 }
@@ -86,7 +99,9 @@ function readBody(body) {
     if (!VISIBILITIES.has(visibility)) return { error: 'Visibility must be public, unlisted or private' };
     if (!profile || typeof profile !== 'object' || Array.isArray(profile)) return { error: 'Invalid profile' };
     if (Buffer.byteLength(JSON.stringify(profile)) > MAX_PROFILE_BYTES) return { error: 'Profile is too large. Use image links instead of uploaded images.', status: 413 };
-    return { name, visibility, profile };
+    const category = CATEGORIES.includes(body?.category) ? body.category : 'Other';
+    const description = String(body?.description || '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 200);
+    return { name, visibility, profile, category, description };
 }
 
 function makeProfileSharesRouter({ db, sqliteFile, readLimiter, writeLimiter }) {
@@ -104,8 +119,12 @@ function makeProfileSharesRouter({ db, sqliteFile, readLimiter, writeLimiter }) 
 
     router.get('/', readLimiter, handle(async (req, res) => {
         const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
-        const rows = await store.listPublic(limit);
-        res.set('Cache-Control', 'public, max-age=30').json({ shares: rows.map(row => ({ id: row.id, name: row.name, ownerId: row.owner_id, preview: previewOf(row.profile), updatedAt: row.updated_at })) });
+        const offset = Math.min(10000, Math.max(0, Number(req.query.offset) || 0));
+        const q = String(req.query.q || '').trim().slice(0, 60) || null;
+        const category = CATEGORIES.includes(req.query.category) ? req.query.category : null;
+        const sort = SORTS.has(req.query.sort) ? req.query.sort : 'popular';
+        const rows = await store.listPublic({ limit, offset, q, category, sort });
+        res.set('Cache-Control', 'public, max-age=30').json({ categories: CATEGORIES, shares: rows.map(row => ({ id: row.id, name: row.name, ownerId: row.owner_id, category: row.category, description: row.description, uses: Number(row.uses) || 0, preview: previewOf(row.profile), updatedAt: row.updated_at })) });
     }));
 
     router.get('/:id', readLimiter, handle(async (req, res) => {
@@ -113,7 +132,18 @@ function makeProfileSharesRouter({ db, sqliteFile, readLimiter, writeLimiter }) 
         const row = await store.get(req.params.id);
         // A private share looks exactly like a missing one to everyone but its owner.
         if (!row || (row.visibility === 'private' && !owns(row, req))) return res.status(404).json({ error: 'Profile not found' });
-        res.set('Cache-Control', 'no-store').json({ id: row.id, name: row.name, ownerId: row.owner_id, visibility: row.visibility, profile: row.profile, updatedAt: row.updated_at });
+        res.set('Cache-Control', 'no-store').json({ id: row.id, name: row.name, ownerId: row.owner_id, visibility: row.visibility, category: row.category, description: row.description, uses: Number(row.uses) || 0, profile: row.profile, updatedAt: row.updated_at });
+    }));
+
+    // Counts someone applying or saving a template; one count per address per template a day.
+    const recentUses = new Map();
+    router.post('/:id/use', writeLimiter, handle(async (req, res) => {
+        if (!validCode(req.params.id)) return res.status(404).json({ error: 'Profile not found' });
+        const key = `${req.ip}:${req.params.id}`;
+        const now = Date.now();
+        if (recentUses.size > 50000) recentUses.clear();
+        if (now - (recentUses.get(key) || 0) > 24 * 60 * 60 * 1000) { recentUses.set(key, now); await store.use(req.params.id); }
+        res.json({ counted: true });
     }));
 
     router.post('/', writeLimiter, handle(async (req, res) => {
@@ -123,14 +153,14 @@ function makeProfileSharesRouter({ db, sqliteFile, readLimiter, writeLimiter }) 
         const editToken = crypto.randomBytes(32).toString('base64url');
         let id = newCode();
         for (let attempt = 0; attempt < 5 && await store.get(id); attempt++) id = newCode();
-        await store.insert({ id, owner_id: String(req.body.ownerId), name: body.name, visibility: body.visibility, profile: body.profile, edit_token_hash: hashToken(editToken) });
+        await store.insert({ id, owner_id: String(req.body.ownerId), name: body.name, visibility: body.visibility, profile: body.profile, category: body.category, description: body.description, edit_token_hash: hashToken(editToken) });
         res.status(201).json({ id, editToken, visibility: body.visibility });
     }));
 
     router.put('/:id', writeLimiter, handle(async (req, res) => {
         const row = validCode(req.params.id) ? await store.get(req.params.id) : null;
         if (!owns(row, req)) return res.status(401).json({ error: 'Only the device that shared this profile can change it' });
-        const body = readBody({ name: req.body?.name ?? row.name, visibility: req.body?.visibility ?? row.visibility, profile: req.body?.profile ?? row.profile });
+        const body = readBody({ name: req.body?.name ?? row.name, visibility: req.body?.visibility ?? row.visibility, profile: req.body?.profile ?? row.profile, category: req.body?.category ?? row.category, description: req.body?.description ?? row.description });
         if (body.error) return res.status(body.status || 400).json({ error: body.error });
         await store.update(row.id, body);
         res.json({ id: row.id, updated: true, visibility: body.visibility });
@@ -167,7 +197,7 @@ function renderSharePage(row) {
         </article>
         <section class="share-import">
             <h2>Use this profile</h2>
-            <p>In CloudCord, open <strong>Custom Profile → Saved profiles</strong>, choose <strong>Import</strong> and paste this code:</p>
+            <p>In CloudCord, open <strong>Custom Profile → Templates</strong>, choose <strong>Use a code</strong> and paste this:</p>
             <code class="share-code">${escapeHtml(row.id)}</code>
             <p class="share-note">It's added to your Saved profiles. Nothing changes until you choose to use it.</p>
         </section>`;
@@ -179,7 +209,7 @@ function renderSharePage(row) {
 ${preview?.avatar ? `<meta property="og:image" content="${escapeHtml(preview.avatar)}">` : ''}
 <meta name="theme-color" content="${escapeHtml(accent)}">
 <link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/share.css">
-</head><body><main class="share-page">${card}<p class="share-foot"><a href="/">CloudCord</a></p></main></body></html>`;
+</head><body><main class="share-page">${card}<p class="share-foot"><a href="/templates">Browse more templates</a> · <a href="/">CloudCord</a></p></main></body></html>`;
 }
 
-module.exports = { makeProfileSharesRouter, renderSharePage, previewOf };
+module.exports = { makeProfileSharesRouter, renderSharePage, previewOf, CATEGORIES };
