@@ -12,6 +12,7 @@ const { Pool } = require('pg');
 const { makeStoreCloudRouter } = require('./storecloud');
 const { makeMembershipRouter } = require('./membership');
 const { makeCustomConnectionsRouter } = require('./custom-connections');
+const { makeProfileSharesRouter, renderSharePage } = require('./profile-shares');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -142,6 +143,7 @@ const siteLimiter = rateLimit({
     skip: req => {
         // Profiles have independent read/write quotas, not this shared quota.
         if (req.path === '/v1/profiles' || req.path.startsWith('/v1/profiles/')) return true;
+        if (req.path === '/v1/shares' || req.path.startsWith('/v1/shares/')) return true;
         if (req.path === '/health') return true;
         // Staff applications and review have dedicated, tighter limiters. Keeping
         // them out of this shared quota prevents unrelated client traffic behind
@@ -378,6 +380,21 @@ app.put('/v1/profiles/:id', profileWriteLimiter, profileHandler(async (req, res)
     if (!result.rows[0]) return res.status(401).json({ error: 'Invalid profile token' });
     res.json({ id: result.rows[0].id, updated: true });
 }));
+
+// Shared Custom Profiles (public, unlisted or private) and the page behind a share link.
+const profileShares = makeProfileSharesRouter({
+    db: realCordDb,
+    sqliteFile: !realCordDb && localProfiles ? (process.env.CLOUDCORD_SHARE_DB_FILE || require('path').join(process.env.LOCALAPPDATA || require('os').homedir(), 'CloudCord', 'web', 'shares.sqlite')) : null,
+    readLimiter: profileReadLimiter,
+    writeLimiter: profileWriteLimiter
+});
+app.use('/v1/shares', profileShares.router);
+app.get('/p/:id', profileReadLimiter, async (req, res) => {
+    let row = null;
+    try { if (profileShares.store && /^[A-Za-z0-9]{6,16}$/.test(req.params.id)) { await profileShares.store.ready; row = await profileShares.store.get(req.params.id); } }
+    catch (error) { console.error('share page failed:', error.message); }
+    res.status(row && row.visibility !== 'private' ? 200 : 404).set('Cache-Control', 'no-store').type('html').send(renderSharePage(row));
+});
 
 // Lightweight status endpoint for uptime monitors and the public status page.
 // BOTCORD_STATUS can be changed to "operational" after the desktop feature is restored.
