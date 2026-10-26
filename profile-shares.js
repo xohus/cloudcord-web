@@ -91,6 +91,31 @@ function makeStore({ db, sqliteFile }) {
     };
 }
 
+// Official starter templates so the gallery is never empty. Colour themes only, so
+// they work with anyone's own picture and name. Seeded once; ids never change.
+const hex = value => parseInt(value.slice(1), 16);
+const STARTER_TEMPLATES = [
+    ['ccMidnight01', 'Midnight', 'Dark', 'Deep navy into violet.', '#0f1033', '#5b2a86'],
+    ['ccSakura0001', 'Sakura', 'Cute', 'Soft cherry-blossom pinks.', '#ffb7c5', '#ff6f91'],
+    ['ccOcean00001', 'Ocean', 'Aesthetic', 'Calm blues from shore to deep water.', '#0077b6', '#00b4d8'],
+    ['ccForest0001', 'Forest', 'Aesthetic', 'Moss and pine greens.', '#1b4332', '#52b788'],
+    ['ccSunset0001', 'Sunset', 'Aesthetic', 'Warm orange fading into pink.', '#ff7b54', '#c94b8f'],
+    ['ccMono000001', 'Mono', 'Minimal', 'Clean black and white.', '#111111', '#e5e5e5'],
+    ['ccNeon000001', 'Neon', 'Gaming', 'Electric cyan and magenta.', '#00f5d4', '#f15bb5'],
+    ['ccGold000001', 'Gold', 'Minimal', 'Black with a gold finish.', '#1a1a1a', '#d4af37']
+].map(([id, name, category, description, primary, accent]) => ({
+    id, name, category, description,
+    profile: { profileColorsEnabled: true, primaryColor: hex(primary), accentColor: hex(accent) }
+}));
+
+async function seedStarterTemplates(store) {
+    for (const starter of STARTER_TEMPLATES) {
+        if (await store.get(starter.id)) continue;
+        await store.insert({ id: starter.id, owner_id: '0', name: starter.name, visibility: 'public', profile: starter.profile,
+            category: starter.category, description: starter.description, edit_token_hash: hashToken(crypto.randomBytes(32)) });
+    }
+}
+
 function readBody(body) {
     const name = cleanName(body?.name);
     const visibility = String(body?.visibility || '');
@@ -111,6 +136,7 @@ function makeProfileSharesRouter({ db, sqliteFile, readLimiter, writeLimiter }) 
         return { router, store: null };
     }
     const store = makeStore({ db, sqliteFile });
+    store.ready = store.ready.then(() => seedStarterTemplates(store)).catch(error => console.error('starter templates:', error.message));
     const handle = fn => (req, res) => Promise.resolve().then(() => store.ready).then(() => fn(req, res)).catch(error => {
         console.error('profile share failed:', error.message);
         if (!res.headersSent) res.status(503).json({ error: 'Profile sharing temporarily unavailable' });
