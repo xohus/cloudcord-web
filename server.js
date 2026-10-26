@@ -13,6 +13,7 @@ const { makeStoreCloudRouter } = require('./storecloud');
 const { makeMembershipRouter } = require('./membership');
 const { makeCustomConnectionsRouter } = require('./custom-connections');
 const { makeDownloadAlerts } = require('./download-alerts');
+const { makeStaffReports } = require('./staff-reports');
 const { makeProfileSharesRouter, renderSharePage } = require('./profile-shares');
 
 const app = express();
@@ -149,7 +150,7 @@ const siteLimiter = rateLimit({
         // Staff applications and review have dedicated, tighter limiters. Keeping
         // them out of this shared quota prevents unrelated client traffic behind
         // the same proxy from locking applicants and reviewers out.
-        if (req.path.startsWith('/api/staff/') || req.path.startsWith('/api/admin/staff/')) return true;
+        if (req.path.startsWith('/api/staff/') || req.path.startsWith('/api/admin/staff/') || req.path.startsWith('/api/staff-reports')) return true;
         if (!['GET', 'HEAD'].includes(req.method)) return false;
         if (req.path.startsWith('/api/proxy/raw/') || req.path.startsWith('/api/proxy/assets/')) return true;
         return !req.path.startsWith('/api/') && !req.path.startsWith('/v1/');
@@ -562,7 +563,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
     etag: true,
     setHeaders: (res, servedPath) => {
         const fileName = path.basename(servedPath).toLowerCase();
-        if (servedPath.toLowerCase().includes(`${path.sep}desktop-plugins${path.sep}`) || servedPath.toLowerCase().endsWith('.html') || ['script.js', 'admin.css', 'admin.js', 'staff-application.css', 'staff-application.js'].includes(fileName)) {
+        if (servedPath.toLowerCase().includes(`${path.sep}desktop-plugins${path.sep}`) || servedPath.toLowerCase().endsWith('.html') || ['script.js', 'admin.css', 'admin.js', 'staff-application.css', 'staff-application.js', 'staff-reports.css', 'staff-reports.js'].includes(fileName)) {
             res.setHeader('Cache-Control', 'no-store, max-age=0');
         }
     }
@@ -1271,6 +1272,11 @@ app.get(['/join', '/badges/verify'], (_req, res) => {
 app.get('/staff-application', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'staff-application.html'));
 });
+
+// Staff reports: public /report-staff and staff-only /staff/reports.
+app.use(makeStaffReports({ db: realCordDb, botRequest: discordBotRequest, checkStaffAdmin, timingSafeTextEqual, logAudit }));
+app.get('/report-staff', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'report-staff.html')));
+app.get('/staff/reports', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'staff-reports.html')));
 
 app.listen(PORT, () => {
     downloadAlerts.start();

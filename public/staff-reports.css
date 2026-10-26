@@ -1,0 +1,25 @@
+/* Staff report pages; builds on staff-application.css. */
+.report-shell { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 140px 0 100px; position: relative; }
+.report-shell .application-hero { margin-bottom: 40px; }
+.report-shell .application-hero h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); }
+.report-gate { text-align: center; }
+.report-gate h2 { font-size: 1.4rem; margin-bottom: 8px; }
+.report-gate p { color: var(--text-secondary); margin-bottom: 20px; }
+.signed-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; color: var(--text-secondary); font-size: .86rem; font-weight: 700; }
+.signed-in span { display: inline-flex; align-items: center; gap: 9px; }
+.signed-in img { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-tertiary); }
+.signed-in button { border: 0; background: none; color: var(--text-muted); cursor: pointer; font: 700 .8rem var(--font-primary); }
+.field select { width: 100%; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); border-radius: 8px; padding: 13px 14px; font: 500 .92rem var(--font-primary); }
+.report-privacy { color: var(--text-muted); font-size: .78rem; text-align: center; margin-top: 14px; }
+.report-privacy a { color: var(--accent-purple); }
+.review-panel { margin-top: 40px; }
+.review-panel .section-heading { justify-content: space-between; padding-right: 0; }
+.review-card { border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-primary); padding: 16px; margin-top: 12px; }
+.review-card header { display: grid; gap: 3px; margin-bottom: 10px; }
+.review-card header span, .review-extra, .review-empty { color: var(--text-muted); font-size: .78rem; }
+.review-card p { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-secondary); font-size: .9rem; }
+.review-extra { margin-top: 6px; }
+.review-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.review-actions input { flex: 1 1 180px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); border-radius: 7px; padding: 0 12px; min-height: 40px; }
+.review-actions .secondary-button { min-height: 40px; }
+@media (max-width: 620px) { .report-shell { padding-top: 115px; } .two-column { grid-template-columns: 1fr; } }

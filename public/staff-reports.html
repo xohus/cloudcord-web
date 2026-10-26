@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Reports | CloudCord</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="/assets/cloudcord-favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/staff-application.css?v=2">
+    <link rel="stylesheet" href="/staff-reports.css">
+</head>
+<body class="staff-page" data-report-kind="internal">
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
+    </script>
+
+    <nav class="navbar staff-nav">
+        <div class="nav-content">
+            <a href="/" class="logo-link" aria-label="CloudCord home"><img src="/assets/cloudcord-favicon.png" alt="CloudCord" class="nav-logo"></a>
+            <a href="/" class="staff-home-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg> Return home</a>
+        </div>
+    </nav>
+
+    <main class="report-shell">
+        <header class="application-hero">
+            <div class="eyebrow"><span></span> Staff only</div>
+            <h1>Report a<br><em>teammate.</em></h1>
+            <p>Flag inactivity, skipped procedures, permission abuse or anything else management should know about a fellow staff member. Reports stay between you and management.</p>
+        </header>
+
+        <section class="form-section report-gate" id="reportGate">
+            <h2 id="gateTitle">Loading…</h2>
+            <p id="gateText"></p>
+            <button type="button" class="submit-button" id="gateAction" hidden></button>
+        </section>
+
+        <form id="reportForm" class="form-section" novalidate hidden>
+            <div class="signed-in" id="signedInAs" hidden>
+                <span><img id="signedInAvatar" alt=""> Signed in as <b id="signedInName"></b></span>
+                <button type="button" id="signOut">Sign out</button>
+            </div>
+            <div class="field-stack">
+                <div class="field-grid two-column">
+                    <label class="field"><span>Staff member <b>*</b></span><input name="subject" maxlength="100" placeholder="Their Discord username" required></label>
+                    <label class="field"><span>Their user ID</span><input name="subjectId" inputmode="numeric" pattern="[0-9]{15,22}" placeholder="Optional"></label>
+                </div>
+                <div class="field-grid two-column">
+                    <label class="field"><span>What happened <b>*</b></span><select name="category" required></select></label>
+                    <label class="field"><span>When</span><input name="happenedAt" maxlength="60" placeholder="e.g. yesterday, around 9pm UTC"></label>
+                </div>
+                <label class="field"><span>Details <b>*</b></span><textarea name="details" rows="6" maxlength="4000" placeholder="What happened, for how long, and what you expected instead. For inactivity, say when they were last active." required></textarea></label>
+                <label class="field"><span>Evidence</span><textarea name="evidence" rows="3" maxlength="1500" placeholder="Message links, screenshot links, ticket numbers…"></textarea><small>Links only. Don't paste passwords or tokens.</small></label>
+                <button type="submit" class="submit-button">Send report</button>
+            </div>
+        </form>
+        <p class="report-privacy">Reporting as a user instead? Use <a href="/report-staff">the public form</a>.</p>
+
+        <section class="form-section review-panel" id="reviewPanel" hidden>
+            <div class="section-heading"><div><h2>Review queue</h2><p>Visible because you are signed in to the admin panel.</p></div>
+                <label class="field"><select id="reviewStatus"><option value="open">Open</option><option value="reviewing">Reviewing</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></label></div>
+            <div id="reviewList"></div>
+        </section>
+    </main>
+
+    <div id="toast" class="application-toast" role="status"></div>
+    <script src="/staff-reports.js"></script>
+</body>
+</html>
