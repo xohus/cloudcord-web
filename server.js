@@ -14,6 +14,7 @@ const { makeMembershipRouter } = require('./membership');
 const { makeCustomConnectionsRouter } = require('./custom-connections');
 const { makeDownloadAlerts } = require('./download-alerts');
 const { makeStaffReports } = require('./staff-reports');
+const { makeAppeals } = require('./appeals');
 const { makeProfileSharesRouter, renderSharePage } = require('./profile-shares');
 
 const app = express();
@@ -150,7 +151,7 @@ const siteLimiter = rateLimit({
         // Staff applications and review have dedicated, tighter limiters. Keeping
         // them out of this shared quota prevents unrelated client traffic behind
         // the same proxy from locking applicants and reviewers out.
-        if (req.path.startsWith('/api/staff/') || req.path.startsWith('/api/admin/staff/') || req.path.startsWith('/api/staff-reports')) return true;
+        if (req.path.startsWith('/api/staff/') || req.path.startsWith('/api/admin/staff/') || req.path.startsWith('/api/staff-reports') || req.path.startsWith('/api/appeals')) return true;
         if (!['GET', 'HEAD'].includes(req.method)) return false;
         if (req.path.startsWith('/api/proxy/raw/') || req.path.startsWith('/api/proxy/assets/')) return true;
         return !req.path.startsWith('/api/') && !req.path.startsWith('/v1/');
@@ -563,7 +564,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
     etag: true,
     setHeaders: (res, servedPath) => {
         const fileName = path.basename(servedPath).toLowerCase();
-        if (servedPath.toLowerCase().includes(`${path.sep}desktop-plugins${path.sep}`) || servedPath.toLowerCase().endsWith('.html') || ['script.js', 'admin.css', 'admin.js', 'staff-application.css', 'staff-application.js', 'staff-reports.css', 'staff-reports.js', 'reports-admin.js'].includes(fileName)) {
+        if (servedPath.toLowerCase().includes(`${path.sep}desktop-plugins${path.sep}`) || servedPath.toLowerCase().endsWith('.html') || ['script.js', 'admin.css', 'admin.js', 'staff-application.css', 'staff-application.js', 'staff-reports.css', 'staff-reports.js', 'reports-admin.js', 'appeal.js', 'appeals-admin.js'].includes(fileName)) {
             res.setHeader('Cache-Control', 'no-store, max-age=0');
         }
     }
@@ -696,6 +697,8 @@ async function sendStaffDecisionDm(application, decision, note) {
 
 // Staff reports: public /report-staff and staff-only /staff/reports.
 const staffReports = makeStaffReports({ db: realCordDb, botRequest: discordBotRequest, checkStaffAdmin, timingSafeTextEqual, logAudit });
+// Appeals (/appeal) use the same Discord sign-in as staff reports.
+const appeals = makeAppeals({ db: realCordDb, checkStaffAdmin, logAudit });
 
 app.post('/api/staff/applications/start', staffApplicationLimiter, (req, res) => {
     if (!realCordDb) return res.status(503).json({ error: 'Applications are temporarily unavailable' });
@@ -1278,6 +1281,8 @@ app.get('/staff-application', (_req, res) => {
 });
 
 app.use(staffReports);
+app.use(appeals);
+app.get('/appeal', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'appeal.html')));
 app.get('/report-staff', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'report-staff.html')));
 app.get('/staff/reports', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'staff-reports.html')));
 
