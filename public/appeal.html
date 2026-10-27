@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appeal a Punishment | CloudCord</title>
+    <meta name="description" content="Appeal a CloudCord ban, mute, blacklist, demotion or staff removal.">
+    <link rel="icon" href="/assets/cloudcord-favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/staff-application.css?v=2">
+    <link rel="stylesheet" href="/staff-reports.css">
+</head>
+<body class="staff-page">
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) document.body.classList.add('light');
+    </script>
+
+    <nav class="navbar staff-nav">
+        <div class="nav-content">
+            <a href="/" class="logo-link" aria-label="CloudCord home"><img src="/assets/cloudcord-favicon.png" alt="CloudCord" class="nav-logo"></a>
+            <a href="/" class="staff-home-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg> Return home</a>
+        </div>
+    </nav>
+
+    <main class="report-shell">
+        <header class="application-hero">
+            <div class="eyebrow"><span></span> Reviewed by management</div>
+            <h1>Appeal a<br><em>decision.</em></h1>
+            <p>Banned, muted, blacklisted, demoted or removed from staff and think it was wrong or deserves a second chance? Tell us. Management reviews every appeal and you can check its status here.</p>
+        </header>
+
+        <section class="form-section report-gate" id="reportGate">
+            <h2 id="gateTitle">Loading…</h2>
+            <p id="gateText"></p>
+            <button type="button" class="submit-button" id="gateAction" hidden></button>
+        </section>
+
+        <form id="reportForm" class="form-section" novalidate hidden>
+            <div class="signed-in" id="signedInAs" hidden>
+                <span><img id="signedInAvatar" alt=""> Signed in as <b id="signedInName"></b></span>
+                <button type="button" id="signOut">Sign out</button>
+            </div>
+            <div class="field-stack">
+                <div class="field-grid two-column">
+                    <label class="field"><span>What are you appealing <b>*</b></span><select name="type" required></select></label>
+                    <label class="field"><span>When</span><input name="happenedAt" maxlength="60" placeholder="e.g. last week, 3 March"></label>
+                </div>
+                <div class="field-grid two-column">
+                    <label class="field"><span>Reason you were given</span><input name="reason" maxlength="500" placeholder="If you know it"></label>
+                    <label class="field"><span>Who issued it</span><input name="issuedBy" maxlength="100" placeholder="Staff username, if you know"></label>
+                </div>
+                <label class="field"><span>Why should it be reversed <b>*</b></span><textarea name="statement" rows="7" maxlength="4000" placeholder="Explain what happened from your side, why you think the decision was wrong, or what has changed since." required></textarea></label>
+                <label class="field"><span>Evidence</span><textarea name="evidence" rows="3" maxlength="1500" placeholder="Message links, screenshot links, ticket numbers…"></textarea><small>Links only. Don't paste passwords or tokens.</small></label>
+                <button type="submit" class="submit-button">Send appeal</button>
+            </div>
+        </form>
+
+        <section class="form-section" id="myAppeals" hidden>
+            <h2>Your appeals</h2>
+            <div id="appealList"></div>
+        </section>
+        <p class="report-privacy">One open appeal per decision. Lying or spamming appeals gets them denied. To report a staff member instead, use <a href="/report-staff">/report-staff</a>.</p>
+    </main>
+
+    <div id="toast" class="application-toast" role="status"></div>
+    <script src="/appeal.js"></script>
+</body>
+</html>

@@ -17,7 +17,7 @@ const CATEGORIES = {
     internal: ['Inactivity', 'Not following procedures', 'Abuse of permissions', 'Leaking', 'Conflict or behaviour', 'Other']
 };
 const STATUSES = ['open', 'reviewing', 'resolved', 'dismissed'];
-const PAGES = { public: '/report-staff', internal: '/staff/reports' };
+const PAGES = { public: '/report-staff', internal: '/staff/reports', appeal: '/appeal' };
 const STAFF_CHECK_MS = 5 * 60 * 1000;
 const WEBHOOK_RE = /^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 
@@ -101,7 +101,7 @@ function makeStaffReports({ db, botRequest, checkStaffAdmin, timingSafeTextEqual
     }
 
     router.get('/staff-reports/login', authLimiter, (req, res) => {
-        const back = req.query.next === 'internal' ? 'internal' : 'public';
+        const back = Object.hasOwn(PAGES, req.query.next) ? req.query.next : 'public';
         const clientId = env.CLOUDCORD_DISCORD_CLIENT_ID;
         if (!clientId || !env.CLOUDCORD_DISCORD_CLIENT_SECRET) return res.redirect(`${PAGES[back]}?error=signin_unavailable`);
         const state = crypto.randomBytes(24).toString('base64url');
