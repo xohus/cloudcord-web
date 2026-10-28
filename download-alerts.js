@@ -2,7 +2,7 @@
 // Download alerts for the CloudCord Discord: a webhook message for new downloads,
 // @here every 1,000 and @everyone every 5,000 verified downloads.
 //
-// The verified total comes from the usage Worker (the same number the website shows).
+// The verified total is the website's install count (installer downloads only).
 // It is polled, so downloads from any link are counted; the website's own /download
 // routes add which platform people picked. The last announced total is kept in
 // Postgres so restarts never repeat or skip a milestone.
@@ -28,7 +28,7 @@ function platformSummary(counts) {
     return parts.length ? parts.join(' · ') : '';
 }
 
-function makeDownloadAlerts({ db, webhookUrl, fetchImpl = fetch, now = () => Date.now(), logger = console }) {
+function makeDownloadAlerts({ db, webhookUrl, readTotal: readTotalOverride, fetchImpl = fetch, now = () => Date.now(), logger = console }) {
     const enabled = !!webhookUrl && /^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/.test(webhookUrl);
     const platformHits = {};
     let lastCount = null;
@@ -68,6 +68,7 @@ function makeDownloadAlerts({ db, webhookUrl, fetchImpl = fetch, now = () => Dat
     }
 
     async function readTotal() {
+        if (readTotalOverride) return readTotalOverride();
         const response = await fetchImpl(USAGE_URL, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
         if (!response.ok) throw new Error(`usage service returned ${response.status}`);
         const count = Number((await response.json())?.count);

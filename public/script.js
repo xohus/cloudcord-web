@@ -639,12 +639,13 @@ SearchActionSheet — makes long-pressing search results open their action sheet
     // 7. Show only the canonical lifetime download count, never an added baseline.
     const installCounter = document.getElementById('install-counter');
     if (installCounter) {
-        const cacheKey = 'cloudcordVerifiedDownloadCountV2';
+        const cacheKey = 'cloudcordVerifiedDownloadCountV3';
         let lastVerifiedCount = null;
         let pending = false;
         try {
             // The old key contains totals inflated by 500 and cannot be trusted.
             localStorage.removeItem('cloudcordVerifiedInstallCount');
+            localStorage.removeItem('cloudcordVerifiedDownloadCountV2'); // counted update checks
             const cached = localStorage.getItem(cacheKey);
             if (cached !== null && /^\d+$/.test(cached)) {
                 const count = Number(cached);
@@ -659,7 +660,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
             pending = true;
             try {
                 let count = null;
-                for (const url of ['/v1/usage/installs', 'https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs']) {
+                for (const url of ['/v1/usage/installs']) {
                     try {
                         const response = await fetch(url, {
                             cache: 'no-store', signal: AbortSignal.timeout(5000),
@@ -672,7 +673,7 @@ SearchActionSheet — makes long-pressing search results open their action sheet
                         }
                         count = payload.count;
                         break;
-                    } catch { /* Try the canonical worker if the website proxy fails. */ }
+                    } catch { /* Keep the last verified count. */ }
                 }
                 if (count === null) throw new Error('Verified download count unavailable');
                 lastVerifiedCount = count;
