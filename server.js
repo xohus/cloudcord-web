@@ -13,6 +13,7 @@ const { makeStoreCloudRouter } = require('./storecloud');
 const { makeMembershipRouter } = require('./membership');
 const { makeCustomConnectionsRouter } = require('./custom-connections');
 const { makeDownloadAlerts } = require('./download-alerts');
+const { makeInstallCount } = require('./install-count');
 const { makeStaffReports } = require('./staff-reports');
 const { makeAppeals } = require('./appeals');
 const { makeProfileSharesRouter, renderSharePage } = require('./profile-shares');
@@ -426,7 +427,8 @@ app.get(['/api/status', '/v1/status'], (req, res) => {
 });
 
 // Discord webhook posts for new downloads (@here every 1,000, @everyone every 5,000).
-const downloadAlerts = makeDownloadAlerts({ db: realCordDb, webhookUrl: process.env.CLOUDCORD_DOWNLOADS_WEBHOOK_URL });
+const readInstallCount = makeInstallCount();
+const downloadAlerts = makeDownloadAlerts({ db: realCordDb, webhookUrl: process.env.CLOUDCORD_DOWNLOADS_WEBHOOK_URL, readTotal: readInstallCount });
 
 // Direct live installs proxy to bypass any CORS/client network issues.
 // Never manufacture a count: retain the last verified upstream value during a
@@ -434,23 +436,10 @@ const downloadAlerts = makeDownloadAlerts({ db: realCordDb, webhookUrl: process.
 let lastVerifiedInstallCount = null;
 app.get(['/api/usage/installs', '/v1/usage/installs'], async (req, res) => {
     try {
-        const workerRes = await fetch('https://cloudcord-profiles.ggxohus.workers.dev/v1/usage/installs', {
-            headers: { 'Accept': 'application/json' },
-            signal: AbortSignal.timeout(5000)
-        });
-        if (!workerRes.ok) {
-            throw new Error(`Usage service returned ${workerRes.status}`);
-        }
-
-        const data = await workerRes.json();
-        const count = Number(data?.count);
-        if (!Number.isSafeInteger(count) || count < 0) {
-            throw new Error('Usage service returned an invalid count');
-        }
-
+        const count = await readInstallCount();
         lastVerifiedInstallCount = count;
         res.set('Cache-Control', 'no-store');
-        return res.json({ ...data, count, verified: true });
+        return res.json({ count, metric: 'lifetime_official_downloads', verified: true });
     } catch (e) {
         res.set('Cache-Control', 'no-store');
         if (lastVerifiedInstallCount !== null) {
