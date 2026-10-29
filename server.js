@@ -502,7 +502,7 @@ app.get('/download/android', (_req, res) => {
 app.get('/download/android/apk', (_req, res) => {
     downloadAlerts.noteDownload('android');
     res.set('Cache-Control', 'no-store');
-    res.redirect(302, 'https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCordManager-Test2-7829c8f.apk');
+    res.redirect(302, 'https://github.com/xohus/cloudcord/releases/download/new_beta_android/CloudCordManager-Test2-5dd358b.apk');
 });
 
 // Session setup
